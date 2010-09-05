@@ -1,0 +1,11 @@
+; $Id$
+name = Devel Graphs
+description = Displays devel related graphs
+package = Devel
+version = VERSION
+core = 7.x
+dependencies[] = devel
+dependencies[] = graphapi
+
+files[] = graphapi_devel.module
+

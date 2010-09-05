@@ -1,0 +1,107 @@
+<?php
+
+/**
+ * @file
+ *
+ * This api renders graph.inc data structures as directed graphs.
+ * 
+ * Additional content values are stuffed into a div
+ * 
+ * $g['node-id']['data']['content'] = html contents
+ */
+
+/**
+ * 
+ * @param unknown_type $graph
+ * @param unknown_type $config
+ */
+function graphapi_container($graph, $config = array()) {
+  $default_config = array(
+    'width' => '800',
+    'height' => '600',
+    'id' => 'default',
+    'background-color' => 'grey',
+  );
+  $config+= $default_config;
+  $config['id'] = 'graphapi-' . $config['id'];
+  $config['canvas-id'] = $config['id'] . '-canvas';
+  
+  $result = '';
+  $result.= '<div id="' . $config['id'] .'" class="graphapi-container" style="-webkit-user-select:none; -moz-user-select:none; overflow: hidden; position: relative; background-color: '. $config['background-color'] . '; width:' . $config['width'] . 'px; ' . $config['height'] .'px;">';
+  $result.= '  <canvas id="' . $config['canvas-id'] . '" class="graphapi-canvas" style="background-color: transparant;" width="' . $config['width'] . '" height="' . $config['height'] .'"></canvas>';
+
+  $nodes = array();
+  foreach ($graph as $id => $data) {
+    $dom_id = _graphapi_uniform_id($config, $id);
+    // Make sure we have data.
+    if (! (isset($data['data']) && isset($data['data']['content']))) $data['data']['content'] = $id;
+    $result .= "\n" . theme_graph_node($dom_id, $data['data']);
+  }
+  $result .= "\n" . '</div>';
+  graphapi_add_graph( $graph, $config);
+  return $result;
+
+}
+
+function theme_graph_node($dom_id, $data) {
+  return '<div id="'. $dom_id .'" style="position:absolute;">' . $data['content'] . '</div>';
+}
+
+function _graphapi_uniform_id($config, $id) {
+  return $config['id'] . '-' . md5($id);
+}
+
+function graphapi_add_graph( $graph, $config) {
+  $dom_prefix = $config['id'];
+  $path = drupal_get_path('module', 'graphapi');
+  drupal_add_js($path . '/js/springy.js');
+  drupal_add_js($path . '/js/graphapi.js');
+  $links = drupal_json_encode(_graphapi_split_links($graph, $config));
+  $links = preg_replace('/\},\{/', "},\n{", $links);
+  drupal_add_js( 'jQuery(document).ready( function() {' 
+      . "\n" .'var links = ' . $links . ';'
+      . "\n" .'renderGraph("#' . $config['canvas-id']. '", links)});'
+    , 'inline');
+}
+
+/**
+ * Extract each pair (from, to) as separate item
+ * 
+ * @param array $graph
+ */
+function _graphapi_split_links($graph, $config) {
+  $split = array();
+  foreach( $graph as $from => $data) {
+    if ($from=='_first') {
+      //continue;
+    }
+    foreach ($data['edges'] as $to => $link_data) {
+      if ($to=='_last') {
+        //continue;
+      }
+      
+      $link = array(
+        'from' => _graphapi_uniform_id($config, $from),
+        'to' => _graphapi_uniform_id($config, $to),
+      );
+      if (is_array($link_data)) {
+        $link['data'] = $link_data;
+        
+      }
+      $split[] = $link;
+    }
+  }
+  return $split;	
+}
+
+function _graphapi_get_nodes($graph) {
+  $nodes = array();
+  foreach($graph as $from => $data) {
+    $nodes[$from] = 1;
+    foreach($data['edges'] as $to => $dummy ) {
+      $nodes[$to] = 1;
+    }
+  }
+  return $nodes;
+}
+

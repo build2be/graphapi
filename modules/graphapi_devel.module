@@ -1,0 +1,192 @@
+<?php
+
+function graphapi_devel_menu() {
+  $items['admin/modules/graph'] = array(
+    'title' => 'Graph',
+    'description' => t( "A graph of all defined 'update_dependencies'."),
+    'page callback' => 'graphapi_devel_system_modules_layout',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 100,
+  );
+  $items['admin/modules/graph/modules'] = array(
+    'title' => 'Module dependencies',
+    'description' => t( "A graph of all modules."),
+    'page callback' => 'graphapi_devel_system_modules_layout',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 100,
+  );
+  $items['admin/modules/graph/all-modules'] = array(
+    'title' => 'All module dependencies',
+    'description' => t( "A graph of all modules including hidden."),
+    'page callback' => 'graphapi_devel_system_all_modules_layout',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 100,
+  );
+  $items['admin/modules/graph/install'] = array(
+    'title' => 'Update Dependencies',
+    'description' => t( "A graph of all hook_update_dependencies'."),
+    'page callback' => 'graphapi_devel_system_module_install_layout',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 100,
+  );
+  return $items;
+}
+
+function _graphapi_devel_big_screen() {
+  return array( 'width' => 1024, 'height' => '1024');
+}
+
+function graphapi_devel_system_all_modules_layout() {
+  $graph = _graphapi_system_module_layout(TRUE);
+  return graphapi_container($graph, array('id'=>'sys_mod_lay', 'width' => 1024, "height" => 1024));
+}
+
+function graphapi_devel_system_modules_layout() {
+  $graph = _graphapi_system_module_layout();
+  return graphapi_container($graph, array('id'=>'sys_mod_lay'));
+}
+
+/**
+ * Builds a graph from only the defined values of update_dependencies
+ */
+function graphapi_devel_system_module_install_layout() {
+  $graph = _graphapi_system_module_install_layout();
+  return graphapi_container($graph, array());
+}
+
+function _graphapi_system_module_install_layout() {
+  $modules = module_list(TRUE, FALSE);
+  module_load_all_includes('install');
+  $graph = array();
+  $links = array();
+  // Remember links between module's own hook_update_N 
+  $selfs = array();
+  foreach($modules as $module) {
+    $update = module_invoke($module, 'update_dependencies');
+    if (count($update)) {
+      foreach( $update as $module => $versions) {
+        foreach( $versions as $version => $dests) {
+          $src = $module . "_update_" . $version;
+          $selfs[$module][] = $version;
+          foreach($dests as $dest_module => $dest_version) {
+            $dst = $dest_module . "_update_" . $dest_version;
+            $links[$dst][] = $src;
+            $graph[$dst]['edges'][$src]=array('color' => '#FF0');
+            if (!isset($graph[$src])) {
+              $graph[$src]['edges'] = array();
+            }
+            $selfs[$dest_module][] = $dest_version;
+          }
+        }
+      }
+    }
+  }
+  
+  // Add links between module's own hook_update_N
+  foreach( $selfs as $module => $versions) {
+    // delete dups
+    $v = array_flip($versions);
+    ksort($v);
+    $v = array_values(array_flip($v));
+    // Root all first update_N's
+    $current = "_first";
+    foreach ($v as $version) {
+      $dest = $module . '_update_' . $version;
+      $links[$current][] = $dest;
+      $graph[$current]['edges'][$dest]=array('color' => '#333');
+      $current = $dest;
+    }
+    $links[$current][] = '_last';
+    $graph[$current]['edges']['_last']=array('color' => '#000');
+  }
+  $graph['_last']['edges']=array();
+  return $graph;
+}
+
+function _graphapi_system_module_layout($show_hidden = FALSE) {
+  $modules = system_rebuild_module_data();
+  $graph = array();
+  foreach ($modules as $module => $data) {
+    if ($show_hidden || !(isset($data->info['hidden']) && $data->info['hidden'])) {
+      if (!isset($graph[$module])) {
+        $graph[$module]['edges'] = array();
+      }
+      //foreach ($data->requires as $key => $value) {
+      foreach ($data->info['dependencies'] as $key) {
+        if ($module != $key) {
+          $graph[$module]['edges'][$key] = 1;
+        }
+        else {
+          $circular = TRUE;
+        }
+        if (!isset($graph[$key])) {
+          $graph[$key]['edges'] = array();
+        }
+      }
+      $graph[$module]['data'] = theme_graphapi_module_object($data);
+    }
+    
+  
+  }
+  return $graph;
+}
+
+function theme_graphapi_module_object($module) {
+  if (isset($module->status)) {
+    $color = $module->status ? "#00ff00" : "#ffff00";
+  }
+  else {
+    $color = "#ff0000";
+  }
+  $result = array(
+    'content' => $module->name,
+    'color' => $color,
+  );
+  return $result;
+}
+
+/**
+ * Builds a graph from all hook_update and update_dependencies
+ */
+function graphapi_devel_system_modules_update_active() {
+  $result = _graphapi_system_module_install_layout_active();
+  return '<pre>' . $result . '</pre>';
+}
+
+function _graphapi_system_module_install_layout_active() {
+  require_once DRUPAL_ROOT . '/includes/install.inc';
+  require_once DRUPAL_ROOT . '/includes/update.inc';
+  
+  module_load_all_includes('install');
+  module_list(TRUE, FALSE);
+  
+  $modules = module_list();
+  $starting_updates = array_fill_keys($modules, 6);
+  
+  $update_functions = update_get_update_function_list($starting_updates);
+dsm($update_functions, "update_functions");
+  $graph = update_build_dependency_graph($update_functions);
+dsm($graph, "graph");
+  foreach ($graph as $node => $data) {
+    if (isset($data['edges'])) {
+      $graph[$node]['links']= array_keys($data['edges']);
+    }
+    else {
+      $graph[$node]['links']=array();
+    }
+  }
+  
+  $result = "\ndigraph {\n";
+  foreach( $graph as $node => $data) {
+    foreach ($data['links'] as $to) {
+      $result .= '"' . $node . '"';
+      $result .= ' -> ' . '"' . $to . '"' . "\n";
+    }
+  }
+  $result .= "}\n";
+  return $result;
+}
