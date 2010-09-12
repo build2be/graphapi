@@ -36,29 +36,22 @@ function graphapi_devel_menu() {
   return $items;
 }
 
-function _graphapi_devel_big_screen() {
-  return array( 'width' => 1024, 'height' => '1024');
-}
-
 function graphapi_devel_system_all_modules_layout() {
-  $graph = _graphapi_system_module_layout(TRUE);
+  $graph = _graphapi_devel_system_module_layout(TRUE);
   return graphapi_container($graph, array('id'=>'sys_mod_lay', 'width' => 1024, "height" => 1024));
 }
 
 function graphapi_devel_system_modules_layout() {
-  $graph = _graphapi_system_module_layout();
+  $graph = _graphapi_devel_system_module_layout();
   return graphapi_container($graph, array('id'=>'sys_mod_lay'));
 }
 
-/**
- * Builds a graph from only the defined values of update_dependencies
- */
 function graphapi_devel_system_module_install_layout() {
-  $graph = _graphapi_system_module_install_layout();
+  $graph = _graphapi_devel_system_module_install_layout();
   return graphapi_container($graph, array());
 }
 
-function _graphapi_system_module_install_layout() {
+function _graphapi_devel_system_module_install_layout() {
   $modules = module_list(TRUE, FALSE);
   module_load_all_includes('install');
   $graph = array();
@@ -85,7 +78,6 @@ function _graphapi_system_module_install_layout() {
       }
     }
   }
-  
   // Add links between module's own hook_update_N
   foreach( $selfs as $module => $versions) {
     // delete dups
@@ -104,10 +96,32 @@ function _graphapi_system_module_install_layout() {
     $graph[$current]['edges']['_last']=array('color' => '#000');
   }
   $graph['_last']['edges']=array();
+  
+  // Now remove all links from _first to 'node' having more incoming
+  $reverse = graphapi_reverse($graph);
+  $targets = array();
+  foreach ($reverse as $target => $value) {
+    if (count($value['edges']) > 1 && isset($value['edges']['_first'])) {
+      $targets[] = $target;
+    }
+  }
+  foreach( $targets as $target) {
+    unset( $graph['_first']['edges'][$target]);
+  }
+  // Remove all links to '_last' having more outgoing
+  foreach ($graph as $target => $value) {
+    if (count($value['edges']) > 1 && isset($value['edges']['_last'])) {
+      $targets[] = $target;
+    }
+  }
+  foreach( $targets as $target) {
+    unset( $graph[$target]['edges']['_last']);
+  }
+  
   return $graph;
 }
 
-function _graphapi_system_module_layout($show_hidden = FALSE) {
+function _graphapi_devel_system_module_layout($show_hidden = FALSE) {
   $modules = system_rebuild_module_data();
   $graph = array();
   foreach ($modules as $module => $data) {
@@ -168,9 +182,7 @@ function _graphapi_system_module_install_layout_active() {
   $starting_updates = array_fill_keys($modules, 6);
   
   $update_functions = update_get_update_function_list($starting_updates);
-dsm($update_functions, "update_functions");
   $graph = update_build_dependency_graph($update_functions);
-dsm($graph, "graph");
   foreach ($graph as $node => $data) {
     if (isset($data['edges'])) {
       $graph[$node]['links']= array_keys($data['edges']);
