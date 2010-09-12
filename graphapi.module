@@ -3,11 +3,13 @@
 /**
  * @file
  *
- * This api renders graph.inc data structures as directed graphs.
+ * This api renders graph.inc data structures as graphs.
  * 
  * Additional content values are stuffed into a div
  * 
- * $g['node-id']['data']['content'] = html contents
+ * $g['node']['data'] = your data
+ * $g['node']['data']['content'] = html contents used for rendering
+ * $g[node]['edges'][node-to]['data'] = you link data
  */
 
 /**
@@ -26,18 +28,20 @@ function graphapi_container($graph, $config = array()) {
   $config['id'] = 'graphapi-' . $config['id'];
   $config['canvas-id'] = $config['id'] . '-canvas';
   
+  $nl = "\n";
   $result = '';
   $result.= '<div id="' . $config['id'] .'" class="graphapi-container" style="-webkit-user-select:none; -moz-user-select:none; overflow: hidden; position: relative; background-color: '. $config['background-color'] . '; width:' . $config['width'] . 'px; ' . $config['height'] .'px;">';
-  $result.= '  <canvas id="' . $config['canvas-id'] . '" class="graphapi-canvas" style="background-color: transparant;" width="' . $config['width'] . '" height="' . $config['height'] .'"></canvas>';
-
+  // We need to explicitly set width and height otherwise springy collapses
+  $result.= $nl . '  <canvas id="' . $config['canvas-id'] . '" class="graphapi-canvas" style="background-color: transparant;" width="' . $config['width'] . '" height="' . $config['height'] .'"></canvas>';
+  $result.= $nl . '<noscript>' . t('This page element requires JavaScript to be enabled.') . '</noscript>';
   $nodes = array();
   foreach ($graph as $id => $data) {
     $dom_id = _graphapi_uniform_id($config, $id);
     // Make sure we have data.
     if (! (isset($data['data']) && isset($data['data']['content']))) $data['data']['content'] = $id;
-    $result .= "\n" . theme_graph_node($dom_id, $data['data']);
+    $result .= $nl . theme_graph_node($dom_id, $data['data']);
   }
-  $result .= "\n" . '</div>';
+  $result .= $nl . '</div>';
   graphapi_add_graph( $graph, $config);
   return $result;
 
@@ -105,3 +109,15 @@ function _graphapi_get_nodes($graph) {
   return $nodes;
 }
 
+function graphapi_reverse($graph, $keep_link_data = FALSE) {
+  $result = $graph;
+  foreach ($result as $key => $value) {
+    $result[$key]['edges'] = array();
+  }
+  foreach ($graph as $key => $value) {
+    foreach ($graph[$key]['edges'] as $link => $link_data) {
+      $result[$link]['edges'][$key] = 1;
+    }
+  }
+  return $result;
+}
