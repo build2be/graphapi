@@ -11,8 +11,41 @@
  * $g['node']['data']['content'] = html contents used for rendering
  * $g[node]['edges'][node-to]['data'] = you link data
  */
+function graphapi_new_graph() {
+  return array();
+}
+
+function graphapi_add_node(&$graph, $id) {
+  if (!isset($graph[$id])) {
+    $graph[$id]['edges'] = array();
+    $graph[$id]['data'] = array();
+    $graph[$id]['data']['content']= $id;
+  }
+}
+
+function graphapi_set_node_data(&$graph, $id, $data) {
+  graphapi_add_node($graph, $id);
+  $graph[$id]['data']= $data;
+}
+
+function graphapi_set_node_content(&$graph, $id, $content) {
+  graphapi_add_node($graph, $id);
+  $graph[$id]['data']['content']= $content;
+}
+
+function graphapi_add_link(&$graph, $from_id, $to_id) {
+  graphapi_add_node($graph, $from_id);
+  graphapi_add_node($graph, $to_id);
+  $graph[$from_id]['edges'][$to_id] = array();
+}
+
+function graphapi_set_link_data(&$graph, $from_id, $to_id, $data) {
+  graphapi_add_link($graph, $from_id, $to_id);
+  $graph[$from_id]['edges'][$to_id]['data'] = $data;
+}
 
 /**
+ * Renders the HTML for the given graph containing the canvas and divs
  * 
  * @param unknown_type $graph
  * @param unknown_type $config
@@ -23,6 +56,7 @@ function graphapi_container($graph, $config = array()) {
     'height' => '600',
     'id' => 'default',
     'background-color' => 'grey',
+    'node-width' => '40',
   );
   $config+= $default_config;
   $config['id'] = 'graphapi-' . $config['id'];
@@ -37,25 +71,34 @@ function graphapi_container($graph, $config = array()) {
   $nodes = array();
   foreach ($graph as $id => $data) {
     $dom_id = _graphapi_uniform_id($config, $id);
-    // Make sure we have data.
-    if (! (isset($data['data']) && isset($data['data']['content']))) $data['data']['content'] = $id;
-    $result .= $nl . theme_graph_node($dom_id, $data['data']);
+    if (!(isset($data['data']) && isset($data['data']['content']))) {
+      // Make sure we have content.
+      $data['data']['content'] = $id;
+    }
+    $result .= $nl . theme_graph_node($dom_id, $data['data'], $config);
   }
   $result .= $nl . '</div>';
-  graphapi_add_graph( $graph, $config);
+  _graphapi_add_graph( $graph, $config);
   return $result;
 
 }
 
-function theme_graph_node($dom_id, $data) {
-  return '<div id="'. $dom_id .'" style="position:absolute;">' . $data['content'] . '</div>';
+function theme_graph_node($dom_id, $data, $config) {
+  $attributes = array(
+    'id' => $dom_id,
+    'style' => 'position:absolute;overflow:hidden',
+    'class' => 'graphapi-node',
+    'width' => isset($data['width']) ? $data['width'] : $config['node-width'],
+  );
+  $a = drupal_attributes($attributes);
+  return '<div ' . $a . '>' . $data['content'] . '</div>';
 }
 
 function _graphapi_uniform_id($config, $id) {
   return $config['id'] . '-' . md5($id);
 }
 
-function graphapi_add_graph( $graph, $config) {
+function _graphapi_add_graph( $graph, $config) {
   $dom_prefix = $config['id'];
   $path = drupal_get_path('module', 'graphapi');
   drupal_add_js($path . '/js/springy.js');
