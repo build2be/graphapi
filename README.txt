@@ -1,4 +1,3 @@
-$Id$
 
 This is an API for rendering (Directed) Graphs onto the HTML5 canvas.
 

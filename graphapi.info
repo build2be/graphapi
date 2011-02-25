@@ -1,4 +1,3 @@
-; $Id$
 name = Graph API
 description = Allow developer to create graphs
 package = Graph Tools
