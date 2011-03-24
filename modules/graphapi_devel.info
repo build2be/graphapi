@@ -1,6 +1,6 @@
 name = Devel Graphs
 description = Displays devel related graphs
-package = Devel
+package = Development
 version = VERSION
 core = 7.x
 dependencies[] = graphapi
