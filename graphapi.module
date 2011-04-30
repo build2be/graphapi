@@ -64,10 +64,12 @@ function graphapi_container($graph, $config = array()) {
   
   $nl = "\n";
   $result = '';
-  $result.= '<div id="' . $config['id'] .'" class="graphapi-container" style="-webkit-user-select:none; -moz-user-select:none; overflow: hidden; position: relative; background-color: '. $config['background-color'] . '; width:' . $config['width'] . 'px; ' . $config['height'] .'px;">';
+  $result.= '<div id="' . $config['id'] .'" class="graphapi" style="-webkit-user-select:none; -moz-user-select:none; overflow: hidden; position: relative; background-color: '. $config['background-color'] . '; width:' . $config['width'] . 'px; ' . $config['height'] .'px;">';
   // We need to explicitly set width and height otherwise springy collapses
   $result.= $nl . '  <canvas id="' . $config['canvas-id'] . '" class="graphapi-canvas" style="background-color: transparant;" width="' . $config['width'] . '" height="' . $config['height'] .'"></canvas>';
   $result.= $nl . '<noscript>' . t('This page element requires JavaScript to be enabled.') . '</noscript>';
+  $result.= theme_graphapi_links($graph, $config);
+  $result.= '<div class="graphapi-nodes">';
   $nodes = array();
   foreach ($graph as $id => $data) {
     $dom_id = _graphapi_uniform_id($config, $id);
@@ -78,6 +80,7 @@ function graphapi_container($graph, $config = array()) {
     $result .= $nl . theme_graph_node($dom_id, $data['data'], $config);
   }
   $result .= $nl . '</div>';
+  $result .= $nl . '</div>';
   _graphapi_add_graph( $graph, $config);
   return $result;
 
@@ -86,13 +89,45 @@ function graphapi_container($graph, $config = array()) {
 function theme_graph_node($dom_id, $data, $config) {
   $attributes = array(
     'id' => $dom_id,
-    'style' => 'position:absolute;overflow:hidden',
+    //'style' => 'position:absolute;overflow:hidden',
     'class' => 'graphapi-node',
-    'width' => isset($data['width']) ? $data['width'] : $config['node-width'],
+    //'width' => isset($data['width']) ? $data['width'] : $config['node-width'],
   );
   $a = drupal_attributes($attributes);
   return '<div ' . $a . '>' . $data['content'] . '</div>';
 }
+
+function theme_graphapi_link($link) {
+  return '<edge from="' . $link['from'] . '" to="' . $link['to'] . '"></edge>';
+}
+
+function theme_graphapi_links($graph, $config) {
+  $result = '<edges>';
+  foreach( $graph as $from => $data) {
+    if ($from=='_first') {
+      //continue;
+    }
+    foreach ($data['edges'] as $to => $link_data) {
+      if ($to=='_last') {
+        //continue;
+      }
+
+      $link = array(
+        'from' => _graphapi_uniform_id($config, $from),
+        'to' => _graphapi_uniform_id($config, $to),
+      );
+      if (is_array($link_data)) {
+        $link['data'] = $link_data;
+
+      }
+      $result.= theme_graphapi_link($link);
+    }
+  }
+  $result.= '</edges>';
+  return $result;
+}
+
+
 
 function _graphapi_uniform_id($config, $id) {
   return $config['id'] . '-' . md5($id);
@@ -101,8 +136,9 @@ function _graphapi_uniform_id($config, $id) {
 function _graphapi_add_graph( $graph, $config) {
   $dom_prefix = $config['id'];
   $path = drupal_get_path('module', 'graphapi');
-  drupal_add_js($path . '/js/springy.js');
+//  drupal_add_js($path . '/js/springy.js');
   drupal_add_js($path . '/js/graphapi.js');
+  return;
   $links = drupal_json_encode(_graphapi_split_links($graph, $config));
   $links = preg_replace('/\},\{/', "},\n{", $links);
   drupal_add_js( 'jQuery(document).ready( function() {' 

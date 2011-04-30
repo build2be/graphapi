@@ -71,6 +71,7 @@
       lineColor: '#000',
       arrowColor: '#222',
       menu : false,
+      showForces : false,
       animate: true,
       initScale: 2,
       physics : {
@@ -174,27 +175,45 @@
         $.graphapi.physics.init($this, (opts.initScale * Math.random()- opts.initScale/2)* opts.width, (opts.initScale *Math.random()- opts.initScale/ 2) * opts.height);
       }).children('.graphapi-body').hide().end().css('border','2px solid yellow');
 
+      var mouseLog = function(e, o) {
+        var position = o.position();
+        var offset = o.offset();
+        console.log(e.type + ": " + e.pageX + ", " + e.pageY);
+        console.log("- position: " + position.left + "," + position.top);
+        console.log("- offset:   " + offset.left + "," + offset.top);
+        console.log("- rel:      " + (e.pageX - offset.left) + "," + (e.pageY - offset.top));
+      }
+      var getOffset = function(e, o) {
+        var offset = o.offset();
+        return { left : event.pageX - offset.left, top : event.pageY - offset.top};
+      }
       // Add drag support
       $nodes.children('.graphapi-node')
       .removeClass('dragging')
       .mousemove( function(event){
         var $this = $(this);
         if ($this.hasClass('dragging')) {
-          $this
-          console.log(event);
+          mouseLog(event,$this);
+          var dragOffset = getOffset(event, $this);
+          var oldOffset = $this.data('dragOffset');
+          var dx = dragOffset.left - oldOffset.left;
+          var dy = dragOffset.top - oldOffset.top;
+          console.log("== " + dx + "," +dy);
+          $this.css('left', $this.css('left')+ dx).css('top', $this.css('top') + dy);
         }
-      //console.log(event);
       })
       .mousedown(function(event){
         var $this = $(this);
         if ($this.addClass('dragging')) {
-          console.log(event);
+          mouseLog(event,$this);
+          var offset = $this.offset();
+          $this.data('dragOffset', getOffset(event, $this));
         }
       })
       .mouseup(function(event){
         var $this = $(this);
         if ($this.removeClass('dragging')) {
-          console.log(event);
+          mouseLog(event,$this);
         }
       });
     },
@@ -331,8 +350,8 @@
       },
 
       attractToCenter : function (physics, center) {
-        physics.fx += (center.px - physics.px) / 4;
-        physics.fy += (center.py - physics.py) / 4;
+        physics.fx += (center.px - physics.px) / 2;
+        physics.fy += (center.py - physics.py) / 2;
       },
 
       /*
@@ -369,7 +388,7 @@
         var r = Math.sqrt(r2);
 
         if (r < 0.01) r = 0.01;
-        var f = (r-u0);
+        var f = 4*(r-u0);
         
         var fx = f * rx/r;
         var fy = f * ry/r;
@@ -494,7 +513,7 @@
         var $from = $('#' + $this.attr('from'));
         var $to = $('#' + $this.attr('to'));
         $.graphapi.canvas.drawArrow(ctx, $from.data('physics'), $to.data('physics'), arrowColor);
-        //$.graphapi.canvas.drawLine(ctx, $from.data('physics'),$to.data('physics'), lineColor);
+      //$.graphapi.canvas.drawLine(ctx, $from.data('physics'),$to.data('physics'), lineColor);
       });
       // Update nodes
       $nodes.children('.graphapi-node').each(function() {
@@ -516,3 +535,23 @@
   };
 })(jQuery);
 
+jQuery(document).ready(function(){
+  var $ = jQuery;
+  $('.graphapi').graphapi({
+    menu:true
+  });
+
+  $('.graphapi').each(function(){
+    var $container = $(this);
+    $container.click(function() {
+      $.graphapi.animate($container);
+    });
+  });
+
+  setInterval(function() {
+    $('.graphapi').each(function(){
+      jQuery.graphapi.animate(jQuery(this));
+    });
+  }, 50);
+
+});
