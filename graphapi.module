@@ -52,6 +52,8 @@ function graphapi_set_link_data(&$graph, $from_id, $to_id, $data) {
  */
 function graphapi_container($graph, $config = array()) {
   $default_config = array(
+    'menu' => false,
+    'randomize' => true,
     'width' => '800',
     'height' => '600',
     'id' => 'default',
@@ -66,9 +68,10 @@ function graphapi_container($graph, $config = array()) {
   $result = '';
   $result.= '<div id="' . $config['id'] .'" class="graphapi" style="-webkit-user-select:none; -moz-user-select:none; overflow: hidden; position: relative; background-color: '. $config['background-color'] . '; width:' . $config['width'] . 'px; ' . $config['height'] .'px;">';
   // We need to explicitly set width and height otherwise springy collapses
-  $result.= $nl . '  <canvas id="' . $config['canvas-id'] . '" class="graphapi-canvas" style="background-color: transparant;" width="' . $config['width'] . '" height="' . $config['height'] .'"></canvas>';
+  // TODO when remove next line all items get invisible somehow!?!
+  $result.= $nl . '  <canvas style="background-color: transparant;" width="' . $config['width'] . '" height="' . $config['height'] .'"></canvas>';
   $result.= $nl . '<noscript>' . t('This page element requires JavaScript to be enabled.') . '</noscript>';
-  $result.= theme_graphapi_links($graph, $config);
+  $result.= $nl . theme_graphapi_links($graph, $config);
   $result.= '<div class="graphapi-nodes">';
   $nodes = array();
   foreach ($graph as $id => $data) {
@@ -89,9 +92,7 @@ function graphapi_container($graph, $config = array()) {
 function theme_graph_node($dom_id, $data, $config) {
   $attributes = array(
     'id' => $dom_id,
-    //'style' => 'position:absolute;overflow:hidden',
     'class' => 'graphapi-node',
-    //'width' => isset($data['width']) ? $data['width'] : $config['node-width'],
   );
   $a = drupal_attributes($attributes);
   return '<div ' . $a . '>' . $data['content'] . '</div>';
@@ -138,6 +139,7 @@ function _graphapi_add_graph( $graph, $config) {
   $path = drupal_get_path('module', 'graphapi');
 //  drupal_add_js($path . '/js/springy.js');
   drupal_add_js($path . '/js/graphapi.js');
+  drupal_add_css($path . '/css/graphapi.css');
   return;
   $links = drupal_json_encode(_graphapi_split_links($graph, $config));
   $links = preg_replace('/\},\{/', "},\n{", $links);

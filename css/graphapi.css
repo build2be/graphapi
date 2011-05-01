@@ -1,0 +1,21 @@
+/* 
+    Document   : graphapi
+    Created on : Apr 27, 2011, 4:41:01 PM
+    Author     : clemens
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+.graphapi-node {
+    border: 1px solid black;
+    background-color: white;
+}
+
+.dragging {
+    border: 3px solid #a99;
+}

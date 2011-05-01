@@ -4,4 +4,6 @@ package = Graph Tools
 version = VERSION
 core = 7.x
 files[] = graphapi.module
+files[] = js/graphapi.js
+files[] = css/graphapi.css
 
