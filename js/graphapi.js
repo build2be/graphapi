@@ -92,13 +92,15 @@
       applyCoulombsLaw: true,
       applyDamping : true,
       applyHookesLaw : true,
+      applyCompass : true,
 
       attractToCenter : 200.0,
       boundingBox : 200.0,
-      boxOverlap : 32.0,
+      boxOverlap : 16.0,
       coulombsLaw : 256000.0,
       damping : 0.92,
-      hookesLaw : 1.0
+      hookesLaw : 1.0,
+      compass : 1.0
     },
 
     menu : function($container) {
@@ -153,6 +155,9 @@
         },
         applyDamping : {
           label: 'Damping'
+        },
+        applyCompass : {
+          label: 'Compass'
         },
         applyHookesLaw : {
           label: 'Hookes law'
@@ -374,11 +379,15 @@
         physics.px += physics.vx * dt;
         physics.py += physics.vy * dt;
 
+        physics.o_fx = physics.fx;
+        physics.o_fy = physics.fy;
+
         physics.fx = 0;
         physics.fy = 0;
         
         physics.dx = $node.width() / 2;
         physics.dy = $node.height() / 2;
+        $node.css('left', physics.px - physics.dx).css('top', physics.py- physics.dy);
       },
 
       /**
@@ -459,8 +468,8 @@
         var abs = Math.abs;
         var dx = physics2.px - physics1.px;
         var dy = physics2.py - physics1.py;
-        var Dx = physics2.dx + physics1.dx;
-        var Dy = physics2.dy + physics1.dy;
+        var Dx = physics2.dx + physics1.dx + 30; // 30 px
+        var Dy = physics2.dy + physics1.dy + 30; // 30 px
 
         var absdx = abs(dx);
         var absdy = abs(dy);
@@ -475,13 +484,64 @@
           physics2.fx += (dx > 0) ? overlapX : -overlapX;
           physics2.fy += (dy > 0) ? overlapY : -overlapY;
         }
+      },
 
+      /**
+       * Make to particles rotate like a compass needle
+       *
+       * The first is the south pole and the latter the north pole
+       */
+      compass : function(physics1, physics2, scale) {
+        var dx = physics2.px - physics1.px;
+        var dy = physics2.py - physics1.py;
+        var Dx = dy;
+        var Dy = -dx;
+
+        if (dx > 0) {
+          // Reverse force
+          Dx = -Dx;
+          Dy = -Dy;
+        }
+
+        physics1.fx += Dx / scale;
+        physics1.fy += Dy / scale;
+
+        physics2.fx -= Dx / scale;
+        physics2.fy -= Dy / scale;
       }
 
     },
 
-    draw : function($container) {
+    draw : function($container, showForces) {
+      var opts = $container.data('options');
+      var showForces = opts.showForces;
+      var $nodes = $container.children('.graphapi-nodes');
 
+      // TODO: this should draw c.q. update when dragging the current graph
+      var canvas = $container.children('canvas').get(0)
+      var ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Update nodes
+      $nodes.children('.graphapi-node').each(function() {
+        var $node1 = $(this);
+        var physics1 = $node1.data('physics');
+
+        //$.graphapi.canvas.drawBox(ctx, physics1);
+        if (showForces) {
+          $.graphapi.canvas.drawLine(ctx, physics1, {
+            px:physics1.px + physics1.o_fx,
+            py:physics1.py + physics1.o_fy
+          }, '#333');
+        }
+      });
+
+      $container.children('edges').children().each(function() {
+        var $this = $(this);
+        var $from = $('#' + $this.attr('from'));
+        var $to = $('#' + $this.attr('to'));
+        $.graphapi.canvas.drawArrow(ctx, $from.data('physics'), $to.data('physics'), '#000');
+      });
     },
 
     animate : function ($container) {
@@ -502,6 +562,7 @@
       var applyCoulombsLaw = opts.applyCoulombsLaw;
       var applyDamping = opts.applyDamping;
       var applyHookesLaw = opts.applyHookesLaw;
+      var applyCompass = opts.applyCompass;
 
       var attractToCenter = opts.attractToCenter;
       var boundingBox = opts.boundingBox;
@@ -515,6 +576,9 @@
       var fnBoxOverlap = $.graphapi.physics.boxOverlap;
       var fnCoulombsLaw = $.graphapi.physics.coulombsLaw;
       var fnHookesLaw = $.graphapi.physics.hookesLaw;
+      var fnCompass = $.graphapi.physics.compass;
+
+      var fnUpdatePosition = $.graphapi.physics.updatePosition;
 
       var damping = 1.00;
       if (applyDamping) {
@@ -552,37 +616,18 @@
         var $this = $(this);
         var from = '#' + $this.attr('from');
         var to = '#' + $this.attr('to');
-        if (applyHookesLaw) fnHookesLaw($(from).data('physics'), $(to).data('physics'));
+        var physics1 = $(from).data('physics');
+        var physics2 = $(to).data('physics');
+        if (applyHookesLaw) fnHookesLaw(physics1, physics2);
+        if (applyCompass) fnCompass(physics1, physics2, 1.0);
       });
-
-      var canvas = $container.children('canvas').get(0)
-      var ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Update nodes
       $nodes.children('.graphapi-node').each(function() {
-        var $node1 = $(this);
-        var physics1 = $node1.data('physics');
-
-        //$.graphapi.canvas.drawBox(ctx, physics1);
-        if (showForces) {
-          $.graphapi.canvas.drawLine(ctx, physics1, {
-            px:physics1.px + physics1.fx,
-            py:physics1.py + physics1.fy
-          }, '#333');
-        }
-        $.graphapi.physics.updatePosition($node1, 0.050, damping);
-
-        $node1.css('left', physics1.px - physics1.dx).css('top', physics1.py- physics1.dy);
+        fnUpdatePosition($(this), 0.050, damping);
       });
 
-      $container.children('edges').children().each(function() {
-        var $this = $(this);
-        var $from = $('#' + $this.attr('from'));
-        var $to = $('#' + $this.attr('to'));
-        $.graphapi.canvas.drawArrow(ctx, $from.data('physics'), $to.data('physics'), arrowColor);
-      });
-
+      $.graphapi.draw($container);
     }
   };
 })(jQuery);
