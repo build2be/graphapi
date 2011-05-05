@@ -19,3 +19,7 @@
 .dragging {
     border: 3px solid #a99;
 }
+
+.graphapi-content {
+  display: none;
+}
