@@ -72,10 +72,11 @@ function graphapi_container($graph, $config = array()) {
   
   $nl = "\n";
   $result = '';
-  $result.= '<div id="' . $config['id'] .'" class="graphapi" style="-webkit-user-select:none; -moz-user-select:none; overflow: hidden; position: relative; background-color: '. $config['background-color'] . '; width:' . $config['width'] . 'px; ' . $config['height'] .'px;">';
-  // We need to explicitly set width and height otherwise springy collapses
-  // TODO when remove next line all items get invisible somehow!?!
-  $result.= $nl . '  <canvas style="background-color: transparant;" width="' . $config['width'] . '" height="' . $config['height'] .'"></canvas>';
+  $result.= '<div id="' . $config['id'] .'"'
+    .' class="graphapi" style="-webkit-user-select:none; -moz-user-select:none; overflow: hidden; position: relative;'
+    .' background-color: '. $config['background-color']. ';'
+    .' width:' . $config['width'] . 'px;'
+    .' height:' . $config['height'] .'px;">';
   $result.= $nl . '<noscript>' . t('This page element requires JavaScript to be enabled.') . '</noscript>';
   $result.= $nl . theme_graphapi_links($graph, $config);
   $result.= '<div class="graphapi-nodes">';
@@ -155,54 +156,15 @@ function _graphapi_add_graph( $graph, $config) {
 //  drupal_add_js($path . '/js/springy.js');
   drupal_add_js($path . '/js/graphapi.js');
   drupal_add_css($path . '/css/graphapi.css');
-  return;
-  $links = drupal_json_encode(_graphapi_split_links($graph, $config));
-  $links = preg_replace('/\},\{/', "},\n{", $links);
-  drupal_add_js( 'jQuery(document).ready( function() {' 
-      . "\n" .'var links = ' . $links . ';'
-      . "\n" .'renderGraph("#' . $config['canvas-id']. '", links)});'
+  $conf = drupal_json_encode($config);
+  $id = '#' . $config['id'];
+  drupal_add_js( 'jQuery(document).ready( function() {'
+      . "\n" .'  var config = ' . $conf . ';'
+      . "\n" .'  jQuery("'.$id . '").graphapi(config);'
+      . "\n" .'});'
     , 'inline');
-}
 
-/**
- * Extract each pair (from, to) as separate item
- * 
- * @param array $graph
- */
-function _graphapi_split_links($graph, $config) {
-  $split = array();
-  foreach( $graph as $from => $data) {
-    if ($from=='_first') {
-      //continue;
-    }
-    foreach ($data['edges'] as $to => $link_data) {
-      if ($to=='_last') {
-        //continue;
-      }
-      
-      $link = array(
-        'from' => _graphapi_uniform_id($config, $from),
-        'to' => _graphapi_uniform_id($config, $to),
-      );
-      if (is_array($link_data)) {
-        $link['data'] = $link_data;
-        
-      }
-      $split[] = $link;
-    }
-  }
-  return $split;	
-}
-
-function _graphapi_get_nodes($graph) {
-  $nodes = array();
-  foreach($graph as $from => $data) {
-    $nodes[$from] = 1;
-    foreach($data['edges'] as $to => $dummy ) {
-      $nodes[$to] = 1;
-    }
-  }
-  return $nodes;
+  return;
 }
 
 function graphapi_reverse($graph, $keep_link_data = FALSE) {
