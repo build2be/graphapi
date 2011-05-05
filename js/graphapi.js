@@ -494,20 +494,20 @@
       compass : function(physics1, physics2, scale) {
         var dx = physics2.px - physics1.px;
         var dy = physics2.py - physics1.py;
-        var Dx = dy;
-        var Dy = -dx;
+        var Nx = dy;
+        var Ny = -dx;
 
         if (dx > 0) {
           // Reverse force
-          Dx = -Dx;
-          Dy = -Dy;
+          Nx = -Nx;
+          Ny = -Ny;
         }
 
-        physics1.fx += Dx / scale;
-        physics1.fy += Dy / scale;
+        physics1.fx += Nx * scale;
+        physics1.fy += Ny * scale;
 
-        physics2.fx -= Dx / scale;
-        physics2.fy -= Dy / scale;
+        physics2.fx -= Nx * scale;
+        physics2.fy -= Ny * scale;
       }
 
     },
@@ -619,7 +619,7 @@
         var physics1 = $(from).data('physics');
         var physics2 = $(to).data('physics');
         if (applyHookesLaw) fnHookesLaw(physics1, physics2);
-        if (applyCompass) fnCompass(physics1, physics2, 1.0);
+        if (applyCompass) fnCompass(physics1, physics2, 0.4);
       });
 
       // Update nodes
