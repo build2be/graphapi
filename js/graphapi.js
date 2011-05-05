@@ -634,10 +634,6 @@
 
 jQuery(document).ready(function(){
   var $ = jQuery;
-  $('.graphapi').graphapi({
-    menu:true
-  });
-
   $('.graphapi').each(function(){
     var $container = $(this);
     $container.click(function() {
@@ -647,8 +643,7 @@ jQuery(document).ready(function(){
 
   setInterval(function() {
     $('.graphapi').each(function(){
-      jQuery.graphapi.animate(jQuery(this));
+      $.graphapi.animate($(this));
     });
   }, 50);
-
 });

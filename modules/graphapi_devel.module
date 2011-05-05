@@ -36,19 +36,28 @@ function graphapi_devel_menu() {
   return $items;
 }
 
+function _graphapi_devel_config() {
+  return array(
+    'menu' => true,
+    'width' => 800,
+    'height' => 600,
+    'background-color' => 'grey',
+  );
+}
+
 function graphapi_devel_system_all_modules_layout() {
   $graph = _graphapi_devel_system_module_layout(TRUE);
-  return graphapi_container($graph, array('id'=>'sys_mod_lay', 'width' => 1024, "height" => 1024));
+  return graphapi_container($graph, array('id'=>'sys_mod_lay', 'width' => 1024, "height" => 1024) + _graphapi_devel_config());
 }
 
 function graphapi_devel_system_modules_layout() {
   $graph = _graphapi_devel_system_module_layout();
-  return graphapi_container($graph, array('id'=>'sys_mod_lay'));
+  return graphapi_container($graph, array('id'=>'sys_mod_lay') + _graphapi_devel_config());
 }
 
 function graphapi_devel_system_module_install_layout() {
   $graph = _graphapi_devel_system_module_install_layout();
-  return graphapi_container($graph, array());
+  return graphapi_container($graph, array() + _graphapi_devel_config());
 }
 
 function _graphapi_devel_system_module_install_layout() {
@@ -96,7 +105,6 @@ function _graphapi_devel_system_module_install_layout() {
     $graph[$current]['edges']['_last']=array('color' => '#000');
   }
   $graph['_last']['edges']=array();
-  
   // Now remove all links from _first to 'node' having more incoming
   $reverse = graphapi_reverse($graph);
   $targets = array();
@@ -109,6 +117,7 @@ function _graphapi_devel_system_module_install_layout() {
     unset( $graph['_first']['edges'][$target]);
   }
   // Remove all links to '_last' having more outgoing
+  $targets = array();
   foreach ($graph as $target => $value) {
     if (count($value['edges']) > 1 && isset($value['edges']['_last'])) {
       $targets[] = $target;
@@ -141,24 +150,26 @@ function _graphapi_devel_system_module_layout($show_hidden = FALSE) {
           $graph[$key]['edges'] = array();
         }
       }
-      $graph[$module]['data'] = theme_graphapi_module_object($data);
+      $graph[$module]['data'] = theme_graphapi_devel_module_object($data);
     }
-    
-  
   }
   return $graph;
 }
 
-function theme_graphapi_module_object($module) {
+function theme_graphapi_devel_module_object($module) {
   if (isset($module->status)) {
-    $color = $module->status ? "#00ff00" : "#ffff00";
+    $background_color = $module->status ? "#00ff00" : "#ffff00";
+    if (isset($module->info['hidden']) && $module->info['hidden']) {
+      $background_color = $module->status ? "#00aa00" : "#aaaa00";
+    }
   }
   else {
-    $color = "#ff0000";
+    $background_color = "#ff0000";
   }
   $result = array(
-    'content' => $module->name,
-    'color' => $color,
+    'title' => $module->name,
+    'content' => print_r($module, true),
+    'background-color' => $background_color,
   );
   return $result;
 }
