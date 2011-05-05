@@ -18,8 +18,8 @@ function user_last_login_by_day($n=40) {
     
     $day = intval(($now - $user->created) / (24*60*60));
     $day_id = 'data_' . $day;
-    graphapi_set_node_content($g, $user_id, l($user->name, "user/" . $uid));
-    graphapi_set_node_content($g, $day_id,  "Day " . $day);
+    graphapi_set_node_title($g, $user_id, l($user->name, "user/" . $uid));
+    graphapi_set_node_title($g, $day_id,  "Day " . $day);
     graphapi_set_link_data($g, $user_id, $day_id, array('color' => '#F0F'));
   }
   $options = array(
