@@ -8,6 +8,7 @@
  * Additional content values are stuffed into a div
  * 
  * $g['node']['data'] = your data
+ * $g['node']['data']['title'] = simple label
  * $g['node']['data']['content'] = html contents used for rendering
  * $g[node]['edges'][node-to]['data'] = you link data
  */
@@ -19,13 +20,18 @@ function graphapi_add_node(&$graph, $id) {
   if (!isset($graph[$id])) {
     $graph[$id]['edges'] = array();
     $graph[$id]['data'] = array();
-    $graph[$id]['data']['content']= $id;
+    $graph[$id]['data']['title']= $id;
   }
 }
 
 function graphapi_set_node_data(&$graph, $id, $data) {
   graphapi_add_node($graph, $id);
   $graph[$id]['data']= $data;
+}
+
+function graphapi_set_node_title(&$graph, $id, $title) {
+  graphapi_add_node($graph, $id);
+  $graph[$id]['data']['title']= $title;
 }
 
 function graphapi_set_node_content(&$graph, $id, $content) {
@@ -76,9 +82,8 @@ function graphapi_container($graph, $config = array()) {
   $nodes = array();
   foreach ($graph as $id => $data) {
     $dom_id = _graphapi_uniform_id($config, $id);
-    if (!(isset($data['data']) && isset($data['data']['content']))) {
-      // Make sure we have content.
-      $data['data']['content'] = $id;
+    if (!(isset($data['data']) && isset($data['data']['title']))) {
+      $data['data']['title'] = $id;
     }
     $result .= $nl . theme_graph_node($dom_id, $data['data'], $config);
   }
@@ -94,8 +99,18 @@ function theme_graph_node($dom_id, $data, $config) {
     'id' => $dom_id,
     'class' => 'graphapi-node',
   );
+  if (isset($data['background-color'])) {
+    $attributes['style'] = 'background-color: ' . $data['background-color'] . ';';
+  }
   $a = drupal_attributes($attributes);
-  return '<div ' . $a . '>' . $data['content'] . '</div>';
+
+  if (isset($data['content'])) {
+    $content = '<div class="graphapi-content">' . $data['content'] . '</div>';
+  }
+  else {
+    $content ='';
+  }
+  return '<div ' . $a . '>' . $data['title'] . $content  . '</div>';
 }
 
 function theme_graphapi_link($link) {
