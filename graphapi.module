@@ -106,7 +106,7 @@ function theme_graph_node($dom_id, $data, $config) {
   $a = drupal_attributes($attributes);
 
   if (isset($data['content'])) {
-    $content = '<div class="graphapi-content">' . $data['content'] . '</div>';
+    $content = '<div class="graphapi-content" title="'. $data['title'] . '">' . $data['content'] . '</div>';
   }
   else {
     $content ='';
@@ -153,7 +153,7 @@ function _graphapi_uniform_id($config, $id) {
 function _graphapi_add_graph( $graph, $config) {
   $dom_prefix = $config['id'];
   $path = drupal_get_path('module', 'graphapi');
-//  drupal_add_js($path . '/js/springy.js');
+  drupal_add_library('system', 'ui.dialog');
   drupal_add_js($path . '/js/graphapi.js');
   drupal_add_css($path . '/css/graphapi.css');
   $conf = drupal_json_encode($config);
