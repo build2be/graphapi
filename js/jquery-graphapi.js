@@ -21,7 +21,6 @@
 (function($) {
   $.fn.graphapi = function(options) {
     var opts = $.extend({}, $.graphapi.defaults, options);
-
     return this.each(function() {
       var $container = $(this);
       var options = {};
@@ -56,7 +55,7 @@
       if (opts.menu) $.graphapi.menu($container);
       $.graphapi.init($container);
 
-    /*
+      /*
       $container.children('edges').children('edge').each(function() {
         var $this = $(this);
         var from = '#' + $this.attr('from');
@@ -65,6 +64,10 @@
         $(to).css('border', '2px solid green');
       });
 */
+      setInterval(function() {
+        $.graphapi.animate($container);
+      }, 50);
+
     });
 
   };
@@ -191,7 +194,8 @@
       var $nodes = $container.children('.graphapi-nodes');
       $nodes.css('position', 'absolute').css('top',0)
 
-      $nodes.children('.graphapi-node')
+      $nodes.children('div')
+      .addClass('graphapi-node')
       .css('position', 'absolute')
       .each(function(index){
         if (opts.randomize) {
@@ -235,8 +239,9 @@
       })
       .mousedown(function(event){
         var $this = $(this);
+        //$this.children('.graphapi-content').dialog();
         if ($this.addClass('dragging')) {
-          mouseLog(event,$this);
+          //mouseLog(event,$this);
           var offset = $this.offset();
           $this.data('dragOffset', getOffset(event, $this));
         }
@@ -247,6 +252,7 @@
           var position = $this.position();
           var physics = $this.data('physics');
           $.graphapi.physics.init($this, position.left+physics.dx, position.top+physics.dy);
+          $.graphapi.draw($container);
         }
       });
 
@@ -512,7 +518,7 @@
 
     },
 
-    draw : function($container, showForces) {
+    draw : function($container) {
       var opts = $container.data('options');
       var showForces = opts.showForces;
       var $nodes = $container.children('.graphapi-nodes');
@@ -641,9 +647,4 @@ jQuery(document).ready(function(){
     });
   });
 
-  setInterval(function() {
-    $('.graphapi').each(function(){
-      $.graphapi.animate($(this));
-    });
-  }, 50);
 });
