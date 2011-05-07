@@ -64,7 +64,6 @@ function graphapi_container($graph, $config = array()) {
     'height' => '600',
     'id' => 'default',
     'background-color' => 'grey',
-    'node-width' => '40',
   );
   $config+= $default_config;
   $config['id'] = 'graphapi-' . $config['id'];
@@ -86,7 +85,7 @@ function graphapi_container($graph, $config = array()) {
     if (!(isset($data['data']) && isset($data['data']['title']))) {
       $data['data']['title'] = $id;
     }
-    $result .= $nl . theme_graph_node($dom_id, $data['data'], $config);
+    $result .= $nl . theme_graphapi_node($dom_id, $data['data'], $config);
   }
   $result .= $nl . '</div>';
   $result .= $nl . '</div>';
@@ -95,14 +94,23 @@ function graphapi_container($graph, $config = array()) {
 
 }
 
-function theme_graph_node($dom_id, $data, $config) {
+function theme_graphapi_title($title, $config) {
   $attributes = array(
-    'id' => $dom_id,
-    'class' => 'graphapi-node',
+    'class' => 'graphapi-title',
   );
   if (isset($data['background-color'])) {
     $attributes['style'] = 'background-color: ' . $data['background-color'] . ';';
   }
+  $a = drupal_attributes($attributes);
+
+  return '<div ' . $a . '>' . $title . '</div>';
+
+}
+function theme_graphapi_node($dom_id, $data, $config) {
+  $attributes = array(
+    'id' => $dom_id,
+    'class' => 'graphapi-node',
+  );
   $a = drupal_attributes($attributes);
 
   if (isset($data['content'])) {
@@ -111,7 +119,7 @@ function theme_graph_node($dom_id, $data, $config) {
   else {
     $content ='';
   }
-  return '<div ' . $a . '>' . $data['title'] . $content  . '</div>';
+  return '<div ' . $a . '>' . theme_graphapi_title($data['title'] , $data) . $content  . '</div>';
 }
 
 function theme_graphapi_link($link) {
@@ -143,8 +151,6 @@ function theme_graphapi_links($graph, $config) {
   $result.= '</edges>';
   return $result;
 }
-
-
 
 function _graphapi_uniform_id($config, $id) {
   return $config['id'] . '-' . md5($id);

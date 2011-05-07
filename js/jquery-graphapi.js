@@ -25,7 +25,7 @@
       var $container = $(this);
       var options = {};
       options = $.extend({}, options, opts);
-      $container.data('options', options);
+      $container.data('options', options).css('position', 'relative');
       
       var $canvas = $('<canvas>').prependTo($container);
       $canvas
