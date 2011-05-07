@@ -41,7 +41,7 @@ function _graphapi_devel_config() {
     'menu' => true,
     'width' => 800,
     'height' => 600,
-    'background-color' => 'grey',
+    'background-color' => '#ccc',
   );
 }
 

@@ -94,7 +94,7 @@ function graphapi_container($graph, $config = array()) {
 
 }
 
-function theme_graphapi_title($title, $config) {
+function theme_graphapi_title($title, $data) {
   $attributes = array(
     'class' => 'graphapi-title',
   );
