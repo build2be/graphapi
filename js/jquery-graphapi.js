@@ -101,9 +101,9 @@
       boundingBox : 200.0,
       boxOverlap : 16.0,
       coulombsLaw : 256000.0,
-      damping : 0.92,
-      hookesLaw : 1.0,
-      compass : 1.0
+      damping : 0.8,
+      hookesLaw : 4.0,
+      compass : 3.0
     },
 
     menu : function($container) {
@@ -429,7 +429,7 @@
 
         if (r < 0.01) r = 0.01;
 
-        var f = (r-u0);
+        var f = (r-u0) * scale;
         
         var fx = f * rx/r;
         var fy = f * ry/r;
@@ -576,6 +576,7 @@
       var coulombsLaw = opts.coulombsLaw;
       var damping = opts.damping;
       var hookesLaw = opts.hookesLaw;
+      var compass = opts.compass;
 
       var fnAttractToCenter = $.graphapi.physics.attractToCenter;
       var fnBoundingBox = $.graphapi.physics.boundingBox;
@@ -624,8 +625,8 @@
         var to = '#' + $this.attr('to');
         var physics1 = $(from).data('physics');
         var physics2 = $(to).data('physics');
-        if (applyHookesLaw) fnHookesLaw(physics1, physics2);
-        if (applyCompass) fnCompass(physics1, physics2, 0.4);
+        if (applyHookesLaw) fnHookesLaw(physics1, physics2, hookesLaw);
+        if (applyCompass) fnCompass(physics1, physics2, compass);
       });
 
       // Update nodes
