@@ -202,7 +202,7 @@
           $.graphapi.physics.init($(this),
             (opts.initScale * (Math.random() - 1/2)) * opts.width + opts.width/2,
             (opts.initScale * (Math.random() - 1/2)) * opts.height + opts.height/2
-            );
+          );
         }
       }).children('.graphapi-body').hide();
 
