@@ -6,7 +6,13 @@
     <script type="text/javascript" src="../js/jquery-graphapi.js"></script>
     <script type="text/javascript">
       jQuery(document).ready(function() {
-        jQuery('.graphapi').graphapi({menu: true, applyCompass: false});
+        jQuery('.graphapi').graphapi({
+          menu: true,
+          applyCompass: true,
+          applyBoxOverlap: true,
+          compass: 4.0
+        }
+        );
       });
     </script>
 
