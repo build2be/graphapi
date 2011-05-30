@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * @file
+ *
+ * Provides integration with the relation module by
+ * a custom field formatter
+ *
+ */
+
+function graphapi_relation_field_formatter_info() {
+  return array(
+    'graphapi_relation_default' => array(
+      'label' => t('Graph'),
+      'field types' => array('relation'),
+    ),
+  );
+}
+
+function graphapi_relation_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  list($entity_id) = entity_extract_ids($entity_type, $entity);
+  foreach ($items as $delta => $item) {
+    $graph = graphapi_new_graph();
+    $source_id = $entity_type . ":" . $entity_id;
+    graphapi_add_node($graph, $source_id);
+    graphapi_set_node_title($graph, $source_id, entity_label($entity_type, $entity));
+    foreach ($item->endpoints[LANGUAGE_NONE] as $endpoint) {
+      $related_entities = entity_load($endpoint['entity_type'], array($endpoint['entity_id']));
+      $related_entity = reset($related_entities);
+      if ($endpoint['entity_type'] == $entity_type && $endpoint['entity_id'] == $entity_id) {
+        // A self reference
+        // TODO make graphapi handle self references
+      }
+      else {
+        $endpoint_id = $endpoint['entity_type'] . ":" . $endpoint['entity_id'];
+        graphapi_add_node($graph, $endpoint_id);
+        graphapi_set_node_title($graph, $endpoint_id, entity_label($endpoint['entity_type'], $related_entity));
+        graphapi_add_link($graph, $source_id, $endpoint_id);
+      }
+    }
+    $uri = entity_uri('relation', $item);
+    $relation_link = l(t('Relation @rid', array('@rid' => $item->rid)), $uri['path'], $uri['options']);
+    // Can't use #heading as it's mercilessly check_plain'd.
+    $element[$delta]['relation']['heading']['#markup'] = t('<h4>Part of !link</h4>', array('!link' => $relation_link));
+    //$element[$delta]['relation']['graph']['#markup'] = theme('graphapi_container', $graph, array());
+    $element[$delta]['relation']['graph']['#markup'] = theme_graphapi_container( $graph, $config = graphapi_relation_default_config());
+  }
+
+  return $element;
+}
+
+function graphapi_relation_field_formatter_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items, $displays) {
+  // TODO: make this go a way http://drupal.org/node/1168598
+  relation_dummy_field_field_formatter_prepare_view($entity_type, $entities, $field, $instances, $langcode, $items, $displays);
+}
+
+function graphapi_relation_default_config() {
+  return array(
+    'menu' => true,
+    'width' => 400,
+    'height' => 400,
+    //'background-color' => '#ccc',
+  );
+}
+

@@ -94,6 +94,19 @@ function graphapi_container($graph, $config = array()) {
 
 }
 
+function graphapi_theme() {
+  return array(
+    'graphapi_container' => array(
+      'graph' => NULL,
+      'config' => NULL,
+    ),
+  );
+}
+
+function theme_graphapi_container($graph, $config) {
+  return graphapi_container($graph, $config);
+}
+
 function theme_graphapi_title($title, $data) {
   $attributes = array(
     'class' => 'graphapi-title',

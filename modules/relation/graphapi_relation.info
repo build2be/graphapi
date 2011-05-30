@@ -1,0 +1,10 @@
+name = Relation Graphs
+description = Provides a field renderer
+package = Relation
+version = VERSION
+core = 7.x
+dependencies[] = graphapi
+dependencies[] = relation_dummy_field
+
+files[] = graphapi_relation.module
+
