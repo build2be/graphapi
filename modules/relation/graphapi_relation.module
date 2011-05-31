@@ -33,21 +33,26 @@ function graphapi_relation_field_formatter_view($entity_type, $entity, $field, $
   $source_id = $entity_type . "-" . $entity_id;
   graphapi_add_node($graph, $source_id);
   graphapi_set_node_title($graph, $source_id, entity_label($entity_type, $entity));
-  //graphapi_set_node_uri($graph, $source_id, entity_uri($entity_type, $entity));
-
   foreach ($items as $delta => $item) {
     foreach ($item->endpoints[LANGUAGE_NONE] as $endpoint) {
       $related_entities = entity_load($endpoint['entity_type'], array($endpoint['entity_id']));
       $related_entity = reset($related_entities);
+
+      $endpoint_id = $endpoint['entity_type'] . "-" . $endpoint['entity_id'];
+
       if ($endpoint['entity_type'] == $entity_type && $endpoint['entity_id'] == $entity_id) {
         // A self reference
         // TODO make graphapi handle self references
+//        graphapi_add_link($graph, $source_id, $endpoint_id);
       }
       else {
-        $endpoint_id = $endpoint['entity_type'] . "-" . $endpoint['entity_id'];
         graphapi_add_node($graph, $endpoint_id);
-        graphapi_set_node_title($graph, $endpoint_id, entity_label($endpoint['entity_type'], $related_entity));
-        graphapi_set_node_uri($graph, $endpoint_id, entity_uri($endpoint['entity_type'], $related_entity));
+
+        $label = entity_label($endpoint['entity_type'], $related_entity);
+        $uri = entity_uri($endpoint['entity_type'], $related_entity);
+        $linked_title = l($label, $uri['path'], $uri['options']);
+        graphapi_set_node_title($graph, $endpoint_id, $linked_title);
+
         graphapi_add_link($graph, $source_id, $endpoint_id);
       }
     }
