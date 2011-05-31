@@ -34,6 +34,11 @@ function graphapi_set_node_title(&$graph, $id, $title) {
   $graph[$id]['data']['title']= $title;
 }
 
+function graphapi_set_node_uri(&$graph, $id, $uri) {
+  graphapi_add_node($graph, $id);
+  $graph[$id]['data']['uri']= $uri;
+}
+
 function graphapi_set_node_content(&$graph, $id, $content) {
   graphapi_add_node($graph, $id);
   $graph[$id]['data']['content']= $content;
@@ -116,6 +121,9 @@ function theme_graphapi_title($title, $data) {
   }
   $a = drupal_attributes($attributes);
 
+  if (isset($data['uri'])) {
+    $title = '<a href="' . $data['uri'] . '">' . $title . '</a>';
+  }
   return '<div ' . $a . '>' . $title . '</div>';
 
 }
