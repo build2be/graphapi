@@ -55,7 +55,7 @@ function graphapi_relation_field_formatter_view($entity_type, $entity, $field, $
             $link_data['color'] = 'green';
           }
           $link_data['classes'][] = 'edge-' . $relation_type->relation_type;
-          graphapi_set_link_title($graph, $source_id, $endpoint_id, $relation_type->name);
+          graphapi_set_link_title($graph, $source_id, $endpoint_id, $relation_type->label);
           graphapi_set_link_data($graph, $source_id, $endpoint_id, $link_data);
         }
       }
