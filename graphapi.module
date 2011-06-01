@@ -47,7 +47,14 @@ function graphapi_set_node_content(&$graph, $id, $content) {
 function graphapi_add_link(&$graph, $from_id, $to_id) {
   graphapi_add_node($graph, $from_id);
   graphapi_add_node($graph, $to_id);
-  $graph[$from_id]['edges'][$to_id] = array();
+  if (!isset($graph[$from_id]['edges'][$to_id])) {
+    $graph[$from_id]['edges'][$to_id] = array();
+  }
+}
+
+function graphapi_set_link_title(&$graph, $from_id, $to_id, $title) {
+  graphapi_add_link($graph, $from_id, $to_id);
+  $graph[$from_id]['edges'][$to_id]['title'] = $title;
 }
 
 function graphapi_set_link_data(&$graph, $from_id, $to_id, $data) {
@@ -144,27 +151,42 @@ function theme_graphapi_node($dom_id, $data, $config) {
 }
 
 function theme_graphapi_link($link) {
-  return '<edge from="' . $link['from'] . '" to="' . $link['to'] . '"></edge>';
+  $html = '<edge';
+  $html.= ' from="' . $link['from'] . '"';
+  $html.= ' to="' . $link['to'] . '"';
+  if (isset($link['data']['type'])) {
+    $html.= ' type="' . $link['data']['type'] . '"';
+  }
+  if (isset($link['data']['color'])) {
+    $html.= ' color="' . $link['data']['color'] . '"';
+  }
+  if (isset($link['data']['classes'])) {
+    $classes = $link['data']['classes'];
+    $class = join(" ", $classes);
+    $html.= ' class="' . $class . '"';
+  }
+  $html.= '>';
+  if (isset($link['title'])) {
+    $html.= '<a href="#" title="' . $link['title'] . '">&curren;</a>';
+  }
+  $html.='</edge>';
+
+  return $html;
 }
 
 function theme_graphapi_links($graph, $config) {
   $result = '<edges>';
   foreach( $graph as $from => $data) {
-    if ($from=='_first') {
-      //continue;
-    }
     foreach ($data['edges'] as $to => $link_data) {
-      if ($to=='_last') {
-        //continue;
-      }
-
       $link = array(
         'from' => _graphapi_uniform_id($config, $from),
         'to' => _graphapi_uniform_id($config, $to),
       );
-      if (is_array($link_data)) {
-        $link['data'] = $link_data;
-
+      if (isset($link_data['title'])) {
+        $link['title'] = $link_data['title'];
+      }
+      if (is_array($link_data['data'])) {
+        $link['data']= $link_data['data'];
       }
       $result.= theme_graphapi_link($link);
     }

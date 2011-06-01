@@ -206,6 +206,9 @@
         }
       }).children('.graphapi-body').hide();
 
+      // Move the edges into position
+      $container.children('edges').children().css('position', 'absolute');
+
       var mouseLog = function(e, o) {
         var position = o.position();
         var offset = o.offset();
@@ -239,7 +242,7 @@
       })
       .mousedown(function(event){
         var $this = $(this);
-        //$this.children('.graphapi-content').dialog();
+        $this.children('.graphapi-content').dialog();
         if ($this.addClass('dragging')) {
           //mouseLog(event,$this);
           var offset = $this.offset();
@@ -546,7 +549,21 @@
         var $this = $(this);
         var $from = $('#' + $this.attr('from'));
         var $to = $('#' + $this.attr('to'));
-        $.graphapi.canvas.drawArrow(ctx, $from.data('physics'), $to.data('physics'), '#000');
+        var type = $this.attr('type');
+        var physics1 = $from.data('physics');
+        var physics2 = $to.data('physics');
+
+        var color = $this.attr('color');
+        if (typeof color == 'undefined') {
+          color = '#000';
+        }
+        if (type == 'bi') {
+          $.graphapi.canvas.drawLine(ctx, physics1, physics2, color);
+        }
+        else {
+          $.graphapi.canvas.drawArrow(ctx, physics1, physics2, color);
+        }
+        $this.css('left', (physics1.px + physics2.px)/2).css('top', (physics1.py + physics2.py)/2);
       });
     },
 
