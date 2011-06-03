@@ -5,8 +5,8 @@
  * HTML given
  *
  * <.graphapi>
- *   <.graphapi-nodes> (<.graphapi-node>)*
- *   <edges> (<edge>)*
+ *   <.graphapi-nodes> (<.graphapi-node><div.title><div.content></.graphapi-node)*
+ *   <edges> (<edge>content</edge>)*
  * </>
  *
  * After setup
@@ -52,18 +52,12 @@
       .css('left', 0)
       ;
 
-      if (opts.menu) $.graphapi.menu($container);
+      if (opts.menu) {
+        $.graphapi.menu($container);
+      }
       $.graphapi.init($container);
 
-      /*
-      $container.children('edges').children('edge').each(function() {
-        var $this = $(this);
-        var from = '#' + $this.attr('from');
-        var to = '#' + $this.attr('to');
-        $(from).css('border', '2px solid red');
-        $(to).css('border', '2px solid green');
-      });
-*/
+      // TODO: http://paulirish.com/2011/requestanimationframe-for-smart-animating/
       setInterval(function() {
         $.graphapi.animate($container);
       }, 50);
@@ -84,6 +78,7 @@
       menu : false,
       menuHide: true,
       showForces : false,
+      showLinks : false,
       animate: true,
       randomize: true,
 
@@ -186,10 +181,12 @@
         });
       }
       m.appendTo($container);
+      l.slideUp();
     },
 
     init : function($container){
       var opts =  $container.data('options');
+      $container.css('width', opts.width).css('height', opts.height);
       // setup nodes
       var $nodes = $container.children('.graphapi-nodes');
       $nodes.css('position', 'absolute').css('top',0)
@@ -202,7 +199,7 @@
           $.graphapi.physics.init($(this),
             (opts.initScale * (Math.random() - 1/2)) * opts.width + opts.width/2,
             (opts.initScale * (Math.random() - 1/2)) * opts.height + opts.height/2
-          );
+            );
         }
       }).children('.graphapi-body').hide();
 
@@ -513,10 +510,10 @@
         }
 
         physics1.fx += Nx * scale;
-        physics1.fy += Ny * scale;
+        physics1.fy += Ny * 0.9 * scale;
 
         physics2.fx -= Nx * scale;
-        physics2.fy -= Ny * scale;
+        physics2.fy -= Ny * 0.9 * scale;
       }
 
     },
@@ -541,7 +538,7 @@
           $.graphapi.canvas.drawLine(ctx, physics1, {
             px:physics1.px + physics1.o_fx,
             py:physics1.py + physics1.o_fy
-          }, '#333');
+          }, '#555');
         }
       });
 

@@ -62,6 +62,15 @@ function graphapi_set_link_data(&$graph, $from_id, $to_id, $data) {
   $graph[$from_id]['edges'][$to_id]['data'] = $data;
 }
 
+function _graphapi_default_settings() {
+  return array(
+    'width' => 400,
+    'height' => 300,
+    'menu' => 1,
+  );
+}
+
+
 /**
  * Renders the HTML for the given graph containing the canvas and divs
  * 
@@ -185,7 +194,7 @@ function theme_graphapi_links($graph, $config) {
       if (isset($link_data['title'])) {
         $link['title'] = $link_data['title'];
       }
-      if (is_array($link_data['data'])) {
+      if (isset($link_data['data'])) {
         $link['data']= $link_data['data'];
       }
       $result.= theme_graphapi_link($link);

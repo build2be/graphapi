@@ -50,7 +50,7 @@ function graphapi_relation_field_formatter_view($entity_type, $entity, $field, $
 
           graphapi_set_node_title($graph, $endpoint_id, $linked_title);
           $link_data = graphapi_relation_default_link_data();
-          if ($relation_type->directional ) {
+          if ($relation_type->directional) {
             $link_data['type'] = 'bi';
             $link_data['color'] = 'green';
           }
@@ -61,7 +61,7 @@ function graphapi_relation_field_formatter_view($entity_type, $entity, $field, $
       }
     }
   }
-  $element[0]['relation']['graph']['#markup'] = theme_graphapi_container($graph, $config = graphapi_relation_default_config($source_id . "-" . $delta));
+  $element[0]['relation']['graph']['#markup'] = theme_graphapi_container($graph, $config = graphapi_relation_default_config($source_id . "-" . $delta, $settings));
 
   return $element;
 }

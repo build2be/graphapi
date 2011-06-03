@@ -6,14 +6,41 @@
     <script type="text/javascript" src="../js/jquery-graphapi.js"></script>
     <script type="text/javascript">
       jQuery(document).ready(function() {
-        jQuery('.graphapi').graphapi({menu:true});
+        jQuery('#top-down').graphapi({menu:true, applyBoxOverlap: true, showLinks: true, 'width':300, 'height': 300});
+        jQuery('#nodes').graphapi({menu:true, applyBoxOverlap: true, showLinks: true, 'width':300, 'height': 300});
       });
     </script>
 
     <link type="text/css" rel="stylesheet" href="../css/graphapi.css" media="all" />
+    <style type="text/css">
+      .graphapi {
+        background-color: #aaa;
+        border: 1px solid orange;
+      }
+      .container-widget {
+        width: 50%;
+      }
+    </style>
   </head>
   <body>
-    <div class="graphapi">
+    <div>
+      <h1>Widgets</h1>
+      <div class="container-widget">
+        <div class="graphapi">
+          <edges>
+            <edge from="a" to="b" title="attribute title">Content of edge</edge>
+          </edges>
+          <div class="graphapi-nodes">
+            <div id="z-a">
+              <div class="graphapi-title">Title of node</div>
+              <div class="graphapi-body">Content of node</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <h1>Top Down</h1>
+    <div id="top-down" class="graphapi">
       <edges>
         <edge from="a" to="b" ></edge>
         <edge from="c" to="d" ></edge>
@@ -53,5 +80,46 @@
         </div>
       </div>
     </div>
+
+    <h1>Nodes</h1>
+    <div id="nodes" class="graphapi">
+      <edges>
+        <edge from="n-a" to="n-b" ></edge>
+        <edge from="n-c" to="n-d" ></edge>
+      </edges>
+      <div class="graphapi-nodes">
+        <div id="n-a">
+          <span class="graphapi-title">Title A</span>
+          <div class="graphapi-body">
+            body of A
+          </div>
+        </div>
+        <div id="n-b">
+          <div class="graphapi-title">Title B</div>
+          <div class="graphapi-body">
+            body of B
+          </div>
+        </div>
+        <div id="n-c">
+          <div class="graphapi-title">Title C</div>
+          <div class="graphapi-body">
+            body of C
+          </div>
+        </div>
+        <div id="n-d">
+          <div class="graphapi-title">Title D</div>
+          <div class="graphapi-body">
+            body of D
+          </div>
+        </div>
+        <div id="n-e">
+          <div class="graphapi-title">Title E</div>
+          <div class="graphapi-body">
+            body of E
+          </div>
+        </div>
+      </div>
+    </div>
+    <h1>End of documents</h1>
   </body>
 </html>
