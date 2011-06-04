@@ -7,12 +7,122 @@
  * a custom field formatter
  *
  */
+function graphapi_relation_field_formatter_settings_form($field, $instance, $view_mode, $form, $form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  if ($display['type'] == 'graphapi_relation_default') {
+    $settings += graphapi_default_config();
+    $form['width'] = array(
+      '#title' => t('Width'),
+      '#type' => 'textfield',
+      '#default_value' => $settings['width'],
+    );
+    $form['height'] = array(
+      '#title' => t('Height'),
+      '#type' => 'textfield',
+      '#default_value' => $settings['height'],
+    );
+    $form['menu'] = array(
+      '#title' => t('Show menu'),
+      '#type' => 'checkbox',
+      '#default_value' => $settings['menu'],
+    );
+    $form['background-color'] = array(
+      '#title' => t('Background color'),
+      '#type' => 'textfield',
+      '#default_value' => $settings['background-color'],
+    );
+    $form['links'] = array(
+      '#title' => t('Relation settings'),
+      '#type' => 'fieldset',
+      '#collapsed' => TRUE,
+      '#collapsible' => TRUE,
+    );
+    $types = relation_get_types();
+    foreach ($types as $type => $data) {
+      $form['links'][$type] = array(
+        '#title' => t($data->label),
+        '#type' => 'fieldset',
+        '#collapsed' => FALSE,
+        '#collapsible' => TRUE,
+      );
+      $form['links'][$type]['color'] = array(
+        '#title' => t('Color'),
+        '#type' => 'textfield',
+        '#default_value' => $settings['links'][$type]['color'],
+      );
+    }
+  }
+  return $form;
+}
+
+function graphapi_relation_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  if ($display['type'] == 'graphapi_relation_default') {
+    $summary = '';
+    $items = array();
+    $items[] = t('The relation graph is sized (@width x @height).', array('@width' => $settings['width'], '@height' => $settings['height']));
+    if ($settings['menu']) {
+      $items[] = t('The menu is displayed');
+    }
+    else {
+      $items[] = t('There is no menu displayed');
+    }
+    $color = $settings['background-color'];
+    $items[] = array('data' => 'Background color: <span style="background-color:' . $color . ';width:10px;">&nbsp;&nbsp;</span> (' . $color . ')');
+
+    $summary .= theme('item_list', array('items' => $items, 'title' => 'Graph settings'));
+
+    $items = array();
+    $types = relation_get_types();
+    foreach($types as $type => $data) {
+      $color = $settings['links'][$type]['color'];
+      $items[] = array('data' => $data->label . ': <span style="background-color:' . $color . ';width:10px;">&nbsp;&nbsp;</span> (' . $color . ')');
+    }
+    $summary .= theme('item_list', array('items' => $items, 'title' => 'Relations are colored'));
+    return $summary;
+  }
+}
+
 function graphapi_relation_field_formatter_info() {
+  $types = relation_get_types();
+  $links = array();
+  foreach($types as $type => $data) {
+    $links[$type] = array(
+      'color' => 'green',
+    );
+  }
   return array(
-      'graphapi_relation_default' => array(
-          'label' => t('Graph'),
-          'field types' => array('relation'),
+    'graphapi_relation_default' => array(
+      'label' => t('Graph'),
+      'field types' => array('relation'),
+      'settings' => array(
+        'height' => '800',
+        'width' => '800',
+        'menu' => FALSE,
+        'background-color' => 'grey',
+        'applyCompass' => FALSE,
+        'applyBoxOverlap' => TRUE,
+        'links' => $links,
       ),
+    ),
+  );
+}
+
+function graphapi_relation_default_link_data() {
+  return array(
+    'classes' => array(
+      'edge',
+    ),
+    'color' => 'black',
+  );
+}
+
+function graphapi_relation_default_config($id, $settings = array()) {
+  return $settings + array(
+    'id' => $id,
   );
 }
 
@@ -25,6 +135,7 @@ function graphapi_relation_field_formatter_info() {
  * @return $element-array
  */
 function graphapi_relation_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $settings = $display['settings'] + graphapi_default_config();
   $relation_types = relation_get_types();
   $element = array();
   list($entity_id) = entity_extract_ids($entity_type, $entity);
@@ -52,8 +163,8 @@ function graphapi_relation_field_formatter_view($entity_type, $entity, $field, $
           $link_data = graphapi_relation_default_link_data();
           if ($relation_type->directional) {
             $link_data['type'] = 'bi';
-            $link_data['color'] = 'green';
           }
+          $link_data['color'] = $settings['links'][$relation_type->relation_type]['color'];
           $link_data['classes'][] = 'edge-' . $relation_type->relation_type;
           graphapi_set_link_title($graph, $source_id, $endpoint_id, $relation_type->label);
           graphapi_set_link_data($graph, $source_id, $endpoint_id, $link_data);
@@ -61,29 +172,8 @@ function graphapi_relation_field_formatter_view($entity_type, $entity, $field, $
       }
     }
   }
-  $element[0]['relation']['graph']['#markup'] = theme_graphapi_container($graph, $config = graphapi_relation_default_config($source_id . "-" . $delta, $settings));
+  $config = graphapi_relation_default_config($source_id . "-" . $delta, $settings);
+  $element[0]['relation']['graph']['#markup'] = theme_graphapi_container($graph, $config);
 
   return $element;
 }
-
-function graphapi_relation_default_link_data() {
-  return array(
-    'classes' => array(
-      'edge',
-    ),
-    'color' => 'black',
-  );
-}
-
-function graphapi_relation_default_config($id) {
-  return array(
-      'id' => $id,
-      'menu' => true,
-      'width' => 600,
-      'height' => 400,
-      'background-color' => '#ccc',
-      'applyCompass' => FALSE,
-      'applyBoxOverlap' => TRUE,
-  );
-}
-
