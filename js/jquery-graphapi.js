@@ -101,6 +101,30 @@
       compass : 3.0
     },
 
+    doExport : function($container) {
+      var text = 'digraph {';
+      var $nodes = $container.children('.graphapi-nodes');
+      $nodes.children().each(function(){
+        text += this.id.replace(/-/g,'_') + " [";
+        var $this = $(this);
+        text += '  label = "' + $this.children('.graphapi-title').text() + '";';
+        text += "];\n"
+
+      });
+      var $edges = $container.children('edges');
+      $edges.children().each(function(){
+        var $this = $(this);
+        text += ($this.attr('from').replace(/-/g,'_'));
+        text += " ->" ;
+        text += ($this.attr('to').replace(/-/g,'_'));
+        text += "\n"
+
+      });
+      text += "}";
+alert(text);
+      //window.open('data:text/text;charset=utf-8,' + text,'_blank','height=300,width=400');
+    },
+
     menu : function($container) {
       var m = $container.children('.graphapi-menu');
       var options = $container.data('options');
@@ -126,10 +150,15 @@
       cmd.appendTo(li);
       li.appendTo(l);
 
+      li = $('<li>');
+      cmd = $('<a href="#">Export</a>').click(function(){
+        $.graphapi.doExport($container);
+        return false
+      });
+      cmd.appendTo(li);
+      li.appendTo(l);
+
       var checks = {
-        menuHide : {
-          label: 'Hide menu'
-        },
         animate : {
           label: 'Animate'
         },
@@ -204,8 +233,14 @@
       }).children('.graphapi-body').hide();
 
       // Move the edges into position
-      $container.children('edges').children().css('position', 'absolute');
+      if (opts.showLinks) {
+        $container.children('edges').css({'position': 'absolute','top': 0, 'left': 0, 'width':'100%'}).children().css('position', 'absolute');
+      }
+      else {
+        $container.children('edges').children().css('display', 'none');
 
+      }
+      /*
       var mouseLog = function(e, o) {
         var position = o.position();
         var offset = o.offset();
@@ -214,6 +249,7 @@
         console.log("- offset:   " + offset.left + "," + offset.top);
         console.log("- rel:      " + (e.pageX - offset.left) + "," + (e.pageY - offset.top));
       }
+      */
       var getOffset = function(e, o) {
         var offset = o.offset();
         return {
@@ -521,6 +557,7 @@
     draw : function($container) {
       var opts = $container.data('options');
       var showForces = opts.showForces;
+      var showLinks = opts.showLinks;
       var $nodes = $container.children('.graphapi-nodes');
 
       // TODO: this should draw c.q. update when dragging the current graph
@@ -560,7 +597,9 @@
         else {
           $.graphapi.canvas.drawArrow(ctx, physics1, physics2, color);
         }
-        $this.css('left', (physics1.px + physics2.px)/2).css('top', (physics1.py + physics2.py)/2);
+        if (showLinks) {
+          $this.css('left', (physics1.px + physics2.px)/2).css('top', (physics1.py + physics2.py)/2);
+        }
       });
     },
 
