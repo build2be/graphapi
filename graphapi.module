@@ -62,11 +62,16 @@ function graphapi_set_link_data(&$graph, $from_id, $to_id, $data) {
   $graph[$from_id]['edges'][$to_id]['data'] = $data;
 }
 
-function _graphapi_default_settings() {
+function graphapi_default_config() {
   return array(
-    'width' => 400,
-    'height' => 300,
-    'menu' => 1,
+    'id' => 'default',
+
+    'background-color' => 'grey',
+    'randomize' => true,
+    'height' => 600,
+    'width' => 800,
+
+    'menu' => TRUE,
   );
 }
 
@@ -78,15 +83,7 @@ function _graphapi_default_settings() {
  * @param unknown_type $config
  */
 function graphapi_container($graph, $config = array()) {
-  $default_config = array(
-    'menu' => false,
-    'randomize' => true,
-    'width' => '800',
-    'height' => '600',
-    'id' => 'default',
-    'background-color' => 'grey',
-  );
-  $config+= $default_config;
+  $config+= graphapi_default_config();
   $config['id'] = 'graphapi-' . $config['id'];
   $config['canvas-id'] = $config['id'] . '-canvas';
   
