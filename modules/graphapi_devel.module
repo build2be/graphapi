@@ -39,15 +39,16 @@ function graphapi_devel_menu() {
 function _graphapi_devel_config() {
   return array(
     'menu' => true,
-    'width' => 800,
+    'width' => 1024,
     'height' => 800,
     'background-color' => '#ccc',
+    'applyBoxOverlap' => TRUE,
   );
 }
 
 function graphapi_devel_system_all_modules_layout() {
   $graph = _graphapi_devel_system_module_layout(TRUE);
-  return graphapi_container($graph, array('id'=>'sys_mod_lay', 'width' => 1024, "height" => 1024) + _graphapi_devel_config());
+  return graphapi_container($graph, array('id'=>'sys_mod_lay_all', 'width' => 1024, "height" => 1024) + _graphapi_devel_config());
 }
 
 function graphapi_devel_system_modules_layout() {
@@ -57,7 +58,7 @@ function graphapi_devel_system_modules_layout() {
 
 function graphapi_devel_system_module_install_layout() {
   $graph = _graphapi_devel_system_module_install_layout();
-  return graphapi_container($graph, array( 'width' => 1024, "height" => 2048) + _graphapi_devel_config());
+  return graphapi_container($graph, array( 'width' => 1024, "height" => 800) + _graphapi_devel_config());
 }
 
 function _graphapi_devel_system_module_install_layout() {
