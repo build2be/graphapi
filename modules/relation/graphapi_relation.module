@@ -28,6 +28,11 @@ function graphapi_relation_field_formatter_settings_form($field, $instance, $vie
       '#type' => 'checkbox',
       '#default_value' => $settings['menu'],
     );
+    $form['showLinks'] = array(
+      '#title' => t('Show link labels'),
+      '#type' => 'checkbox',
+      '#default_value' => $settings['showLinks'],
+    );
     $form['background-color'] = array(
       '#title' => t('Background color'),
       '#type' => 'textfield',
@@ -53,8 +58,35 @@ function graphapi_relation_field_formatter_settings_form($field, $instance, $vie
         '#default_value' => $settings['links'][$type]['color'],
       );
     }
+    $form['physics'] = array(
+      '#title' => t('Physics settings'),
+      '#type' => 'fieldset',
+      '#collapsed' => TRUE,
+      '#collapsible' => TRUE,
+    );
+
+    foreach (_graphap_relation_physics() as $key => $title) {
+      $form['physics'][$key] = array(
+        '#title' => t($title),
+        '#type' => 'checkbox',
+        '#default_value' => $settings['physics'][$key],
+      );
+    }
   }
   return $form;
+}
+
+function _graphap_relation_physics() {
+  return array(
+    'showForces' => 'Show forces applied',
+    'applyAttractToCenter' => 'Attract to center',
+    'applyBoundingBox' => 'Bounding box',
+    'applyBoxOverlap' => 'Do not overlap',
+    'applyCoulombsLaw' => 'Apply Coulombs law',
+    'applyDamping' => 'Use damping',
+    'applyHookesLaw' => 'Apply Hookes law',
+    'applyCompass' => 'Apply compass on directed links',
+  );
 }
 
 function graphapi_relation_field_formatter_settings_summary($field, $instance, $view_mode) {
@@ -67,9 +99,10 @@ function graphapi_relation_field_formatter_settings_summary($field, $instance, $
     if ($settings['menu']) {
       $items[] = t('The menu is displayed');
     }
-    else {
-      $items[] = t('There is no menu displayed');
+    if ($settings['showLinks']) {
+      $items[] = t('The link labels are displayed on hover');
     }
+
     $color = $settings['background-color'];
     $items[] = array('data' => 'Background color: <span style="background-color:' . $color . ';width:10px;">&nbsp;&nbsp;</span> (' . $color . ')');
 
@@ -82,6 +115,15 @@ function graphapi_relation_field_formatter_settings_summary($field, $instance, $
       $items[] = array('data' => $data->label . ': <span style="background-color:' . $color . ';width:10px;">&nbsp;&nbsp;</span> (' . $color . ')');
     }
     $summary .= theme('item_list', array('items' => $items, 'title' => 'Relations are colored'));
+
+    $items = array();
+    foreach (_graphap_relation_physics() as $key => $label) {
+      if ($settings['physics'][$key]) {
+        $items[] = t($label);
+      }
+    }
+    $summary .= theme('item_list', array('items' => $items, 'title' => 'Physics settings'));
+
     return $summary;
   }
 }
@@ -105,6 +147,19 @@ function graphapi_relation_field_formatter_info() {
         'background-color' => 'grey',
         'applyCompass' => FALSE,
         'applyBoxOverlap' => TRUE,
+        'showLinks' => FALSE,
+        'animate' => TRUE,
+        'randomize' => TRUE,
+        'physics' => array(
+          'showForces' => FALSE,
+          'applyAttractToCenter' => FALSE,
+          'applyBoundingBox' => FALSE,
+          'applyBoxOverlap' => FALSE,
+          'applyCoulombsLaw' => TRUE,
+          'applyDamping' => TRUE,
+          'applyHookesLaw' => TRUE,
+          'applyCompass' => FALSE,
+        ),
         'links' => $links,
       ),
     ),
@@ -136,6 +191,9 @@ function graphapi_relation_default_config($id, $settings = array()) {
  */
 function graphapi_relation_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $settings = $display['settings'] + graphapi_default_config();
+  $physics = $settings['physics'];
+  unset($settings['physics']);
+  $settings += $physics;
   $relation_types = relation_get_types();
   $element = array();
   list($entity_id) = entity_extract_ids($entity_type, $entity);
