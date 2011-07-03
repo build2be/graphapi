@@ -107,7 +107,9 @@
       $nodes.children().each(function(){
         text += this.id.replace(/-/g,'_') + " [";
         var $this = $(this);
-        text += '  label = "' + $this.children('.graphapi-title').text() + '";';
+        text += '  label = "' + $this.children('.graphapi-title').text() + '",';
+        var position = $this.position();
+        text += ' pos="' + position.left + ',' + position.top + '"'
         text += "];\n"
 
       });
