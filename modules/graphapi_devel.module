@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Implements hook_menu().
+ */
 function graphapi_devel_menu() {
   $items['admin/modules/graph'] = array(
     'title' => 'Graph',
@@ -36,6 +39,9 @@ function graphapi_devel_menu() {
   return $items;
 }
 
+/**
+ * Helper function. Returns graphapi_devel's default settings.
+ */
 function _graphapi_devel_config() {
   return array(
     'menu' => true,
@@ -46,27 +52,48 @@ function _graphapi_devel_config() {
   );
 }
 
+/**
+ * Graphs all drupal modules and dependancies.
+ *
+ * @return
+ *   Formatted html and canvas graph.
+ */
 function graphapi_devel_system_all_modules_layout() {
   $graph = _graphapi_devel_system_module_layout(TRUE);
   return graphapi_container($graph, array('id'=>'sys_mod_lay_all', 'width' => 1024, "height" => 1024) + _graphapi_devel_config());
 }
 
+/**
+ * Graphs drupal system modules and dependancies.
+ *
+ * @return
+ *   Formatted html and canvas graph.
+ */
 function graphapi_devel_system_modules_layout() {
   $graph = _graphapi_devel_system_module_layout();
   return graphapi_container($graph, array('id'=>'sys_mod_lay') + _graphapi_devel_config());
 }
 
+/**
+ * Graphs drupal system modules and dependancies.
+ *
+ * @return
+ *   Formatted html and canvas graph.
+ */
 function graphapi_devel_system_module_install_layout() {
   $graph = _graphapi_devel_system_module_install_layout();
   return graphapi_container($graph, array( 'width' => 1024, "height" => 800) + _graphapi_devel_config());
 }
 
+/**
+ * Helper function. Returns a graph array of all system modules.
+ */
 function _graphapi_devel_system_module_install_layout() {
   $modules = module_list(TRUE, FALSE);
   module_load_all_includes('install');
   $graph = array();
   $links = array();
-  // Remember links between module's own hook_update_N 
+  // Remember links between module's own hook_update_N
   $selfs = array();
   foreach($modules as $module) {
     $update = module_invoke($module, 'update_dependencies');
@@ -127,10 +154,13 @@ function _graphapi_devel_system_module_install_layout() {
   foreach( $targets as $target) {
     unset( $graph[$target]['edges']['_last']);
   }
-  
+
   return $graph;
 }
 
+/**
+ * Helper function. Returns graph array of system modules.
+ */
 function _graphapi_devel_system_module_layout($show_hidden = FALSE) {
   $modules = system_rebuild_module_data();
   $graph = array();
@@ -157,6 +187,9 @@ function _graphapi_devel_system_module_layout($show_hidden = FALSE) {
   return $graph;
 }
 
+/**
+ * Theme implementation. Returns graph node array of a drupal module.
+ */
 function theme_graphapi_devel_module_object($module) {
   if (isset($module->status)) {
     $background_color = $module->status ? "#00ff00" : "#ffff00";
@@ -183,16 +216,19 @@ function graphapi_devel_system_modules_update_active() {
   return '<pre>' . $result . '</pre>';
 }
 
+/**
+ * Returns GraphViz formatted graph string of isntalled system modules.
+ */
 function _graphapi_system_module_install_layout_active() {
   require_once DRUPAL_ROOT . '/includes/install.inc';
   require_once DRUPAL_ROOT . '/includes/update.inc';
-  
+
   module_load_all_includes('install');
   module_list(TRUE, FALSE);
-  
+
   $modules = module_list();
   $starting_updates = array_fill_keys($modules, 6);
-  
+
   $update_functions = update_get_update_function_list($starting_updates);
   $graph = update_build_dependency_graph($update_functions);
   foreach ($graph as $node => $data) {
@@ -203,7 +239,7 @@ function _graphapi_system_module_install_layout_active() {
       $graph[$node]['links']=array();
     }
   }
-  
+
   $result = "\ndigraph {\n";
   foreach( $graph as $node => $data) {
     foreach ($data['links'] as $to) {

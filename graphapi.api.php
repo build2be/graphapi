@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * @file
+ * GraphAPI examples file.
+ */
+
+/**
+ * Example function: creates a graph of user logins by day.
+ */
 function user_last_login_by_day($n=40) {
   $query = db_select('users');
   $query->addField('users', 'name');

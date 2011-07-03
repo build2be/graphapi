@@ -3,47 +3,114 @@
 /**
  * @file
  *
- * This api renders graph.inc data structures as graphs.
- * 
- * Additional content values are stuffed into a div
- * 
+ * This api renders includes/graph.inc data structures into visual graphs.
+ *
+ * The module makes use of the HTML5 canvas and adds
+ * new HTML tags <edges> and <edge>
+ *
  * $g['node']['data'] = your data
  * $g['node']['data']['title'] = simple label
  * $g['node']['data']['content'] = html contents used for rendering
- * $g[node]['edges'][node-to]['data'] = you link data
+ * $g['node']['edges']['node-to']['data'] = your link data
+ */
+
+/**
+ * Creates a new empty graph array.
  */
 function graphapi_new_graph() {
   return array();
 }
 
+/**
+ * Adds a graph node to an existing graph array, if it doesn't already exist.
+ *
+ * @param $graph
+ *   Graph array, passed by reference.
+ * @param $id
+ *   Id of the node to add.
+ */
 function graphapi_add_node(&$graph, $id) {
   if (!isset($graph[$id])) {
     $graph[$id]['edges'] = array();
     $graph[$id]['data'] = array();
+    // Set the graph title to the $id, incase it isn't set later.
     $graph[$id]['data']['title']= $id;
   }
 }
 
+/**
+ * Adds data to a graph node.
+ *
+ * @param $graph
+ *   Graph array, passed by reference.
+ * @param $id
+ *   Id of the node to add data to.
+ * @param $data
+ *   Graph node data associative array, containing:
+ *   - 'title': title of the graph node.
+ *   - 'uri': URI of the graph node.
+ *   - 'content': HTML string of body content of the graph node.
+ */
 function graphapi_set_node_data(&$graph, $id, $data) {
   graphapi_add_node($graph, $id);
   $graph[$id]['data']= $data;
 }
 
+/**
+ * Sets the title of a graph node.
+ *
+ * @param $graph
+ *   Graph array, passed by reference.
+ * @param $id
+ *   Id of the node for which to set the title.
+ * @param $title
+ *   Title string.
+ */
 function graphapi_set_node_title(&$graph, $id, $title) {
   graphapi_add_node($graph, $id);
   $graph[$id]['data']['title']= $title;
 }
 
+/**
+ * Sets the uri of a graph node, to which the graph will link.
+ *
+ * @param $graph
+ *   Graph array, passed by reference.
+ * @param $id
+ *   Id of the node for which to set the title.
+ * @param $uri
+ *   URI string.
+ */
 function graphapi_set_node_uri(&$graph, $id, $uri) {
   graphapi_add_node($graph, $id);
   $graph[$id]['data']['uri']= $uri;
 }
 
+/**
+ * Sets the uri of a graph node, to which the graph will link.
+ *
+ * @param $graph
+ *   Graph array, passed by reference.
+ * @param $id
+ *   Id of the node for which to set the title.
+ * @param $content
+ *   HTML string of body content.
+ */
 function graphapi_set_node_content(&$graph, $id, $content) {
   graphapi_add_node($graph, $id);
   $graph[$id]['data']['content']= $content;
 }
 
+/**
+ * Adds a directed edge to the graph.
+ *
+ * @param $graph
+ *   Graph array, passed by reference.
+ * @param $from_id
+ *   Id of the source graph node for the edge.
+ * @param $to_id
+ *   Id of the target graph not for the edge.
+ */
 function graphapi_add_link(&$graph, $from_id, $to_id) {
   graphapi_add_node($graph, $from_id);
   graphapi_add_node($graph, $to_id);
@@ -52,16 +119,44 @@ function graphapi_add_link(&$graph, $from_id, $to_id) {
   }
 }
 
+/**
+ * Adds a title to an existing edge in the graph.
+ *
+ * @param $graph
+ *   Graph array, passed by reference.
+ * @param $from_id
+ *   Id of the source graph node for the edge.
+ * @param $to_id
+ *   Id of the target graph not for the edge.
+ * @param $title
+ *   Title string.
+ */
 function graphapi_set_link_title(&$graph, $from_id, $to_id, $title) {
   graphapi_add_link($graph, $from_id, $to_id);
   $graph[$from_id]['edges'][$to_id]['title'] = $title;
 }
 
+/**
+ * Adds data to a graph node.
+ *
+ * @param $graph
+ *   Graph array, passed by reference.
+ * @param $from_id
+ *   Id of the source graph node for the edge.
+ * @param $to_id
+ *   Id of the target graph not for the edge.
+ * @param $data
+ *   Graph node data associative array, containing:
+ *   - 'title': title of the graph edge.
+ */
 function graphapi_set_link_data(&$graph, $from_id, $to_id, $data) {
   graphapi_add_link($graph, $from_id, $to_id);
   $graph[$from_id]['edges'][$to_id]['data'] = $data;
 }
 
+/**
+ * Returns default graph settings.
+ */
 function graphapi_default_config() {
   return array(
     'id' => 'default',
@@ -78,15 +173,17 @@ function graphapi_default_config() {
 
 /**
  * Renders the HTML for the given graph containing the canvas and divs
- * 
- * @param unknown_type $graph
- * @param unknown_type $config
+ *
+ * @param $graph
+ *   Graph array.
+ * @param $config
+ *   Graph config array (see graphapi_default_config() for details).
  */
 function graphapi_container($graph, $config = array()) {
   $config+= graphapi_default_config();
   $config['id'] = 'graphapi-' . $config['id'];
   $config['canvas-id'] = $config['id'] . '-canvas';
-  
+
   $nl = "\n";
   $result = '';
   $result.= '<div id="' . $config['id'] .'"'
@@ -112,6 +209,9 @@ function graphapi_container($graph, $config = array()) {
 
 }
 
+/**
+ * Implements hook_theme()
+ */
 function graphapi_theme() {
   return array(
     'graphapi_container' => array(
@@ -121,10 +221,16 @@ function graphapi_theme() {
   );
 }
 
+/**
+ * Theme implementation, returns GraphAPI container as HTML.
+ */
 function theme_graphapi_container($graph, $config) {
   return graphapi_container($graph, $config);
 }
 
+/**
+ * Theme implementation, returns graph title as HTML.
+ */
 function theme_graphapi_title($title, $data) {
   $attributes = array(
     'class' => 'graphapi-title',
@@ -140,6 +246,9 @@ function theme_graphapi_title($title, $data) {
   return '<div ' . $a . '>' . $title . '</div>';
 
 }
+/**
+ * Theme implementation, returns graph node as HTML.
+ */
 function theme_graphapi_node($dom_id, $data, $config) {
   $attributes = array(
     'id' => $dom_id,
@@ -156,6 +265,9 @@ function theme_graphapi_node($dom_id, $data, $config) {
   return '<div ' . $a . '>' . theme_graphapi_title($data['title'] , $data) . $content  . '</div>';
 }
 
+/**
+ * Theme implementation, returns graph edge as HTML.
+ */
 function theme_graphapi_link($link) {
   $html = '<edge';
   $html.= ' from="' . $link['from'] . '"';
@@ -180,6 +292,14 @@ function theme_graphapi_link($link) {
   return $html;
 }
 
+/**
+ * Returns the <edge> canvas node for the given graph.
+ *
+ * @param $graph
+ *   Graph array.
+ * @param $config
+ *   Graph config array (see graphapi_default_config() for details).
+ */
 function theme_graphapi_links($graph, $config) {
   $result = '<edges>';
   foreach( $graph as $from => $data) {
@@ -201,10 +321,16 @@ function theme_graphapi_links($graph, $config) {
   return $result;
 }
 
+/**
+ * Helper function. Returns unique id for each node id.
+ */
 function _graphapi_uniform_id($config, $id) {
   return $config['id'] . '-' . md5($id);
 }
 
+/**
+ * Helper function. Adds javascript and css on to drupal pages.
+ */
 function _graphapi_add_graph( $graph, $config) {
   $dom_prefix = $config['id'];
   $path = drupal_get_path('module', 'graphapi');
@@ -222,6 +348,17 @@ function _graphapi_add_graph( $graph, $config) {
   return;
 }
 
+/**
+ * Reverses all edges on a graph.
+ *
+ * @param $graph
+ *   Graph array.
+ * @param $keep_link_data
+ *   boolean: whether to keep the old link data (not yet implemented).
+ *
+ * @return
+ *   $graph array with edges in opposite direction to original.
+ */
 function graphapi_reverse($graph, $keep_link_data = FALSE) {
   $result = $graph;
   foreach ($result as $key => $value) {

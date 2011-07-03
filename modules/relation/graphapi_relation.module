@@ -2,10 +2,11 @@
 
 /**
  * @file
- *
- * Provides integration with the relation module by
- * a custom field formatter
- *
+ * Provides integration with the relation module by a custom field formatter.
+ */
+
+/**
+ * Implements hook_field_formatter_settings_form().
  */
 function graphapi_relation_field_formatter_settings_form($field, $instance, $view_mode, $form, $form_state) {
   $display = $instance['display'][$view_mode];
@@ -76,6 +77,9 @@ function graphapi_relation_field_formatter_settings_form($field, $instance, $vie
   return $form;
 }
 
+/**
+ * Helper function to genereate physics form and summary
+ */
 function _graphap_relation_physics() {
   return array(
     'showForces' => 'Show forces applied',
@@ -89,6 +93,9 @@ function _graphap_relation_physics() {
   );
 }
 
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
 function graphapi_relation_field_formatter_settings_summary($field, $instance, $view_mode) {
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
@@ -128,6 +135,9 @@ function graphapi_relation_field_formatter_settings_summary($field, $instance, $
   }
 }
 
+/**
+ * Implements hook_field_formatter_info().
+ */
 function graphapi_relation_field_formatter_info() {
   $types = relation_get_types();
   $links = array();
@@ -166,6 +176,9 @@ function graphapi_relation_field_formatter_info() {
   );
 }
 
+/**
+ * Default settings for link data.
+ */
 function graphapi_relation_default_link_data() {
   return array(
     'classes' => array(
@@ -175,6 +188,14 @@ function graphapi_relation_default_link_data() {
   );
 }
 
+/**
+ * Adds and id to the settings array.
+ *
+ * @param $id
+ *   Id.
+ * @param $settings
+ *   Existing settings array.
+ */
 function graphapi_relation_default_config($id, $settings = array()) {
   return $settings + array(
     'id' => $id,
