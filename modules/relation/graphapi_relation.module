@@ -47,6 +47,9 @@ function graphapi_relation_field_formatter_settings_form($field, $instance, $vie
     );
     $types = relation_get_types();
     foreach ($types as $type => $data) {
+      if (!isset($settings['links'][$type])) {
+        $settings['links'][$type] = graphapi_relation_default_link_data();
+      }
       $form['links'][$type] = array(
         '#title' => t($data->label),
         '#type' => 'fieldset',
@@ -118,6 +121,9 @@ function graphapi_relation_field_formatter_settings_summary($field, $instance, $
     $items = array();
     $types = relation_get_types();
     foreach($types as $type => $data) {
+      if (!isset($settings['links'][$type])) {
+        $settings['links'][$type] = graphapi_relation_default_link_data();
+      }
       $color = $settings['links'][$type]['color'];
       $items[] = array('data' => $data->label . ': <span style="background-color:' . $color . ';width:10px;">&nbsp;&nbsp;</span> (' . $color . ')');
     }
