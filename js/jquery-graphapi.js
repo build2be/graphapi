@@ -123,8 +123,10 @@
 
       });
       text += "}";
-alert(text);
-      //window.open('data:text/text;charset=utf-8,' + text,'_blank','height=300,width=400');
+      //alert(text);
+      //window.open('data:text/vnd-graphviz;charset=utf-8;filename=tada.txt,' + text,'_blank','height=300,width=400');
+      window.open('data:text/vnd-graphviz;charset=utf-8;Content-Disposition: attachment; filename= graphapi.dot,' + text);
+
     },
 
     menu : function($container) {
