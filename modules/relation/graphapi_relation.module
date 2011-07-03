@@ -13,39 +13,15 @@ function graphapi_relation_field_formatter_settings_form($field, $instance, $vie
   $settings = $display['settings'];
 
   if ($display['type'] == 'graphapi_relation_default') {
+
     $settings += graphapi_default_config();
-    $form['width'] = array(
-      '#title' => t('Width'),
-      '#type' => 'textfield',
-      '#default_value' => $settings['width'],
-    );
-    $form['height'] = array(
-      '#title' => t('Height'),
-      '#type' => 'textfield',
-      '#default_value' => $settings['height'],
-    );
-    $form['menu'] = array(
-      '#title' => t('Show menu'),
-      '#type' => 'checkbox',
-      '#default_value' => $settings['menu'],
-    );
-    $form['showLinks'] = array(
-      '#title' => t('Show link labels'),
-      '#type' => 'checkbox',
-      '#default_value' => $settings['showLinks'],
-    );
-    $form['background-color'] = array(
-      '#title' => t('Background color'),
-      '#type' => 'textfield',
-      '#default_value' => $settings['background-color'],
-    );
+    $types = relation_get_types();
     $form['links'] = array(
       '#title' => t('Relation settings'),
       '#type' => 'fieldset',
-      '#collapsed' => TRUE,
+      '#collapsed' => FALSE,
       '#collapsible' => TRUE,
     );
-    $types = relation_get_types();
     foreach ($types as $type => $data) {
       if (!isset($settings['links'][$type])) {
         $settings['links'][$type] = graphapi_relation_default_link_data();
@@ -62,13 +38,45 @@ function graphapi_relation_field_formatter_settings_form($field, $instance, $vie
         '#default_value' => $settings['links'][$type]['color'],
       );
     }
+
+    $form['graph'] = array(
+      '#title' => t('Graph settings'),
+      '#type' => 'fieldset',
+      '#collapsed' => TRUE,
+      '#collapsible' => TRUE,
+    );
+    $form['graph']['width'] = array(
+      '#title' => t('Width'),
+      '#type' => 'textfield',
+      '#default_value' => $settings['graph']['width'],
+    );
+    $form['graph']['height'] = array(
+      '#title' => t('Height'),
+      '#type' => 'textfield',
+      '#default_value' => $settings['graph']['height'],
+    );
+    $form['graph']['menu'] = array(
+      '#title' => t('Show menu'),
+      '#type' => 'checkbox',
+      '#default_value' => $settings['graph']['menu'],
+    );
+    $form['graph']['showLinks'] = array(
+      '#title' => t('Show link labels'),
+      '#type' => 'checkbox',
+      '#default_value' => $settings['graph']['showLinks'],
+    );
+    $form['graph']['background-color'] = array(
+      '#title' => t('Background color'),
+      '#type' => 'textfield',
+      '#default_value' => $settings['graph']['background-color'],
+    );
+
     $form['physics'] = array(
       '#title' => t('Physics settings'),
       '#type' => 'fieldset',
       '#collapsed' => TRUE,
       '#collapsible' => TRUE,
     );
-
     foreach (_graphap_relation_physics() as $key => $title) {
       $form['physics'][$key] = array(
         '#title' => t($title),
@@ -105,15 +113,15 @@ function graphapi_relation_field_formatter_settings_summary($field, $instance, $
   if ($display['type'] == 'graphapi_relation_default') {
     $summary = '';
     $items = array();
-    $items[] = t('The relation graph is sized (@width x @height).', array('@width' => $settings['width'], '@height' => $settings['height']));
-    if ($settings['menu']) {
+    $items[] = t('The relation graph is sized (@width x @height).', array('@width' => $settings['graph']['width'], '@height' => $settings['graph']['height']));
+    if ($settings['graph']['menu']) {
       $items[] = t('The menu is displayed');
     }
-    if ($settings['showLinks']) {
+    if ($settings['graph']['showLinks']) {
       $items[] = t('The link labels are displayed on hover');
     }
 
-    $color = $settings['background-color'];
+    $color = $settings['graph']['background-color'];
     $items[] = array('data' => 'Background color: <span style="background-color:' . $color . ';width:10px;">&nbsp;&nbsp;</span> (' . $color . ')');
 
     $summary .= theme('item_list', array('items' => $items, 'title' => 'Graph settings'));
@@ -148,24 +156,22 @@ function graphapi_relation_field_formatter_info() {
   $types = relation_get_types();
   $links = array();
   foreach($types as $type => $data) {
-    $links[$type] = array(
-      'color' => 'green',
-    );
+    $links[$type] = graphapi_relation_default_link_data();
   }
   return array(
     'graphapi_relation_default' => array(
       'label' => t('Graph'),
       'field types' => array('relation'),
       'settings' => array(
-        'height' => '800',
-        'width' => '800',
-        'menu' => FALSE,
-        'background-color' => 'grey',
-        'applyCompass' => FALSE,
-        'applyBoxOverlap' => TRUE,
-        'showLinks' => FALSE,
-        'animate' => TRUE,
-        'randomize' => TRUE,
+        'graph' => array(
+          'height' => '800',
+          'width' => '800',
+          'menu' => FALSE,
+          'background-color' => 'grey',
+          'showLinks' => FALSE,
+          'animate' => TRUE,
+          'randomize' => TRUE,
+        ),
         'physics' => array(
           'showForces' => FALSE,
           'applyAttractToCenter' => FALSE,
@@ -190,7 +196,7 @@ function graphapi_relation_default_link_data() {
     'classes' => array(
       'edge',
     ),
-    'color' => 'black',
+    'color' => 'green',
   );
 }
 
@@ -217,10 +223,17 @@ function graphapi_relation_default_config($id, $settings = array()) {
  * @return $element-array
  */
 function graphapi_relation_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
-  $settings = $display['settings'] + graphapi_default_config();
+  $settings = $display['settings'];
+  // Adjust hierarchy for physics settings
   $physics = $settings['physics'];
   unset($settings['physics']);
   $settings += $physics;
+  // Adjust hierarchy for graph settings
+  $graphapi = $settings['graph'];
+  unset($settings['graph']);
+  $settings += $graphapi;
+  $settings += graphapi_default_config();
+
   $relation_types = relation_get_types();
   $element = array();
   list($entity_id) = entity_extract_ids($entity_type, $entity);
