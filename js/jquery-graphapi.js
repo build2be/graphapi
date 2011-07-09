@@ -91,6 +91,7 @@
       applyDamping : true,
       applyHookesLaw : true,
       applyCompass : true,
+      applyRank : false,
 
       attractToCenter : 200.0,
       boundingBox : 200.0,
@@ -98,9 +99,12 @@
       coulombsLaw : 256000.0,
       damping : 0.8,
       hookesLaw : 4.0,
-      compass : 3.0
+      compass : 3.0,
+      rankType : 'TopBottom',
+      rankDepth : 8
     },
 
+    // var a = [];jQuery('.graphapi-nodes > div').each(function() { a.push( jQuery(this).attr('rank'));}); a;
     doExport : function($container) {
       var text = 'digraph {';
       var $nodes = $container.children('.graphapi-nodes');
@@ -192,6 +196,9 @@
         },
         applyHookesLaw : {
           label: 'Hookes law'
+        },
+        applyRank : {
+          label: 'Apply Ranking'
         }
       }
 
@@ -228,17 +235,25 @@
       .addClass('graphapi-node')
       .css('position', 'absolute')
       .each(function(index){
+        var $this = $(this);
         if (opts.randomize) {
-          $.graphapi.physics.init($(this),
+          $.graphapi.physics.init($this,
             (opts.initScale * (Math.random() - 1/2)) * opts.width + opts.width/2,
             (opts.initScale * (Math.random() - 1/2)) * opts.height + opts.height/2
             );
         }
+      //TODO: add rank when missing attribute ... then we can rank by hand.
+      //$this.attr('rank', '0');
       }).children('.graphapi-body').hide();
 
       // Move the edges into position
       if (opts.showLinks) {
-        $container.children('edges').css({'position': 'absolute','top': 0, 'left': 0, 'width':'100%'}).children().css('position', 'absolute');
+        $container.children('edges').css({
+          'position': 'absolute',
+          'top': 0,
+          'left': 0,
+          'width':'100%'
+        }).children().css('position', 'absolute');
       }
       else {
         $container.children('edges').children().css('display', 'none');
@@ -554,8 +569,38 @@
 
         physics2.fx -= Nx * scale;
         physics2.fy -= Ny * 0.9 * scale;
-      }
+      },
 
+      /**
+       * Apply a ranking function on particle
+       *
+       * Only for positive ranking so we can disable ranking by
+       * settings the ranking negative
+       */
+      rank : function(physics, physicsRoom, rankFunc, rankOrder, rankDepth, scale) {
+        if (rankOrder <= 0) return;
+
+        var f = rankFunc(physics, physicsRoom, rankOrder, rankDepth);
+
+        physics.fx += f.fx * scale;
+        physics.fy += f.fy * scale;
+      }
+    },
+
+    rankTopBottom : function(physicsParticle, physicsRoom, rankOrder, rankDepth) {
+      var my = 2 * physicsRoom.dy * (rankOrder) / (rankDepth+1) - physicsRoom.dy + physicsRoom.py;
+      return {
+        fx: 0,
+        fy: my - physicsParticle.py
+      };
+    },
+
+    rankBottomTop : function(physicsParticle, physicsRoom, rankOrder, rankDepth) {
+      var my = 2 * physicsRoom.dy * (1 - (rankOrder-1) / rankDepth) - physicsRoom.dy + physicsRoom.py;
+      return {
+        fx: 0,
+        fy: my - physicsParticle.py
+      };
     },
 
     draw : function($container) {
@@ -642,6 +687,15 @@
       var fnHookesLaw = $.graphapi.physics.hookesLaw;
       var fnCompass = $.graphapi.physics.compass;
 
+      // Rank settings
+      var fnRank = $.graphapi.physics.rank;
+      var rankType = opts.rankType;
+      var rankDepth = opts.rankDepth;
+      // TODO: validate type
+      var fnRankType = $.graphapi[ 'rank' + rankType];
+      var applyRank = opts.applyRank;
+      if (rankDepth == 0) applyRank = false;
+
       var fnUpdatePosition = $.graphapi.physics.updatePosition;
 
       var damping = 1.00;
@@ -663,6 +717,8 @@
         var physics1 = $node1.data('physics');
         if (applyAttractToCenter) fnAttractToCenter(physics1, center, attractToCenter);
         if (applyBoundingBox) fnBoundingBox(physics1, center, boundingBox);
+
+        if (applyRank) fnRank(physics1, center, fnRankType, $node1.attr('rank') % rankDepth, rankDepth, 1.0);
 
         // two point interaction
         $node1.nextAll('.graphapi-node').each(function() {
@@ -704,5 +760,4 @@ jQuery(document).ready(function(){
       $.graphapi.animate($container);
     });
   });
-
 });

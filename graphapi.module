@@ -165,6 +165,8 @@ function graphapi_default_config() {
     'randomize' => true,
     'height' => 600,
     'width' => 800,
+    'rankType' => 'TopBottom',
+    'rankDepth' => 2,
 
     'menu' => TRUE,
   );
@@ -254,6 +256,8 @@ function theme_graphapi_node($dom_id, $data, $config) {
     'id' => $dom_id,
     'class' => 'graphapi-node',
   );
+  // We always add a rank ... all ranks <= 0 are not used for layout
+  $attributes['rank'] = isset($data['rank']) ? $data['rank'] : 0;
   $a = drupal_attributes($attributes);
 
   if (isset($data['content'])) {
