@@ -82,7 +82,27 @@ function graphapi_devel_system_modules_layout() {
  */
 function graphapi_devel_system_module_install_layout() {
   $graph = _graphapi_devel_system_module_install_layout();
-  return graphapi_container($graph, array( 'width' => 1024, "height" => 800) + _graphapi_devel_config());
+
+  include "includes/graph.inc";
+  drupal_depth_first_search($graph);
+  foreach ($graph as $id => $node) {
+    $graph[$id]['data']['rank'] = 1 -$graph[$id]['weight'];
+    $graph[$id]['data']['title'] = "$id (" . $graph[$id]['data']['rank'] . ")";
+  }
+
+  $rankDepth = count($graph)+1;
+  return graphapi_container($graph,
+      array(
+        'applyRank' => TRUE,
+        'applyAttractToCenter' => FALSE,
+        'applyBoundingBox' => TRUE,
+        'applyBoBoxOverlap' => FALSE,
+        'applyCompass' => FALSE,
+        'applyHookesLaw' => FALSE,
+        'width' => 1024,
+        'height' => 800,
+        'rankDepth' => $rankDepth
+      ) + _graphapi_devel_config());
 }
 
 /**
@@ -98,10 +118,10 @@ function _graphapi_devel_system_module_install_layout() {
   foreach($modules as $module) {
     $update = module_invoke($module, 'update_dependencies');
     if (count($update)) {
-      foreach( $update as $module => $versions) {
+      foreach( $update as $src_module => $versions) {
         foreach( $versions as $version => $dests) {
-          $src = $module . "_update_" . $version;
-          $selfs[$module][] = $version;
+          $src = $src_module . "_update_" . $version;
+          $selfs[$src_module][] = $version;
           foreach($dests as $dest_module => $dest_version) {
             $dst = $dest_module . "_update_" . $dest_version;
             $links[$dst][] = $src;
