@@ -77,6 +77,7 @@
 
       menu : false,
       menuHide: true,
+      showRegions : true,
       showForces : false,
       showLinks : false,
       animate: true,
@@ -114,7 +115,7 @@
         text += '  label = "' + $this.children('.graphapi-title').text() + '",';
         var position = $this.position();
         text += ' pos="' + position.left + ',' + position.top + '"'
-        text += "];\n"
+        text += "]; \n"
 
       });
       var $edges = $container.children('edges');
@@ -123,7 +124,7 @@
         text += ($this.attr('from').replace(/-/g,'_'));
         text += " ->" ;
         text += ($this.attr('to').replace(/-/g,'_'));
-        text += "\n"
+        text += "\n "
 
       });
       text += "}";
