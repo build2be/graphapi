@@ -375,3 +375,21 @@ function graphapi_reverse($graph, $keep_link_data = FALSE) {
   }
   return $result;
 }
+
+function graphapi_to_dot($graph) {
+  $dot = array();
+  $dot[] = "digraph {";
+  foreach ($graph as $id => $node) {
+    $dot[] = $id . ' [';
+
+    $dot[] = 'label="' . $id . '"';
+    $dot[] = ']';
+
+    foreach ($node['edges'] as $eid => $edge) {
+      $dot[] = "$id -> $eid";
+    }
+  }
+  $dot[] = '}';
+
+  return join("\n", $dot);
+}

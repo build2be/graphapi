@@ -115,6 +115,10 @@ function _graphapi_devel_system_module_install_layout() {
       }
     }
   }
+  graphapi_add_node($graph, '_first');
+  graphapi_set_node_title($graph, '_first', 'update.php:start');
+  $graph['_first']['data']['rank']= 1;
+
   // Add links between module's own hook_update_N
   foreach( $selfs as $module => $versions) {
     // delete dups
@@ -127,6 +131,7 @@ function _graphapi_devel_system_module_install_layout() {
       $dest = $module . '_update_' . $version;
       $links[$current][] = $dest;
       $graph[$current]['edges'][$dest]=array('color' => '#333');
+
       $current = $dest;
     }
     $links[$current][] = '_last';
@@ -154,7 +159,6 @@ function _graphapi_devel_system_module_install_layout() {
   foreach( $targets as $target) {
     unset( $graph[$target]['edges']['_last']);
   }
-
   return $graph;
 }
 
