@@ -5,6 +5,51 @@
  * Provides integration with the relation module by a custom field formatter.
  */
 
+function graphapi_relation_menu() {
+  return array(
+    'admin/relation/graphapi/global' => array(
+      'title' => 'Global graphapi relation settings',
+      'description' => 'Adjust the global graph relation settings',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('graphapi_relation_global_settings_form'),
+      'access arguments' => array('administer site configuration'),
+      'type' => MENU_LOCAL_TASK,
+    )
+  );
+}
+
+function graphapi_relation_global_settings_form() {
+  $field_settings = graphapi_relation_field_formatter_info();
+
+  $default = $field_settings['graphapi_relation_default']['settings'];
+
+  $settings = variable_get('graphapi_relation_global_settings', $default);
+  $settings += graphapi_default_config();
+
+  $form = graphapi_relation_settings_form( $settings);
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Save configuration',
+  );
+  $form['#tree'] = true;
+  $form['#submit'][] = 'graphapi_relation_global_settings_submit';
+
+  // We don't use system_settings_form ... not sure whether #tree works
+  //return system_settings_form($form);
+  return $form;
+}
+
+function graphapi_relation_global_settings_submit($form, &$form_state) {
+  $values = $form_state['values'];
+  $settings = array();
+  $keys = array('links', 'graph', 'physics');
+  foreach ($keys as $key) {
+    $settings[$key] = $values[$key];
+  }
+  variable_set('graphapi_relation_global_settings', $settings);
+  }
+
 /**
  * Implements hook_field_formatter_settings_form().
  */
@@ -13,77 +58,102 @@ function graphapi_relation_field_formatter_settings_form($field, $instance, $vie
   $settings = $display['settings'];
 
   if ($display['type'] == 'graphapi_relation_default') {
-
     $settings += graphapi_default_config();
-    $types = relation_get_types();
-    $form['links'] = array(
-      '#title' => t('Relation settings'),
+    $form['global'] = array(
+      '#title' => t('Global'),
       '#type' => 'fieldset',
       '#collapsed' => FALSE,
       '#collapsible' => TRUE,
     );
-    foreach ($types as $type => $data) {
-      if (!isset($settings['links'][$type])) {
-        $settings['links'][$type] = graphapi_relation_default_link_data();
-      }
-      $form['links'][$type] = array(
-        '#title' => t($data->label),
-        '#type' => 'fieldset',
-        '#collapsed' => FALSE,
-        '#collapsible' => TRUE,
-      );
-      $form['links'][$type]['color'] = array(
-        '#title' => t('Color'),
-        '#type' => 'textfield',
-        '#default_value' => $settings['links'][$type]['color'],
-      );
-    }
+    $form['global']['use_global'] = array(
+      '#title' => t('Use global settings'),
+      '#type' => 'checkbox',
+      '#description' => 'You can change the ' . l('global settings', 'admin/relation/graphapi/global'),
+      '#default_value' => $settings['global']['use_global'],
+    );
+    // We hide all fieldsets when using global settings.
+    // TODO: this input[*] is insane long ... why is that? File a bug?
+    $hide_state = array(
+      'visible' => array(
+        ':input[name="fields[field_relations][settings_edit_form][settings][global][use_global]"]' => array('checked' => FALSE),
+      )
+    );
+    $form += graphapi_relation_settings_form( $settings, $hide_state);
+    return $form;
+  }
+}
 
-    $form['graph'] = array(
-      '#title' => t('Graph settings'),
+function graphapi_relation_settings_form( $settings, $hide_state= NULL) {
+  $form['links'] = array(
+    '#title' => t('Relation settings'),
+    '#type' => 'fieldset',
+    '#collapsed' => FALSE,
+    '#collapsible' => TRUE,
+    '#states' => $hide_state,
+  );
+  $types = relation_get_types();
+  foreach ($types as $type => $data) {
+    if (!isset($settings['links'][$type])) {
+      $settings['links'][$type] = graphapi_relation_default_link_data();
+    }
+    $form['links'][$type] = array(
+      '#title' => t($data->label),
       '#type' => 'fieldset',
-      '#collapsed' => TRUE,
+      '#collapsed' => FALSE,
       '#collapsible' => TRUE,
     );
-    $form['graph']['width'] = array(
-      '#title' => t('Width'),
+    $form['links'][$type]['color'] = array(
+      '#title' => t('Color'),
       '#type' => 'textfield',
-      '#default_value' => $settings['graph']['width'],
+      '#default_value' => $settings['links'][$type]['color'],
     );
-    $form['graph']['height'] = array(
-      '#title' => t('Height'),
-      '#type' => 'textfield',
-      '#default_value' => $settings['graph']['height'],
-    );
-    $form['graph']['menu'] = array(
-      '#title' => t('Show menu'),
-      '#type' => 'checkbox',
-      '#default_value' => $settings['graph']['menu'],
-    );
-    $form['graph']['showLinks'] = array(
-      '#title' => t('Show link labels'),
-      '#type' => 'checkbox',
-      '#default_value' => $settings['graph']['showLinks'],
-    );
-    $form['graph']['background-color'] = array(
-      '#title' => t('Background color'),
-      '#type' => 'textfield',
-      '#default_value' => $settings['graph']['background-color'],
-    );
+  }
+  $form['graph'] = array(
+    '#title' => t('Graph settings'),
+    '#type' => 'fieldset',
+    '#collapsed' => TRUE,
+    '#collapsible' => TRUE,
+    '#states' => $hide_state,
+  );
+  $form['graph']['width'] = array(
+    '#title' => t('Width'),
+    '#type' => 'textfield',
+    '#default_value' => $settings['graph']['width'],
+  );
+  $form['graph']['height'] = array(
+    '#title' => t('Height'),
+    '#type' => 'textfield',
+    '#default_value' => $settings['graph']['height'],
+  );
+  $form['graph']['menu'] = array(
+    '#title' => t('Show menu'),
+    '#type' => 'checkbox',
+    '#default_value' => $settings['graph']['menu'],
+  );
+  $form['graph']['showLinks'] = array(
+    '#title' => t('Show link labels'),
+    '#type' => 'checkbox',
+    '#default_value' => $settings['graph']['showLinks'],
+  );
+  $form['graph']['background-color'] = array(
+    '#title' => t('Background color'),
+    '#type' => 'textfield',
+    '#default_value' => $settings['graph']['background-color'],
+  );
 
-    $form['physics'] = array(
-      '#title' => t('Physics settings'),
-      '#type' => 'fieldset',
-      '#collapsed' => TRUE,
-      '#collapsible' => TRUE,
+  $form['physics'] = array(
+    '#title' => t('Physics settings'),
+    '#type' => 'fieldset',
+    '#collapsed' => TRUE,
+    '#collapsible' => TRUE,
+    '#states' => $hide_state,
+  );
+  foreach (_graphap_relation_physics() as $key => $title) {
+    $form['physics'][$key] = array(
+      '#title' => t($title),
+      '#type' => 'checkbox',
+      '#default_value' => $settings['physics'][$key],
     );
-    foreach (_graphap_relation_physics() as $key => $title) {
-      $form['physics'][$key] = array(
-        '#title' => t($title),
-        '#type' => 'checkbox',
-        '#default_value' => $settings['physics'][$key],
-      );
-    }
   }
   return $form;
 }
@@ -109,8 +179,14 @@ function _graphap_relation_physics() {
  */
 function graphapi_relation_field_formatter_settings_summary($field, $instance, $view_mode) {
   $display = $instance['display'][$view_mode];
-  $settings = $display['settings'];
   if ($display['type'] == 'graphapi_relation_default') {
+    $settings = $display['settings'];
+    if ($settings['global']['use_global']) {
+      $default = $field_settings['graphapi_relation_default']['settings'];
+      $settings = variable_get('graphapi_relation_global_settings', $default);
+      $settings += graphapi_default_config();
+    }
+
     $summary = '';
     $items = array();
     $items[] = t('The relation graph is sized (@width x @height).', array('@width' => $settings['graph']['width'], '@height' => $settings['graph']['height']));
@@ -163,6 +239,9 @@ function graphapi_relation_field_formatter_info() {
       'label' => t('Graph'),
       'field types' => array('relation'),
       'settings' => array(
+        'global' => array(
+          'use_global',
+        ),
         'graph' => array(
           'height' => '800',
           'width' => '800',
@@ -224,6 +303,11 @@ function graphapi_relation_default_config($id, $settings = array()) {
  */
 function graphapi_relation_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $settings = $display['settings'];
+  if ($settings['global']['use_global']) {
+    $default = $field_settings['graphapi_relation_default']['settings'];
+    $settings = variable_get('graphapi_relation_global_settings', $default);
+    $settings += graphapi_default_config();
+  }
   // Adjust hierarchy for physics settings
   $physics = $settings['physics'];
   unset($settings['physics']);
