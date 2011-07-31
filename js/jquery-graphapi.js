@@ -295,7 +295,7 @@
       })
       .mousedown(function(event){
         var $this = $(this);
-        $this.children('.graphapi-content').dialog();
+        // $this.children('.graphapi-content').dialog();
         if ($this.addClass('dragging')) {
           //mouseLog(event,$this);
           var offset = $this.offset();
