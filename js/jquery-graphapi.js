@@ -124,7 +124,7 @@
         text += ($this.attr('from').replace(/-/g,'_'));
         text += " ->" ;
         text += ($this.attr('to').replace(/-/g,'_'));
-        text += "\n "
+        text += " \n"
 
       });
       text += "}";
