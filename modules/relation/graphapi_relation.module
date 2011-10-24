@@ -18,7 +18,7 @@ function graphapi_relation_menu() {
   );
 }
 
-function graphapi_relation_global_settings_form() {
+function graphapi_relation_get_global_settings() {
   $field_settings = graphapi_relation_field_formatter_info();
 
   $default = $field_settings['graphapi_relation_default']['settings'];
@@ -26,6 +26,11 @@ function graphapi_relation_global_settings_form() {
   $settings = variable_get('graphapi_relation_global_settings', $default);
   $settings += graphapi_default_config();
 
+  return $settings;
+}
+
+function graphapi_relation_global_settings_form() {
+  $settings = graphapi_relation_get_global_settings();
   $form = graphapi_relation_settings_form( $settings);
 
   $form['submit'] = array(
@@ -180,14 +185,13 @@ function _graphap_relation_physics() {
 function graphapi_relation_field_formatter_settings_summary($field, $instance, $view_mode) {
   $display = $instance['display'][$view_mode];
   if ($display['type'] == 'graphapi_relation_default') {
-    $settings = $display['settings'];
-    if ($settings['global']['use_global']) {
-      $default = $field_settings['graphapi_relation_default']['settings'];
-      $settings = variable_get('graphapi_relation_global_settings', $default);
-      $settings += graphapi_default_config();
-    }
-
+    $settings = $display['settings'] + graphapi_relation_get_global_settings();
     $summary = '';
+    $items = array();
+    if ($settings['global']['use_global']) {
+      $items[] = 'Using ' . l('global settings', 'admin/relation/graphapi/global');
+      $summary .= theme('item_list', array('items' => $items, 'title' => 'Using global settings'));
+    }
     $items = array();
     $items[] = t('The relation graph is sized (@width x @height).', array('@width' => $settings['graph']['width'], '@height' => $settings['graph']['height']));
     if ($settings['graph']['menu']) {
@@ -240,7 +244,7 @@ function graphapi_relation_field_formatter_info() {
       'field types' => array('relation'),
       'settings' => array(
         'global' => array(
-          'use_global',
+          'use_global' => FALSE,
         ),
         'graph' => array(
           'height' => '800',
@@ -304,9 +308,9 @@ function graphapi_relation_default_config($id, $settings = array()) {
 function graphapi_relation_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $settings = $display['settings'];
   if ($settings['global']['use_global']) {
-    $default = $field_settings['graphapi_relation_default']['settings'];
-    $settings = variable_get('graphapi_relation_global_settings', $default);
-    $settings += graphapi_default_config();
+    $global_settings = graphapi_relation_get_global_settings();
+    $global_settings['global']['use_global'] = TRUE;
+    $settings = $global_settings + $settings;
   }
   // Adjust hierarchy for physics settings
   $physics = $settings['physics'];
