@@ -1,9 +1,10 @@
 name = Graph API
 description = Allow developer to create graphs
 package = Graph Tools
-version = VERSION
 core = 7.x
+
 files[] = graphapi.module
 files[] = js/graphapi.js
 files[] = css/graphapi.css
 
+files[] = views/plugins/views_plugin_style_graphapi.inc
