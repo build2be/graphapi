@@ -226,7 +226,7 @@ function graphapi_theme() {
 /**
  * Theme implementation, returns GraphAPI container as HTML.
  */
-function theme_graphapi_container($graph, $config) {
+function theme_graphapi_container($graph, $config = array()) {
   return graphapi_container($graph, $config);
 }
 
