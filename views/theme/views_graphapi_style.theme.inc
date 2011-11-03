@@ -18,8 +18,6 @@ function template_preprocess_views_graphapi_style_graphapi(&$vars) {
   $options = $vars["options"];
 
   $base = $view->base_table;
-  $row = $view->result[0];
-//  dsm($view->field, __FUNCTION__);
   if ($base == 'system') {
     // We cannot use system_rebuild_module_data as this calls build_dependencies
     // which adds transitive dependencies which we don't want.
@@ -76,7 +74,7 @@ function template_preprocess_views_graphapi_style_graphapi(&$vars) {
     foreach (array_keys($handler) as $key => $field) {
       $found_fields[$handler[$field]->label()] = $handler[$field]->field_alias;
     }
-    dsm($found_fields);
+    //dsm($found_fields);
     $test_fields = _graphapi_style_check_fields($our_fields, $found_fields);
     if ($test_fields) {
       $vars["xml"] = $test_fields;

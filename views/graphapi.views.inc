@@ -22,7 +22,7 @@ function graphapi_views_plugins() {
     'module' => 'graphapi',
     'style' => array(
       'graphapi_style' => array(
-        'title'           => t('Graph API data document'),
+        'title'           => t('Graph rendering'),
         'path'            => $path . '/plugins',
         'help'            => t('Display a view as an Graph.'),
         'handler'         => 'views_plugin_style_graphapi',
