@@ -4,7 +4,7 @@
  * Implements hook_menu().
  */
 function graphapi_devel_menu() {
-  $items['admin/modules/graph'] = array(
+  $items['admin/modules/graph_old'] = array(
     'title' => 'Graph',
     'description' => t( "A graph of all defined 'update_dependencies'."),
     'page callback' => 'graphapi_devel_system_modules_layout',
@@ -12,7 +12,7 @@ function graphapi_devel_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 100,
   );
-  $items['admin/modules/graph/modules'] = array(
+  $items['admin/modules/graph_old/modules'] = array(
     'title' => 'Module dependencies',
     'description' => t( "A graph of all modules."),
     'page callback' => 'graphapi_devel_system_modules_layout',
@@ -20,7 +20,7 @@ function graphapi_devel_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => 100,
   );
-  $items['admin/modules/graph/all-modules'] = array(
+  $items['admin/modules/graph_old/all-modules'] = array(
     'title' => 'All module dependencies',
     'description' => t( "A graph of all modules including hidden."),
     'page callback' => 'graphapi_devel_system_all_modules_layout',
@@ -28,7 +28,7 @@ function graphapi_devel_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 100,
   );
-  $items['admin/modules/graph/install'] = array(
+  $items['admin/modules/graph_old/install'] = array(
     'title' => 'Update Dependencies',
     'description' => t( "A graph of all hook_update_dependencies'."),
     'page callback' => 'graphapi_devel_system_module_install_layout',
