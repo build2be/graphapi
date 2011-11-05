@@ -238,37 +238,12 @@ function graphapi_relation_field_formatter_info() {
   foreach($types as $type => $data) {
     $links[$type] = graphapi_relation_default_link_data();
   }
-  return array(
-    'graphapi_relation_default' => array(
-      'label' => t('Graph'),
-      'field types' => array('relation'),
-      'settings' => array(
-        'global' => array(
-          'use_global' => FALSE,
-        ),
-        'graph' => array(
-          'height' => '800',
-          'width' => '800',
-          'menu' => FALSE,
-          'background-color' => 'grey',
-          'showLinks' => FALSE,
-          'animate' => TRUE,
-          'randomize' => TRUE,
-        ),
-        'physics' => array(
-          'showForces' => FALSE,
-          'applyAttractToCenter' => FALSE,
-          'applyBoundingBox' => FALSE,
-          'applyBoxOverlap' => FALSE,
-          'applyCoulombsLaw' => TRUE,
-          'applyDamping' => TRUE,
-          'applyHookesLaw' => TRUE,
-          'applyCompass' => FALSE,
-        ),
-        'links' => $links,
-      ),
-    ),
-  );
+  
+  $return = array();
+  $return['graphapi_relation_default'] = graphapi_settings_defaults();
+  $return['graphapi_relation_default']['field types'] = array('relation');
+  $return['graphapi_relation_default']['links'] = $links;
+  return $return;
 }
 
 /**

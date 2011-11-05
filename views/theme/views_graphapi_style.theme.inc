@@ -58,7 +58,7 @@ function template_preprocess_views_graphapi_style_graphapi(&$vars) {
         }
       }
     }
-    $vars["xml"] = theme_graphapi_container($graph);
+    $vars["xml"] = theme('graphapi_container', array('graph' => $graph, 'config' => graphapi_default_config()));
   }
   else {
     // We need to check for the correct field labels
