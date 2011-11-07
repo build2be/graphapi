@@ -61,70 +61,59 @@ function template_preprocess_views_graphapi_style_graphapi(&$vars) {
     $vars["xml"] = theme('graphapi_container', array('graph' => $graph, 'config' => graphapi_default_config()));
   }
   else {
+    $view = $vars['view'];
+    $options = $vars['options'];
     // We need to check for the correct field labels
     $handler = $view->display_handler->get_handlers('field');
-    $found_fields = array();
 
-    $our_fields = array(
-      'from_id' => TRUE,
-      'from_label' => FALSE,
-      'to_id' => TRUE,
-      'to_label' => FALSE,
-    );
-    foreach (array_keys($handler) as $key => $field) {
-      $found_fields[$handler[$field]->label()] = $handler[$field]->field_alias;
-    }
-    //dsm($found_fields);
-    $test_fields = _graphapi_style_check_fields($our_fields, $found_fields);
-    if ($test_fields) {
-      $vars["xml"] = $test_fields;
-      return;
-    }
+    $mapping = array();
+    $mapping['from'] = array();
+    $mapping['to'] = array();
 
-    $from_id_field = $found_fields['from_id'];
-    $from_label_field = $found_fields['from_label'];
-    $to_id_field = $found_fields['to_id'];
-    $to_label_field = $found_fields['to_label'];
+    foreach ($options['from'] as $id => $data) {
+      if (isset($options['from'][$id]) && isset($view->field[$options['from'][$id]])) {
+        $mapping['from'][$id] = $view->field[$options['from'][$id]]->field_alias;
+      }
+    }
+    foreach ($options['to'] as $id => $data) {
+      if (isset($options['to'][$id]) && isset($view->field[$options['to'][$id]])) {
+        $mapping['to'][$id] = $view->field[$options['to'][$id]]->field_alias;
+      }
+    }
+    // Add lable field if not set yet
+    if (empty($mapping['from']['label'])) {
+      $mapping['from']['label'] = $mapping['from']['id'];
+    }
+    if (empty($mapping['to']['label'])) {
+      $mapping['to']['label'] = $mapping['to']['id'];
+    }
 
     //merlinofchaos>	ClemensTolboom: $view->field[$field_id]->field_alias should then match 'comment_node_cid'.
     //merlinofchaos>	ClemensTolboom: Though in general you should try to avoid ever referencing what's in $row directly if you can.
     //merlinofchaos>	ClemensTolboom: There's always things like $view->style_plugin->rendered_fields[] and $view->field[$id]->get_value()
     $graph = graphapi_new_graph();
     foreach ($view->result as $id => $row) {
-      //dsm($row);
-      $from_id = $row->{$from_id_field};
-      $from_title = isset($row->{$from_label_field}) ? $row->{$from_label_field} : $from_id;
+      // Node values
+      $from_id = $row->{$mapping['from']['id']};
+      $from_title = $row->{$mapping['from']['label']};
+      $to_id = $row->{$mapping['to']['id']};
+      $to_title = $row->{$mapping['to']['label']};
 
-      if (isset($row->{$found_fields['to_id']})) {
-        $to_id = $row->{$found_fields['to_id']};
-        $to_title = isset($row->{$to_label_field}) ? $row->{$to_label_field} : $from_id;
-      }
       graphapi_add_node($graph, $from_id);
-      if (isset($from_title)) {
-        graphapi_set_node_title($graph, $from_id, $from_title);
-      }
+      graphapi_set_node_title($graph, $from_id, $from_title);
+      // Make sure only add a link when exists
       if (isset($to_id)) {
         graphapi_add_node($graph, $to_id);
         graphapi_set_node_title($graph, $to_id, $to_title);
+
         graphapi_add_link($graph, $from_id, $to_id);
       }
     }
-    //dsm($graph);
-    $vars["xml"] = theme_graphapi_container($graph);
-  }
-}
-
-function _graphapi_style_check_fields($our_fields, $found_fields) {
-  $invalid = FALSE;
-  foreach ($our_fields as $key => $value) {
-    if ($value) {
-      // Required field
-      if (!isset($found_fields[$key])) {
-        $invalid = TRUE;
-      }
-    }
-  }
-  if ($invalid) {
-    return "Make sure fields are named " . join(", ", array_keys($our_fields)) . "<br />Found keys: " . join(", ", array_keys($found_fields));
+    // Temp fix
+    $config = array(
+      'applyCompass' => FALSE,
+      'applyBoxOverlap' => TRUE,
+    );
+    $vars["xml"] = theme('graphapi_container', array('graph' => $graph, 'config' => $config + graphapi_default_config()));
   }
 }
