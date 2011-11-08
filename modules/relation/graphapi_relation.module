@@ -334,7 +334,7 @@ function graphapi_relation_field_formatter_view($entity_type, $entity, $field, $
     }
   }
   $config = graphapi_relation_default_config($source_id . "-" . $delta, $settings);
-  $element[0]['relation']['graph']['#markup'] = theme_graphapi_container($graph, $config);
+  $element[0]['relation']['graph']['#markup'] = theme('graphapi_container', array('graph' => $graph, 'config' => $config));
 
   return $element;
 }
