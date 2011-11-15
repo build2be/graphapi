@@ -28,6 +28,14 @@ Drupal.behaviors.graphapi = {
         jQuery.graphapi.draw($container);
       }
     });
+
+    jQuery('.graphapi-node').click(function (eventData){
+      var $this = jQuery(this);
+      // TODO: This needs better positioning:
+      // These are not ok: [eventData.clientX, eventData.clientY]
+      jQuery('.graphapi-content', $this).dialog();
+    });
+
   }
 }
 
