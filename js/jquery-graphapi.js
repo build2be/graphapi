@@ -260,61 +260,6 @@
         $container.children('edges').children().css('display', 'none');
 
       }
-      /*
-      var mouseLog = function(e, o) {
-        var position = o.position();
-        var offset = o.offset();
-        console.log(e.type + ": " + e.pageX + ", " + e.pageY);
-        console.log("- position: " + position.left + "," + position.top);
-        console.log("- offset:   " + offset.left + "," + offset.top);
-        console.log("- rel:      " + (e.pageX - offset.left) + "," + (e.pageY - offset.top));
-      }
-      */
-      var getOffset = function(e, o) {
-        var offset = o.offset();
-        return {
-          left : e.pageX - offset.left,
-          top : e.pageY - offset.top
-        };
-      }
-      // Add drag support
-      $nodes.children('.graphapi-node')
-      .removeClass('dragging')
-      .mousemove( function(event){
-        var $this = $(this);
-        if ($this.hasClass('dragging')) {
-          var dragOffset = getOffset(event, $this);
-          var oldOffset = $this.data('dragOffset');
-          var position = $this.position();
-          var left = position.left + dragOffset.left - oldOffset.left;
-          var top = position.top + dragOffset.top - oldOffset.top;
-          var physics = $this.data('physics');
-          $.graphapi.physics.init($this, left+physics.dx, top+physics.dy);
-          $this.css('left', left).css('top', top);
-        }
-      })
-      .mousedown(function(event){
-        var $this = $(this);
-        // $this.children('.graphapi-content').dialog();
-        if ($this.addClass('dragging')) {
-          //mouseLog(event,$this);
-          var offset = $this.offset();
-          $this.data('dragOffset', getOffset(event, $this));
-        }
-      })
-      .mouseup(function(event){
-        var $this = $(this);
-        if ($this.removeClass('dragging')) {
-          var position = $this.position();
-          var physics = $this.data('physics');
-          $.graphapi.physics.init($this, position.left+physics.dx, position.top+physics.dy);
-          $.graphapi.draw($container);
-        }
-      });
-
-      $nodes.mouseup(function(event){
-        $(this).children('.graphapi-node').removeClass('dragging');
-      });
     },
 
     canvas : {
