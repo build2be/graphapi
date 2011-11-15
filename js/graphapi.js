@@ -1,6 +1,22 @@
 Drupal.behaviors.graphapi = {
   attach : function(context, settings) {
-    jQuery('.graphapi-node').draggable();
+    jQuery('.graphapi-node').draggable({
+      start : function(event, ui) {
+        var $this = jQuery(this);
+        var $container = $this.parents('.graphapi').first();
+        var opts = $container.data('options');
+        opts.dragging = true;
+        $container.data('options', opts);
+      },
+      stop : function(event, ui) {
+        var $this = jQuery(this);
+        var $container = $this.parents('.graphapi').first();
+        var opts = $container.data('options');
+        opts.dragging = false;
+        $container.data('options', opts);
+      }
+    });
+
     jQuery('.graphapi-nodes').droppable({
       drop: function(event, ui) {
         var $this = jQuery(this);

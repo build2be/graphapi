@@ -81,6 +81,7 @@
       showForces : false,
       showLinks : false,
       animate: true,
+      dragging: false,
       randomize: true,
 
       initScale: 2,
@@ -600,6 +601,7 @@
 
     animate : function ($container) {
       var opts = $container.data('options');
+      if (opts.dragging) return;
       if (!opts.animate) return;
 
       var showForces = opts.showForces;
