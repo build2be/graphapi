@@ -13,6 +13,14 @@
  * @see views_xml.views.inc
  */
 function template_preprocess_views_graphapi_style_graphapi(&$vars) {
+  _views_graphapi_style_build_graph_data($vars);
+
+  $config = $vars['graph-config'];
+  $config = $config + graphapi_default_config();
+  $vars["xml"] = theme('graphapi_container', array('graph' => $vars['graph'], 'config' => $config));
+}
+
+function _views_graphapi_style_build_graph_data(&$vars) {
   $view = $vars["view"];
   $rows = $vars["rows"];
   $options = $vars["options"];
@@ -58,7 +66,8 @@ function template_preprocess_views_graphapi_style_graphapi(&$vars) {
         }
       }
     }
-    $vars["xml"] = theme('graphapi_container', array('graph' => $graph, 'config' => graphapi_default_config()));
+    $vars['graph'] = $graph;
+    $vars['graph-config'] = array();
   }
   else {
     $view = $vars['view'];
@@ -114,6 +123,47 @@ function template_preprocess_views_graphapi_style_graphapi(&$vars) {
       'applyCompass' => FALSE,
       'applyBoxOverlap' => TRUE,
     );
-    $vars["xml"] = theme('graphapi_container', array('graph' => $graph, 'config' => $config + graphapi_default_config()));
+    $vars['graph'] = $graph;
+    $vars['graph-config'] = $config;
+
   }
+}
+
+function template_preprocess_views_graphapi_style_thejit_spacetree(&$vars) {
+  _views_graphapi_style_build_graph_data($vars);
+
+  $graph = $vars['graph'];
+  $config = $vars['graph-config'];
+
+  $config = $config + graphapi_default_config();
+
+  // The given $graph is supposed to be a tree ... so we force it here
+  $tree = thejit_spacetree_graph_to_tree($graph);
+  // $tree = _thejit_spacetree_debug_generate();
+  $params = array();
+  // width breaks something
+  //$params['width'] = $config['width'];
+  $params['height'] = $config['height'];
+
+  $vars["xml"] = theme('thejit_spacetree', array('tree' => $tree, 'options' => $params));
+}
+
+function template_preprocess_views_graphapi_style_thejit_forcedirected(&$vars) {
+  _views_graphapi_style_build_graph_data($vars);
+
+  $graph = $vars['graph'];
+  $config = $vars['graph-config'];
+
+  $config = $config + graphapi_default_config();
+
+  // The given $graph is supposed to be a tree ... so we force it here
+  $tree = thejit_forcedirected_graph_to_forcedirected($graph);
+
+  // $tree = _thejit_spacetree_debug_generate();
+  $params = array();
+  // width breaks something
+  //$params['width'] = $config['width'];
+  $params['height'] = $config['height'];
+
+  $vars["xml"] = theme('thejit_forcedirected', array('json' => $tree, 'options' => $params));
 }

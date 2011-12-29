@@ -42,7 +42,7 @@ function graphapi_views_plugins() {
 }
 
 /**
- * All recognised XML output formats
+ * Return list of all hook_graphapi_formats
  */
 function graphapi_views_formats() {
   return module_invoke_all('graphapi_formats');
@@ -52,9 +52,7 @@ function graphapi_views_formats() {
  * Implements hook_graphapi_formats().
  */
 function graphapi_graphapi_formats() {
-  $formats = array(
+  return array(
     'graphapi' => t('GraphAPI'),
-    //'thejit' => t('theJIT'),
   );
-  return $formats;
 }

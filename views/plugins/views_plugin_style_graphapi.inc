@@ -56,12 +56,15 @@ class views_plugin_style_graphapi extends views_plugin_style {
    * Provide a form for setting options.
    */
   function options_form(&$form, &$form_state) {
+    $view = $form_state['view'];
+    // We map system table ourself
+    $is_system = $view->base_table == 'system';
     // TODO: next line gives grouping option
     // parent::options_form($form, $form_state);
 
     $options = $this->options;
     $handlers = $this->display->handler->get_handlers('field');
-    if (empty($handlers) || count($handlers) < 2) {
+    if (!is_system && (empty($handlers) || count($handlers) < 2)) {
       $form['error_markup'] = array(
         '#markup' => '<div class="error messages">' . t('You need at least two field before you can configure your graph settings') . '</div>',
       );
@@ -74,7 +77,10 @@ class views_plugin_style_graphapi extends views_plugin_style {
       '#options' => graphapi_views_formats(),
       '#default_value' => $options['engine'],
     );
-
+    if ($is_system) {
+      // We are done. No need for columns.
+      return $form;
+    }
     $field_names = $this->display->handler->get_field_labels();
     $fields = $this->display->handler->get_option('fields');
     array_unshift($field_names, "- none -");
@@ -141,5 +147,4 @@ class views_plugin_style_graphapi extends views_plugin_style {
     $rows = array();
     return theme($this->theme_functions(), array('view' => $view, 'options' => $options, 'rows' => $rows));
   }
-
 }
