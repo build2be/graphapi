@@ -34,7 +34,7 @@ function _views_graphapi_style_build_graph_data(&$vars) {
     ksort($modules);
     system_get_files_database($modules, 'module');
 
-    // Weird dry alert (some modules declare deppendecy on a theme
+    // Weird dry alert (some modules declare dependency on a theme
     $themes = system_rebuild_theme_data();
     foreach ($themes as $theme => $info) {
       $themes[$theme]->info['dependencies'] = array();
@@ -75,6 +75,11 @@ function _views_graphapi_style_build_graph_data(&$vars) {
     // We need to check for the correct field labels
     $handler = $view->display_handler->get_handlers('field');
 
+    //$fields   = &$view->field;
+    //$columns  = $handler->sanitize_columns($options['columns'], $fields);
+    //dsm($columns);
+    //$vars['xml'] = "Empty testing";
+    //return;
     $mapping = array();
     $mapping['from'] = array();
     $mapping['to'] = array();
