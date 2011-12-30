@@ -1,23 +1,21 @@
 <?php
 
-/**
- * @file
- * View template to render view fields as XML.
- *
- * - $view: The view in use.
- * - $rows: Array of row objects as rendered by _views_json_render_fields
- * - $attachment: not used currently
- * - $options: The options for the style passed in from the UI.
- *
- * @ingroup views_templates
- * @see views_xml.views.inc
- */
+// TODO: move to own graph_physics.module
 function template_preprocess_views_graphapi_style_graphapi(&$vars) {
   _views_graphapi_style_build_graph_data($vars);
 
   $config = $vars['graph-config'];
   $config = $config + graphapi_default_config();
   $vars["xml"] = theme('graphapi_container', array('graph' => $vars['graph'], 'config' => $config));
+}
+
+//TODO: move to graphviz.module
+function template_preprocess_views_graphapi_style_graphviz_filter(&$vars) {
+  _views_graphapi_style_build_graph_data($vars);
+
+  $config = $vars['graph-config'];
+  $config = $config + graphapi_default_config();
+  $vars["xml"] = '<xmp>' . graphapi_to_dot($vars['graph']) . '</xmp>';
 }
 
 function _views_graphapi_style_build_graph_data(&$vars) {

@@ -50,9 +50,12 @@ function graphapi_views_formats() {
 
 /**
  * Implements hook_graphapi_formats().
+ *
+ * TODO: move to seperate modules
  */
 function graphapi_graphapi_formats() {
   return array(
     'graphapi' => t('GraphAPI'),
+    'graphviz_filter' => 'Graphviz Filter',
   );
 }
