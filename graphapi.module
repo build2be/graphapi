@@ -53,6 +53,12 @@ function graphapi_add_node(&$graph, $id) {
  */
 function graphapi_set_node_data(&$graph, $id, $data) {
   graphapi_add_node($graph, $id);
+  $current_data = $graph[$id]['data'];
+  // Merge with current data.
+  if (is_array($current_data)) {
+    //  Latest data is more important
+    $data = $data + $current_data;
+  }
   $graph[$id]['data'] = $data;
 }
 

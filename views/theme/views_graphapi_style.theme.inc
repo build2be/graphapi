@@ -94,7 +94,7 @@ function _views_graphapi_style_build_graph_data(&$vars) {
         $mapping['to'][$id] = $view->field[$options['to'][$id]]->field_alias;
       }
     }
-    // Add lable field if not set yet
+    // Fix label field if not set yet
     if (empty($mapping['from']['label'])) {
       $mapping['from']['label'] = $mapping['from']['id'];
     }
