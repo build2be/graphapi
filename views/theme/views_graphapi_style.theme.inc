@@ -15,7 +15,7 @@ function template_preprocess_views_graphapi_style_graphviz_filter(&$vars) {
 
   $config = $vars['graph-config'];
   $config = $config + graphapi_default_config();
-  $vars["xml"] = '<xmp>' . graphapi_to_dot($vars['graph']) . '</xmp>';
+  $vars["xml"] = graphapi_to_dot($vars['graph']);
 }
 
 function _views_graphapi_style_build_graph_data(&$vars) {
