@@ -353,7 +353,7 @@ function theme_graphapi_link($variables) {
   if (isset($link['data']['type'])) {
     $html.= ' type="' . $variables['data']['type'] . '"';
   }
-  if (isset($link['data']['color'])) {
+  if (isset($variables['data']['color'])) {
     $html.= ' color="' . $variables['data']['color'] . '"';
   }
   if (isset($variables['data']['classes'])) {
