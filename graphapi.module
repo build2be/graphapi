@@ -455,17 +455,20 @@ function graphapi_reverse($graph, $keep_link_data = FALSE) {
   return $result;
 }
 
+// TODO move this to graphviz_filter.module
 function graphapi_to_dot($graph) {
   $dot = array();
   $dot[] = "digraph {";
   foreach ($graph as $id => $node) {
-    $dot[] = $id . ' [';
+    $dot[] = '  ' . $id . ' [';
 
-    $dot[] = 'label="' . $id . '"';
-    $dot[] = ']';
+    $dot[] = '    label = "' . $id . '"';
+    $dot[] = '  ]';
+  }
 
+  foreach ($graph as $id => $node) {
     foreach ($node['edges'] as $eid => $edge) {
-      $dot[] = "$id -> $eid";
+      $dot[] = "  $id -> $eid";
     }
   }
   $dot[] = '}';
