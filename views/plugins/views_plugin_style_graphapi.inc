@@ -64,7 +64,7 @@ class views_plugin_style_graphapi extends views_plugin_style {
 
     $options = $this->options;
     $handlers = $this->display->handler->get_handlers('field');
-    if (!is_system && (empty($handlers) || count($handlers) < 2)) {
+    if (!$is_system && (empty($handlers) || count($handlers) < 2)) {
       $form['error_markup'] = array(
         '#markup' => '<div class="error messages">' . t('You need at least two field before you can configure your graph settings') . '</div>',
       );
@@ -73,7 +73,7 @@ class views_plugin_style_graphapi extends views_plugin_style {
     $form['engine'] = array(
       '#type' => 'radios',
       '#title' => t('Render type'),
-      '#description' => t('The render engine to use.'),
+      '#description' => t('The render engine to use. Known render engines are !thejit', array('!thejit' => l('thejit', 'http://drupal.org/project/thejit'))),
       '#options' => graphapi_views_formats(),
       '#default_value' => $options['engine'],
     );
