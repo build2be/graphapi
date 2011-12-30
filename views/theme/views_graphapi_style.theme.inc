@@ -57,6 +57,9 @@ function _views_graphapi_style_build_graph_data(&$vars) {
       if (!isset($extra->info['hidden']) || !$extra->info['hidden']) {
         graphapi_set_node_data($graph, $from_id, array('background-color' => $color));
         foreach ($extra->info['dependencies'] as $to_id) {
+          // We need to cleanup the dependency. @see drupal_parse_dependency()
+          $parts = explode('(', $to_id, 2);
+          $to_id = trim($parts[0]);
           if (!isset($modules[$to_id])) {
             graphapi_set_node_data($graph, $to_id, array('background-color' => 'red'));
           }
