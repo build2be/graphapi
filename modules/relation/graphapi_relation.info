@@ -1,7 +1,6 @@
 name = Relation Graphs
 description = Provides a field renderer
-package = Relation
-version = VERSION
+package = Visualization
 core = 7.x
 dependencies[] = graphapi
 dependencies[] = relation_dummy_field

@@ -10,7 +10,6 @@
  */
 function graphapi_views_default_views() {
   $views = array();
-
   $view = new view;
   $view->name = 'module_dependencies';
   $view->description = '';
@@ -18,7 +17,7 @@ function graphapi_views_default_views() {
   $view->base_table = 'system';
   $view->human_name = 'Module Dependencies';
   $view->core = 7;
-  $view->api_version = '3.0-alpha1';
+  $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
   /* Display: Master */
@@ -33,6 +32,7 @@ function graphapi_views_default_views() {
   $handler->display->display_options['pager']['type'] = 'none';
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['style_plugin'] = 'graphapi_style';
+  $handler->display->display_options['style_options']['engine'] = 'graph_phyz';
   /* Field: System: Module/Theme/Theme engine name */
   $handler->display->display_options['fields']['name']['id'] = 'name';
   $handler->display->display_options['fields']['name']['table'] = 'system';
