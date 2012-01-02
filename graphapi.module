@@ -462,7 +462,7 @@ function graphapi_to_dot($graph) {
   foreach ($graph as $id => $node) {
     $dot[] = '  ' . $id . ' [';
 
-    $dot[] = '    label = "' . $id . '"';
+    $dot[] = '    label = "' . $node['data']['title'] . '"';
     $dot[] = '  ]';
   }
 
@@ -482,3 +482,121 @@ function graphapi_views_api() {
     'path' => drupal_get_path('module', 'graphapi') . '/views',
   );
 }
+
+/**
+ * Return list of all hook_graphapi_formats
+ */
+function graphapi_views_formats() {
+  return module_invoke_all('graphapi_formats');
+}
+
+/**
+ * Implements hook_graphapi_formats().
+ *
+ * TODO: move to seperate modules
+ */
+function graphapi_graphapi_formats() {
+  return array(
+    'graphviz_filter' => 'Graphviz Filter',
+  );
+}
+
+/*
+ * Experimental code
+ */
+
+/**
+ * Provide general settings
+ */
+function graphapi_global_settings_form($values) {
+  $values += array(
+    'width' => 400,
+    'height' => 300,
+    'background-color' => 'yellow',
+  );
+  // This is our 'global' engine
+  $engine = 'graphapi';
+  $form[$engine] = array(
+    '#title' => t('Global settings'),
+    '#type' => 'fieldset',
+    '#collapsed' => FALSE,
+    '#collapsible' => TRUE,
+  );
+  $form[$engine]['width'] = array(
+    '#title' => t('Width'),
+    '#type' => 'textfield',
+    '#default_value' => $values['width'],
+  );
+  $form[$engine]['height'] = array(
+    '#title' => t('Height'),
+    '#type' => 'textfield',
+    '#default_value' => $values['height'],
+  );
+  $form[$engine]['background-color'] = array(
+    '#title' => t('Background color'),
+    '#type' => 'textfield',
+    '#default_value' => $values['background-color'],
+  );
+
+  return $form;
+}
+
+/**
+ * Gathers all relevant settings for all engines
+ *
+ * Each engine form is a fieldset containing it's specific settings
+ * 
+ * Ie width, height, background-color are graphapi settings
+ * Ie show_menu or node_color is engine specific.
+ * 
+ * @see graphapi_global_settings_form().
+ * @see graph_phyz_settings_form().
+ */
+function graphapi_settings_form($form, &$form_state) {
+  $values = $form_state['values'];
+  if (!isset($values['graphapi'])) {
+    $values['graphapi'] = array();
+  }
+
+  $form += graphapi_global_settings_form($values['graphapi']);
+
+  $engines = graphapi_views_formats();
+  $implementations = module_implements('graphapi_settings_form');
+  $order = 1;
+  foreach ($engines as $engine => $title) {
+    if (in_array($engine, $implementations)) {
+      $form += _graphapi_engine_form($engine, $values);
+      $form[$engine]['#weight'] = $order++;
+    }
+    else {
+      $no_settings = array();
+      $no_settings[$engine] = array(
+        '#title' => t('No settings for') . ': ' . $title,
+        '#type' => 'fieldset',
+        '#collapsed' => TRUE,
+        '#collapsible' => FALSE,
+      );
+      $no_settings[$engine]['dummy'] = array(
+        '#title' => t('dummy'),
+        '#type' => 'textfield',
+        '#default_value' => 'dummy',
+      );
+      $form += $no_settings;
+      $form[$engine]['#weight'] = count($engines);
+    }
+  }
+  return $form;
+}
+
+/**
+ * Helper function to get engine subforms
+ */
+function _graphapi_engine_form($engine, $values) {
+  if (!isset($values[$engine])) {
+    $values[$engine] = array();
+  }
+  $values = $values[$engine];
+  $function = $engine . "_graphapi_settings_form";
+  return call_user_func($function, $values);
+}
+

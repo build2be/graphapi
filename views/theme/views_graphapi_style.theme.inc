@@ -1,11 +1,10 @@
 <?php
 
-// TODO: move to own graph_physics.module
+// TODO: move to own graph_phyz.module
 function template_preprocess_views_graphapi_style_graphapi(&$vars) {
   _views_graphapi_style_build_graph_data($vars);
 
   $config = $vars['graph-config'];
-  $config = $config + graphapi_default_config();
   $vars["xml"] = theme('graphapi_container', array('graph' => $vars['graph'], 'config' => $config));
 }
 
@@ -14,7 +13,6 @@ function template_preprocess_views_graphapi_style_graphviz_filter(&$vars) {
   _views_graphapi_style_build_graph_data($vars);
 
   $config = $vars['graph-config'];
-  $config = $config + graphapi_default_config();
   $vars["xml"] = graphapi_to_dot($vars['graph']);
 }
 
@@ -67,8 +65,6 @@ function _views_graphapi_style_build_graph_data(&$vars) {
         }
       }
     }
-    $vars['graph'] = $graph;
-    $vars['graph-config'] = array();
   }
   else {
     $view = $vars['view'];
@@ -85,14 +81,14 @@ function _views_graphapi_style_build_graph_data(&$vars) {
     $mapping['from'] = array();
     $mapping['to'] = array();
 
-    foreach ($options['from'] as $id => $data) {
-      if (isset($options['from'][$id]) && isset($view->field[$options['from'][$id]])) {
-        $mapping['from'][$id] = $view->field[$options['from'][$id]]->field_alias;
+    foreach ($options['mapping']['from'] as $id => $data) {
+      if (isset($options['mapping']['from'][$id]) && isset($view->field[$options['mapping']['from'][$id]])) {
+        $mapping['from'][$id] = $view->field[$options['mapping']['from'][$id]]->field_alias;
       }
     }
-    foreach ($options['to'] as $id => $data) {
-      if (isset($options['to'][$id]) && isset($view->field[$options['to'][$id]])) {
-        $mapping['to'][$id] = $view->field[$options['to'][$id]]->field_alias;
+    foreach ($options['mapping']['to'] as $id => $data) {
+      if (isset($options['mapping']['to'][$id]) && isset($view->field[$options['mapping']['to'][$id]])) {
+        $mapping['to'][$id] = $view->field[$options['mapping']['to'][$id]]->field_alias;
       }
     }
     // Fix label field if not set yet
@@ -124,13 +120,7 @@ function _views_graphapi_style_build_graph_data(&$vars) {
         graphapi_add_link($graph, $from_id, $to_id);
       }
     }
-    // Temp fix
-    $config = array(
-      'applyCompass' => FALSE,
-      'applyBoxOverlap' => TRUE,
-    );
-    $vars['graph'] = $graph;
-    $vars['graph-config'] = $config;
-
   }
+  $vars['graph'] = $graph;
+  $vars['graph-config'] = $vars['settings'];
 }

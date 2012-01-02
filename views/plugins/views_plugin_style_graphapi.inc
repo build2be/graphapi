@@ -9,6 +9,7 @@
  * Implements views_plugin_style
  */
 class views_plugin_style_graphapi extends views_plugin_style {
+
   private $graph_fields = array(
     'from' => array(
       'id' => array(
@@ -47,7 +48,7 @@ class views_plugin_style_graphapi extends views_plugin_style {
     $options = parent::option_definition();
     $options['engine'] = array('default' => 'graphapi');
     foreach ($this->graph_fields as $id => $data) {
-      $options[$id] = array('default' => NULL);
+      $options['mapping'][$id] = array('default' => NULL);
     }
     return $options;
   }
@@ -73,10 +74,14 @@ class views_plugin_style_graphapi extends views_plugin_style {
     $form['engine'] = array(
       '#type' => 'radios',
       '#title' => t('Render type'),
-      '#description' => t('The render engine to use. Known render engines are !thejit', array('!thejit' => l('thejit', 'http://drupal.org/project/thejit'))),
+      '#description' => t('The render engine to use. Known render engines are !thejit. graphviz_filter is supported only in concept.', array('!thejit' => l('thejit', 'http://drupal.org/project/thejit'))),
       '#options' => graphapi_views_formats(),
       '#default_value' => $options['engine'],
     );
+    if (!isset($from_state['values'])) {
+      $form_state['values'] = $options;
+    }
+    $form = graphapi_settings_form($form, $form_state);
     if ($is_system) {
       // We are done. No need for columns.
       return $form;
@@ -84,35 +89,42 @@ class views_plugin_style_graphapi extends views_plugin_style {
     $field_names = $this->display->handler->get_field_labels();
     $fields = $this->display->handler->get_option('fields');
     array_unshift($field_names, "- none -");
-    $form['from'] = array(
+
+    $form['mapping'] = array(
+      '#type' => 'fieldset',
+      '#title' => 'Field mapping',
+      '#collapsible' => TRUE,
+    );
+
+    $form['mapping']['from'] = array(
       '#type' => 'fieldset',
       '#title' => 'From settings',
       '#collapsible' => TRUE,
-      '#collapsed' => !empty($options['from']['id']),
+      '#collapsed' => !empty($options['mapping']['from']['id']),
     );
     foreach ($this->graph_fields['from'] as $id => $info) {
-      $form['from'][$id] = array(
+      $form['mapping']['from'][$id] = array(
         '#type' => 'select',
         '#required' => isset($info['required']) && $info['required'],
         '#title' => t($info['title']),
         '#description' => isset($info['description']) ? $info['description'] : '',
         '#options' => $field_names,
-        '#default_value' => $options['from'][$id],
+        '#default_value' => $options['mapping']['from'][$id],
       );
     }
-    $form['to'] = array(
+    $form['mapping']['to'] = array(
       '#type' => 'fieldset',
       '#title' => 'To settings',
       '#collapsible' => TRUE,
-      '#collapsed' => !empty($options['to']['id']),
+      '#collapsed' => !empty($options['mapping']['to']['id']),
     );
     foreach ($this->graph_fields['to'] as $id => $info) {
-      $form['to'][$id] = array(
+      $form['mapping']['to'][$id] = array(
         '#type' => 'select',
         '#required' => isset($info['required']) && $info['required'],
         '#title' => t($info['title']),
         '#options' => $field_names,
-        '#default_value' => $options['to'][$id],
+        '#default_value' => $options['mapping']['to'][$id],
       );
     }
     return $form;
@@ -145,6 +157,16 @@ class views_plugin_style_graphapi extends views_plugin_style {
     $options = $this->options;
     $field = $view->field;
     $rows = array();
-    return theme($this->theme_functions(), array('view' => $view, 'options' => $options, 'rows' => $rows));
+    $engine = $options['engine'];
+    $settings = array();
+    $settings = $options['graphapi'] + $options[$engine];
+    $vars = array(
+      'view' => $view,
+      'options' => $options,
+      'rows' => $rows,
+      'settings' => $settings
+    );
+    return theme($this->theme_functions(), $vars);
   }
+
 }

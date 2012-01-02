@@ -1,6 +1,6 @@
 name = Graph API
 description = Allow developer to create graphs
-package = Graph Tools
+package = Visualization
 core = 7.x
 
 files[] = graphapi.module
