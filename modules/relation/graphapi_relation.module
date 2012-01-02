@@ -185,7 +185,10 @@ function _graphap_relation_physics() {
 function graphapi_relation_field_formatter_settings_summary($field, $instance, $view_mode) {
   $display = $instance['display'][$view_mode];
   if ($display['type'] == 'graphapi_relation_default') {
-    $settings = $display['settings'] + graphapi_relation_get_global_settings();
+    $settings = $display['settings'];
+    if ($settings['global']['use_global']) {
+      $settings = graphapi_relation_get_global_settings() + $settings;
+    }
     $summary = '';
     $items = array();
     if ($settings['global']['use_global']) {
