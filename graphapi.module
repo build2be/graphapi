@@ -223,16 +223,31 @@ function graphapi_container($graph, $config = array()) {
   $config['id'] = 'graphapi-' . $config['id'];
   $config['canvas-id'] = $config['id'] . '-canvas';
 
+  $styles = array(
+    'width' => $config['width'] . 'px',
+    'height' => $config['height'] . 'px',
+    'background-color' => $config['background-color'],
+    '-webkit-user-select' => 'none',
+    '-moz-user-select' => 'none',
+    'overflow' => 'hidden',
+    'position' => 'relative',
+  );
+  $s = '';
+  foreach ($styles as $style => $value) {
+    $s .= "$style: $value; ";
+  }
+  $attributes = array(
+    'id' => $config['id'],
+    'class' => 'graphapi',
+    'style' => $s,
+  );
+  $a = drupal_attributes($attributes);
   $nl = "\n";
   $result = '';
-  $result.= '<div id="' . $config['id'] . '"'
-      . ' class="graphapi" style="-webkit-user-select:none; -moz-user-select:none; overflow: hidden; position: relative;'
-      . ' background-color: ' . $config['background-color'] . ';'
-      . ' width:' . $config['width'] . 'px;'
-      . ' height:' . $config['height'] . 'px;">';
+  $result.= '<div ' . $a . '>';
   $result.= $nl . '<noscript>' . t('This page element requires JavaScript to be enabled.') . '</noscript>';
   $result.= $nl . theme('graphapi_links', array('graph' => $graph, 'config' => $config));
-  $result.= '<div class="graphapi-nodes">';
+  $result.= $nl . '<div class="graphapi-nodes">';
   $nodes = array();
   foreach ($graph as $id => $data) {
     $dom_id = _graphapi_uniform_id($config, $id);
