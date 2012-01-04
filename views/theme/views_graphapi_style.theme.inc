@@ -1,21 +1,5 @@
 <?php
 
-// TODO: move to own graph_phyz.module
-function template_preprocess_views_graphapi_style_graphapi(&$vars) {
-  _views_graphapi_style_build_graph_data($vars);
-
-  $config = $vars['graph-config'];
-  $vars["xml"] = theme('graphapi_container', array('graph' => $vars['graph'], 'config' => $config));
-}
-
-//TODO: move to graphviz.module
-function template_preprocess_views_graphapi_style_graphviz_filter(&$vars) {
-  _views_graphapi_style_build_graph_data($vars);
-
-  $config = $vars['graph-config'];
-  $vars["xml"] = graphapi_to_dot($vars['graph']);
-}
-
 function _views_graphapi_style_build_graph_data(&$vars) {
   $view = $vars["view"];
   $rows = $vars["rows"];

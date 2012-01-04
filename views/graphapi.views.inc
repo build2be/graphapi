@@ -13,9 +13,7 @@
 function graphapi_views_plugins() {
   $formats = graphapi_views_formats();
   $additional_themes = array();
-  foreach ($formats as $format => $description) {
-    $additional_themes['views_graphapi_style_' . $format] = 'style';
-  }
+  $additional_themes['views_graphapi_style_graphapi'] = 'style';
 
   $path = drupal_get_path('module', 'graphapi') . '/views';
   return array(

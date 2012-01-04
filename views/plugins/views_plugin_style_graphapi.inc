@@ -74,7 +74,7 @@ class views_plugin_style_graphapi extends views_plugin_style {
     $form['engine'] = array(
       '#type' => 'radios',
       '#title' => t('Render type'),
-      '#description' => t('The render engine to use. Known render engines are !thejit. graphviz_filter is supported only in concept.', array('!thejit' => l('thejit', 'http://drupal.org/project/thejit'))),
+      '#description' => t('The render engine to use. Known render engines are graph_phyz and !thejit. graphviz_filter is supported only in concept.', array('!thejit' => l('thejit', 'http://drupal.org/project/thejit'))),
       '#options' => graphapi_views_formats(),
       '#default_value' => $options['engine'],
     );
@@ -137,7 +137,7 @@ class views_plugin_style_graphapi extends views_plugin_style {
    */
   function theme_functions() {
     $options = $this->options + $this->option_definition();
-    $hook = 'views_graphapi_style_' . $options['engine'];
+    $hook =  'views_graphapi_style_graphapi';
     return views_theme_functions($hook, $this->view, $this->display);
   }
 
@@ -159,7 +159,15 @@ class views_plugin_style_graphapi extends views_plugin_style {
     $rows = array();
     $engine = $options['engine'];
     $settings = array();
-    $settings = $options['graphapi'] + $options[$engine];
+    // Grab global settings
+    if (isset($options['graphapi'])) {
+      $settings = $options['graphapi'];
+    }
+    // Grab engine settings
+    if (isset($options[$engine])) {
+      $settings += $options[$engine];
+    }
+    $settings['engine'] = $engine;
     $vars = array(
       'view' => $view,
       'options' => $options,

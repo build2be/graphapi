@@ -8,18 +8,12 @@ function graph_phyz_graphapi_settings_form($values) {
   $values += array(
     'menu' => TRUE,
     'showLinks' => FALSE,
-    'background-color' => 'white',
-    'graph' => array(
-      'animate' => TRUE,
-      'background-color' => 'grey',
-      'height' => '800',
-      'menu' => TRUE,
-      'randomize' => TRUE,
-      'rankType' => 'TopBottom',
-      'rankDepth' => 2,
-      'showLinks' => FALSE,
-      'width' => '800',
-    ),
+    'animate' => TRUE,
+    'menu' => TRUE,
+    'randomize' => TRUE,
+    'rankType' => 'TopBottom',
+    'rankDepth' => 2,
+    'showLinks' => FALSE,
     'physics' => array(
       'showForces' => FALSE,
       'applyAttractToCenter' => TRUE,
@@ -47,7 +41,44 @@ function graph_phyz_graphapi_settings_form($values) {
     '#type' => 'checkbox',
     '#default_value' => $values['showLinks'],
   );
+
+  $form[$engine]['physics'] = array(
+    '#title' => t('Physics settings'),
+    '#type' => 'fieldset',
+    '#collapsed' => TRUE,
+    '#collapsible' => TRUE,
+  );
+
+  foreach (graph_phyz_physics() as $key => $title) {
+    $form[$engine]['physics'][$key] = array(
+      '#title' => t($title),
+      '#type' => 'checkbox',
+      '#default_value' => $values['physics'][$key],
+    );
+  }
   return $form;
+}
+
+function graph_phyz_physics() {
+  return array(
+    'showForces' => 'Show forces applied',
+    'applyAttractToCenter' => 'Attract to center',
+    'applyBoundingBox' => 'Bounding box',
+    'applyBoxOverlap' => 'Do not overlap',
+    'applyCoulombsLaw' => 'Apply Coulombs law',
+    'applyDamping' => 'Use damping',
+    'applyHookesLaw' => 'Apply Hookes law',
+    'applyCompass' => 'Apply compass on directed links',
+  );
+}
+
+/**
+ * Implementations of theme_ENGINE_graphapi
+ * 
+ * @param type $vars 
+ */
+function theme_graph_phyz_graphapi($vars) {
+  return theme('graph_phyz_container', $vars);
 }
 
 /**
@@ -67,6 +98,45 @@ function graph_phyz_theme() {
         'config' => NULL,
       ),
     ),
+    'graph_phyz_graphapi' => array(
+      'variables' => array(
+        'graph' => NULL,
+        'config' => NULL,
+      ),
+    ),
+    'graph_phyz_container' => array(
+      'variables' => array(
+        'graph' => NULL,
+        'config' => NULL,
+      ),
+    ),
+    'graph_phyz_links' => array(
+      'variables' => array(
+        'graph' => NULL,
+        'config' => NULL,
+      ),
+    ),
+    'graph_phyz_node' => array(
+      'variables' => array(
+        'dom_id' => NULL,
+        'data' => NULL,
+        'config' => NULL,
+      ),
+    ),
+    'graph_phyz_title' => array(
+      'variables' => array(
+        'title' => NULL,
+        'data' => NULL,
+      ),
+    ),
+    'graph_phyz_link' => array(
+      'variables' => array(
+        'to_id' => NULL,
+        'from_id' => NULL,
+        'title' => NULL,
+        'data' => NULL,
+      ),
+    ),
   );
 }
 
@@ -79,9 +149,122 @@ function graph_phyz_views_api() {
 
 //TODO: move to graph_phyz.module
 function template_preprocess_views_graphapi_style_graph_phyz(&$vars) {
-  _views_graphapi_style_build_graph_data($vars);
+  _views_graph_phyz_style_build_graph_data($vars);
 
   $config = $vars['settings'];
-  $config = $config + graphapi_default_config();
-  $vars["xml"] = theme('graphapi_container', array('graph' => $vars['graph'], 'config' => $config));
+  $config = $config + graph_phyz_default_config();
+  $vars["xml"] = theme('graph_phyz_container', array('graph' => $vars['graph'], 'config' => $config));
+}
+
+/**
+ * Theme implementation, returns graph_phyz container as HTML.
+ */
+function theme_graph_phyz_container($variables) {
+  return graphapi_container($variables['graph'], $variables['config']);
+}
+
+/**
+ * Theme implementation, returns graph title as HTML.
+ */
+function theme_graph_phyz_title($variables) {
+  $title = $variables['title'];
+  $data = $variables['data'];
+
+  $attributes = array(
+    'class' => 'graph-phyz-title',
+  );
+  if (isset($data['background-color'])) {
+    $attributes['style'] = 'background-color: ' . $data['background-color'] . ';';
+  }
+  $a = drupal_attributes($attributes);
+
+  if (isset($data['uri'])) {
+    $title = '<a href="' . $data['uri'] . '">' . $title . '</a>';
+  }
+  return '<div ' . $a . '>' . $title . '</div>';
+}
+
+/**
+ * Theme implementation, returns graph node as HTML.
+ */
+function theme_graph_phyz_node($variables) {
+  $dom_id = $variables['dom_id'];
+  $data = $variables['data'];
+  $config = $variables['config'];
+
+  $attributes = array(
+    'id' => $dom_id,
+    'class' => 'graph-phyz-node',
+  );
+  // We always add a rank ... all ranks <= 0 are not used for layout
+  $attributes['rank'] = isset($data['rank']) ? $data['rank'] : 0;
+  $a = drupal_attributes($attributes);
+
+  if (isset($data['content'])) {
+    $content = '<div class="graph-phyz-content" title="' . $data['title'] . '">' . $data['content'] . '</div>';
+  }
+  else {
+    $content = '';
+  }
+  return '<div ' . $a . '>'
+      . theme('graph_phyz_title', array('title' => $data['title'], 'data' => $data))
+      . $content . '</div>';
+}
+
+/**
+ * Theme implementation, returns graph edge as HTML.
+ */
+function theme_graph_phyz_link($variables) {
+  $html = '<edge';
+  $html.= ' from="' . $variables['from'] . '"';
+  $html.= ' to="' . $variables['to'] . '"';
+  if (isset($link['data']['type'])) {
+    $html.= ' type="' . $variables['data']['type'] . '"';
+  }
+  if (isset($variables['data']['color'])) {
+    $html.= ' color="' . $variables['data']['color'] . '"';
+  }
+  if (isset($variables['data']['classes'])) {
+    $classes = $variables['data']['classes'];
+    $class = join(" ", $classes);
+    $html.= ' class="' . $class . '"';
+  }
+  $html.= '>';
+  if (isset($variables['title'])) {
+    $html.= '<a href="#" title="' . $variables['title'] . '">&curren;</a>';
+  }
+  $html.='</edge>';
+
+  return $html;
+}
+
+/**
+ * Returns the <edge> canvas node for the given graph.
+ *
+ * @param $graph
+ *   Graph array.
+ * @param $config
+ *   Graph config array (see graph_phyz_default_config() for details).
+ */
+function theme_graph_phyz_links($variables) {
+  $graph = $variables['graph'];
+  $config = $variables['config'];
+  $result = '<edges>';
+  foreach ($graph as $from => $data) {
+    foreach ($data['edges'] as $to => $link_data) {
+      $link = array(
+        'from' => _graphapi_uniform_id($config, $from),
+        'to' => _graphapi_uniform_id($config, $to),
+      );
+      if (isset($link_data['title'])) {
+        $link['title'] = $link_data['title'];
+      }
+      if (isset($link_data['data'])) {
+        $link['data'] = $link_data['data'];
+      }
+      $result.= theme('graph_phyz_link', $link);
+    }
+  }
+  $result.= '</edges>';
+  return $result;
 }

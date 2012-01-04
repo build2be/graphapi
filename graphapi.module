@@ -300,8 +300,56 @@ function graphapi_theme() {
         'data' => NULL,
       ),
     ),
+    'graphapi_dispatch' => array(
+      'variables' => array(
+        'graph' => NULL,
+        'config' => NULL,
+      ),
+    ),
+    'graphviz_filter_graphapi' => array(
+      'variables' => array(
+        'graph' => NULL,
+        'config' => NULL,
+      ),
+    ),
   );
 }
+
+/**
+ * Dispatch the graph to the correct engine
+ * 
+ * @param type $vars
+ * @return type 
+ */
+function theme_graphapi_dispatch($vars) {
+  $engines = graphapi_views_formats();
+  $engine = $vars['config']['engine'];
+  if (isset($engines[$engine])) {
+    $theme = $engine . "_graphapi";
+    // HACK: theme(x) refuses to use the graphviz function which is located in this file
+    if ($engine == 'graphviz_filter') {
+      return template_graphviz_filter_graphapi($vars);
+    } // End HACK
+    return theme($theme, $vars);
+  }
+  else {
+    return "No render engine found";
+  }
+}
+
+/**
+ * Rendering a graph from views
+ * 
+ * @param array $vars 
+ */
+function template_preprocess_views_graphapi_style_graphapi(&$vars) {
+  _views_graphapi_style_build_graph_data($vars);
+  //dsm(func_get_args(), __FUNCTION__);
+  $config = $vars['graph-config'];
+  $vars["xml"] = theme('graphapi_dispatch', array('graph' => $vars['graph'], 'config' => $config));
+}
+
+//TODO: move theme_functions to graph_phyz.module
 
 /**
  * Theme implementation, returns GraphAPI container as HTML.
@@ -516,6 +564,13 @@ function graphapi_graphapi_formats() {
   );
 }
 
+// TODO: move to graphviz_filter.module
+function template_graphviz_filter_graphapi($vars) {
+  $config = $vars['config'];
+  return '<xmp>' . graphapi_to_dot($vars['graph']) . '</xmp>';
+}
+
+
 /*
  * Experimental code
  */
@@ -592,13 +647,12 @@ function graphapi_settings_form($form, &$form_state) {
         '#collapsible' => FALSE,
       );
       $no_settings[$engine]['dummy'] = array(
-        '#title' => t('dummy'),
-        '#type' => 'textfield',
-        '#default_value' => 'dummy',
+        '#markup' => 'The module does not yet support a graphapi settings form. You could check the issue queue for that module.',
       );
       $form += $no_settings;
       $form[$engine]['#weight'] = count($engines);
     }
+    $form[$engine]['#collapsible'] = TRUE;
   }
   return $form;
 }
