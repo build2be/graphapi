@@ -64,6 +64,7 @@ function graphapi_devel_system_all_modules_layout() {
     'id' => 'sys_mod_lay_all',
     'width' => 1024,
     'height' => 1024,
+    'engine' => 'graph_phyz'
   );
   $config += _graphapi_devel_config();
   return theme('graphapi_dispatch', array('graph' => $graph, 'config' => $config));
@@ -81,6 +82,7 @@ function graphapi_devel_system_modules_layout() {
     'id' => 'sys_mod_lay',
     'width' => 1024,
     'height' => 1024,
+    'engine' => 'graph_phyz'
   );
   $config += _graphapi_devel_config();
   return theme('graphapi_dispatch', array('graph' => $graph, 'config' => $config));
