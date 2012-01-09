@@ -306,7 +306,13 @@ function graphapi_theme() {
         'config' => NULL,
       ),
     ),
-    'graphviz_filter_graphapi' => array(
+    'graphapi_graphviz_filter_graphapi' => array(
+      'variables' => array(
+        'graph' => NULL,
+        'config' => NULL,
+      ),
+    ),
+    'graphapi_raw_data_graphapi' => array(
       'variables' => array(
         'graph' => NULL,
         'config' => NULL,
@@ -323,17 +329,21 @@ function graphapi_theme() {
  */
 function theme_graphapi_dispatch($vars) {
   $engines = graphapi_views_formats();
-  $engine = $vars['config']['engine'];
+  $engine = '';
+  if (isset($vars['config']['engine'])) {
+    $engine = $vars['config']['engine'];
+  }
   if (isset($engines[$engine])) {
     $theme = $engine . "_graphapi";
-    // HACK: theme(x) refuses to use the graphviz function which is located in this file
-    if ($engine == 'graphviz_filter') {
-      return template_graphviz_filter_graphapi($vars);
-    } // End HACK
     return theme($theme, $vars);
   }
   else {
-    return "No render engine found";
+    if (!empty($engine)) {
+      return t("Graph API render engine !engine not found.", array('!engine' => $engine));
+    }
+    else {
+      return t("No Graph API render engines enabled. Check your modules page for a Graph API render engine");
+    }
   }
 }
 
@@ -560,20 +570,17 @@ function graphapi_views_formats() {
  */
 function graphapi_graphapi_formats() {
   return array(
-    'graphviz_filter' => 'Graphviz Filter',
+    'graphapi_graphviz_filter' => 'Graphviz Filter',
   );
 }
 
-// TODO: move to graphviz_filter.module
-function template_graphviz_filter_graphapi($vars) {
+/**
+ * Implements theme_ENGINE_graphapi().
+ */
+function theme_graphapi_graphviz_filter_graphapi($vars) {
   $config = $vars['config'];
   return '<xmp>' . graphapi_to_dot($vars['graph']) . '</xmp>';
 }
-
-
-/*
- * Experimental code
- */
 
 /**
  * Provide general settings
@@ -669,3 +676,26 @@ function _graphapi_engine_form($engine, $values) {
   return call_user_func($function, $values);
 }
 
+function graphapi_demo_engines($engine = 'graph_phyz') {
+  $graph = graphapi_new_graph();
+
+  graphapi_add_link($graph, "graphapi_relation", "relation");
+  graphapi_add_link($graph, "graphapi_relation", "graphapi");
+  graphapi_add_link($graph, "graphapi", "views");
+  graphapi_add_link($graph, "php", "graphapi");
+  graphapi_add_link($graph, "graphapi", "graph_phyz");
+  graphapi_add_link($graph, "graphapi", "graphviz_filter");
+  graphapi_add_link($graph, "graphapi", "thejit");
+  graphapi_add_link($graph, "thejit", "thejit_spacetree");
+  graphapi_add_link($graph, "thejit", "thejit_forcedirected");
+  graphapi_add_link($graph, "thejit", "thejit_x");
+
+  $config = array(
+    'engine' => $engine,
+    'width' => 400,
+    'height' => 300,
+    'background-color' => '#AAA',
+    'duration' => 400,
+  );
+  return theme('graphapi_dispatch', array('graph' => $graph, 'config' => $config));
+}

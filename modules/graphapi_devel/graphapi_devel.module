@@ -6,7 +6,7 @@
 function graphapi_devel_menu() {
   $items['admin/modules/graph_old'] = array(
     'title' => 'Graph',
-    'description' => t( "A graph of all defined 'update_dependencies'."),
+    'description' => t("A graph of all defined 'update_dependencies'."),
     'page callback' => 'graphapi_devel_system_modules_layout',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
@@ -14,7 +14,7 @@ function graphapi_devel_menu() {
   );
   $items['admin/modules/graph_old/modules'] = array(
     'title' => 'Module dependencies',
-    'description' => t( "A graph of all modules."),
+    'description' => t("A graph of all modules."),
     'page callback' => 'graphapi_devel_system_modules_layout',
     'access arguments' => array('access devel information'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
@@ -22,7 +22,7 @@ function graphapi_devel_menu() {
   );
   $items['admin/modules/graph_old/all-modules'] = array(
     'title' => 'All module dependencies',
-    'description' => t( "A graph of all modules including hidden."),
+    'description' => t("A graph of all modules including hidden."),
     'page callback' => 'graphapi_devel_system_all_modules_layout',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
@@ -30,7 +30,7 @@ function graphapi_devel_menu() {
   );
   $items['admin/modules/graph_old/install'] = array(
     'title' => 'Update Dependencies',
-    'description' => t( "A graph of all hook_update_dependencies'."),
+    'description' => t("A graph of all hook_update_dependencies'."),
     'page callback' => 'graphapi_devel_system_module_install_layout',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
@@ -60,7 +60,13 @@ function _graphapi_devel_config() {
  */
 function graphapi_devel_system_all_modules_layout() {
   $graph = _graphapi_devel_system_module_layout(TRUE);
-  return graphapi_container($graph, array('id'=>'sys_mod_lay_all', 'width' => 1024, "height" => 1024) + _graphapi_devel_config());
+  $config = array(
+    'id' => 'sys_mod_lay_all',
+    'width' => 1024,
+    'height' => 1024,
+  );
+  $config += _graphapi_devel_config();
+  return theme('graphapi_dispatch', array('graph' => $graph, 'config' => $config));
 }
 
 /**
@@ -71,7 +77,13 @@ function graphapi_devel_system_all_modules_layout() {
  */
 function graphapi_devel_system_modules_layout() {
   $graph = _graphapi_devel_system_module_layout();
-  return graphapi_container($graph, array('id'=>'sys_mod_lay') + _graphapi_devel_config());
+  $config = array(
+    'id' => 'sys_mod_lay',
+    'width' => 1024,
+    'height' => 1024,
+  );
+  $config += _graphapi_devel_config();
+  return theme('graphapi_dispatch', array('graph' => $graph, 'config' => $config));
 }
 
 /**
@@ -86,23 +98,29 @@ function graphapi_devel_system_module_install_layout() {
   include "includes/graph.inc";
   drupal_depth_first_search($graph);
   foreach ($graph as $id => $node) {
-    $graph[$id]['data']['rank'] = 1 -$graph[$id]['weight'];
-    $graph[$id]['data']['title'] = "$id (" . $graph[$id]['data']['rank'] . ")";
+    $graph[$id]['data']['rank'] = 1 - $graph[$id]['weight'];
+    $graph[$id]['data']['title'] .= " (" . $graph[$id]['data']['rank'] . ")";
   }
+  $rankDepth = count($graph) + 1;
+  $config = array(
+    'applyRank' => TRUE,
+    'applyAttractToCenter' => FALSE,
+    'applyBoundingBox' => TRUE,
+    'applyBoxOverlap' => FALSE,
+    'applyCompass' => FALSE,
+    'applyHookesLaw' => FALSE,
+    'width' => 1024,
+    'height' => 800,
+    'rankDepth' => $rankDepth,
+    'engine' => 'graph_phyz',
+  );
+  $config += _graphapi_devel_config();
 
-  $rankDepth = count($graph)+1;
-  return graphapi_container($graph,
-      array(
-        'applyRank' => TRUE,
-        'applyAttractToCenter' => FALSE,
-        'applyBoundingBox' => TRUE,
-        'applyBoBoxOverlap' => FALSE,
-        'applyCompass' => FALSE,
-        'applyHookesLaw' => FALSE,
-        'width' => 1024,
-        'height' => 800,
-        'rankDepth' => $rankDepth
-      ) + _graphapi_devel_config());
+  $vars = array(
+    'graph' => $graph,
+    'config' => $config,
+  );
+  return theme('graphapi_dispatch', array('graph' => $graph, 'config' => $config));
 }
 
 /**
@@ -111,24 +129,23 @@ function graphapi_devel_system_module_install_layout() {
 function _graphapi_devel_system_module_install_layout() {
   $modules = module_list(TRUE, FALSE);
   module_load_all_includes('install');
-  $graph = array();
+  $graph = graphapi_new_graph();
   $links = array();
   // Remember links between module's own hook_update_N
   $selfs = array();
-  foreach($modules as $module) {
+  foreach ($modules as $module) {
     $update = module_invoke($module, 'update_dependencies');
     if (count($update)) {
-      foreach( $update as $src_module => $versions) {
-        foreach( $versions as $version => $dests) {
+      foreach ($update as $src_module => $versions) {
+        foreach ($versions as $version => $dests) {
           $src = $src_module . "_update_" . $version;
           $selfs[$src_module][] = $version;
-          foreach($dests as $dest_module => $dest_version) {
+          graphapi_add_node($graph, $src);
+          foreach ($dests as $dest_module => $dest_version) {
             $dst = $dest_module . "_update_" . $dest_version;
             $links[$dst][] = $src;
-            $graph[$dst]['edges'][$src]=array('color' => '#FF0');
-            if (!isset($graph[$src])) {
-              $graph[$src]['edges'] = array();
-            }
+            graphapi_add_link($graph, $dst, $src);
+            graphapi_set_link_data($graph, $dst, $src, array('color' => '#FF0'));
             $selfs[$dest_module][] = $dest_version;
           }
         }
@@ -137,10 +154,10 @@ function _graphapi_devel_system_module_install_layout() {
   }
   graphapi_add_node($graph, '_first');
   graphapi_set_node_title($graph, '_first', 'update.php:start');
-  $graph['_first']['data']['rank']= 1;
+  graphapi_set_node_data($graph, '_first', array('rank' => 1));
 
   // Add links between module's own hook_update_N
-  foreach( $selfs as $module => $versions) {
+  foreach ($selfs as $module => $versions) {
     // delete dups
     $v = array_flip($versions);
     ksort($v);
@@ -150,14 +167,13 @@ function _graphapi_devel_system_module_install_layout() {
     foreach ($v as $version) {
       $dest = $module . '_update_' . $version;
       $links[$current][] = $dest;
-      $graph[$current]['edges'][$dest]=array('color' => '#333');
+      graphapi_set_link_data($graph, $current, $dest, array('color' => '#555'));
 
       $current = $dest;
     }
     $links[$current][] = '_last';
-    $graph[$current]['edges']['_last']=array('color' => '#000');
+    graphapi_set_link_data($graph, $current, '_last', array('color' => '#000'));
   }
-  $graph['_last']['edges']=array();
   // Now remove all links from _first to 'node' having more incoming
   $reverse = graphapi_reverse($graph);
   $targets = array();
@@ -166,8 +182,8 @@ function _graphapi_devel_system_module_install_layout() {
       $targets[] = $target;
     }
   }
-  foreach( $targets as $target) {
-    unset( $graph['_first']['edges'][$target]);
+  foreach ($targets as $target) {
+    unset($graph['_first']['edges'][$target]);
   }
   // Remove all links to '_last' having more outgoing
   $targets = array();
@@ -176,8 +192,8 @@ function _graphapi_devel_system_module_install_layout() {
       $targets[] = $target;
     }
   }
-  foreach( $targets as $target) {
-    unset( $graph[$target]['edges']['_last']);
+  foreach ($targets as $target) {
+    unset($graph[$target]['edges']['_last']);
   }
   return $graph;
 }
@@ -257,15 +273,15 @@ function _graphapi_system_module_install_layout_active() {
   $graph = update_build_dependency_graph($update_functions);
   foreach ($graph as $node => $data) {
     if (isset($data['edges'])) {
-      $graph[$node]['links']= array_keys($data['edges']);
+      $graph[$node]['links'] = array_keys($data['edges']);
     }
     else {
-      $graph[$node]['links']=array();
+      $graph[$node]['links'] = array();
     }
   }
 
   $result = "\ndigraph {\n";
-  foreach( $graph as $node => $data) {
+  foreach ($graph as $node => $data) {
     foreach ($data['links'] as $to) {
       $result .= '"' . $node . '"';
       $result .= ' -> ' . '"' . $to . '"' . "\n";
