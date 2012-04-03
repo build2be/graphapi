@@ -2,8 +2,51 @@
 
 /**
  * @file
- * GraphAPI examples file.
+ * This file contains no working PHP code; it exists to provide additional
+ * documentation for doxygen as well as to document hooks in the standard
+ * Drupal manner.
  */
+
+/**
+ * @defgroup graphapi Graph API module integrations.
+ *
+ * Module integrations with the graphapi module.
+ *
+ */
+
+/**
+ * Defines Graph display formats.
+ *
+ * @return
+ *   An array with key value pair defining the callback and display name.
+ */
+function hook_graphapi_formats() {
+  return array(
+    'graphapi_graphviz_filter' => 'Graphviz Filter',
+  );
+}
+
+/**
+ * Provides the engine settings form.
+ *
+ * The settings form is used by the views display format but also by the
+ * engines config pages or other unforseen places.
+ *
+ * @return
+ *   A Drupal sub-form.
+ * @see graphapi_global_settings_form()
+ * @see graphapi_settings_form()
+ * @see _graphapi_engine_form()
+ * @see graph_phyz_graphapi_settings_form()
+ */
+function hook_graphapi_settings_form() {
+  // tbd
+}
+
+// @see http://drupal.org/node/1513198
+function hook_graphapi_default_settings() {
+  // tbd
+}
 
 /**
  * Example function: creates a graph of user logins by day.
