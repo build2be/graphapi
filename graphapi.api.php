@@ -43,9 +43,28 @@ function hook_graphapi_settings_form() {
   // tbd
 }
 
-// @see http://drupal.org/node/1513198
+/**
+ * Declares settings that should be exportable in Views.
+ *
+ * The settings declared here will be included in the option_definition()
+ * method, as implemented in the Graph API style plugin.
+ *
+ * @return array
+ *   A views_plugin_style::option_definition() compatible structure.
+ *
+ * @see hook_graphapi_settings_form()
+ * @see views_plugin_style::option_definition()
+ */
 function hook_graphapi_default_settings() {
-  // tbd
+  // Settings used by the first graph engine.
+  $settings['my_first_engine']['contains'] = array(
+    'setting 1' => array('default' => NULL),
+    'setting 2' => array('default' => 1),
+    'setting 3' => array('default' => t('Some string')),
+  );
+  // Settings used by the second graph engine.
+  $settings['my_second_engine']['contains']['setting 1']['default'] = 1;
+  return $settings;
 }
 
 /**

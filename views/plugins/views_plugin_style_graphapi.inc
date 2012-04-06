@@ -46,10 +46,17 @@ class views_plugin_style_graphapi extends views_plugin_style {
    */
   function option_definition() {
     $options = parent::option_definition();
+    //$options['use grouping'] = FALSE;
     $options['engine'] = array('default' => 'graphapi');
     foreach ($this->graph_fields as $id => $data) {
-      $options['mapping'][$id] = array('default' => NULL);
+      foreach ($data as $key => $value) {
+        $options['mapping']['contains'][$id]['contains'][$key] = array('default' => NULL);
+        //$options['mapping'][$id][$key] = array('default' => NULL);
+      }
     }
+
+    // Add settings provided by plugin engines.
+    $options += module_invoke_all('graphapi_default_settings');
     return $options;
   }
 

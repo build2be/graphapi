@@ -5,26 +5,8 @@
  */
 function graph_phyz_graphapi_settings_form($values) {
   $engine = 'graph_phyz';
-  $values += array(
-    'menu' => TRUE,
-    'showLinks' => FALSE,
-    'animate' => TRUE,
-    'menu' => TRUE,
-    'randomize' => TRUE,
-    'rankType' => 'TopBottom',
-    'rankDepth' => 2,
-    'showLinks' => FALSE,
-    'physics' => array(
-      'showForces' => FALSE,
-      'applyAttractToCenter' => TRUE,
-      'applyBoundingBox' => FALSE,
-      'applyBoxOverlap' => FALSE,
-      'applyCoulombsLaw' => TRUE,
-      'applyDamping' => TRUE,
-      'applyHookesLaw' => TRUE,
-      'applyCompass' => FALSE,
-    ),
-  );
+  $values += graph_phyz_default_settings();
+
   $form[$engine] = array(
     '#title' => t('Graph Phyz settings'),
     '#type' => 'fieldset',
@@ -59,6 +41,30 @@ function graph_phyz_graphapi_settings_form($values) {
   return $form;
 }
 
+function graph_phyz_default_settings() {
+  $defaults = array(
+    'menu' => TRUE,
+    'showLinks' => FALSE,
+    'animate' => TRUE,
+    'menu' => TRUE,
+    'randomize' => TRUE,
+    'rankType' => 'TopBottom',
+    'rankDepth' => 2,
+    'showLinks' => FALSE,
+    'physics' => array(
+      'showForces' => FALSE,
+      'applyAttractToCenter' => TRUE,
+      'applyBoundingBox' => FALSE,
+      'applyBoxOverlap' => FALSE,
+      'applyCoulombsLaw' => TRUE,
+      'applyDamping' => TRUE,
+      'applyHookesLaw' => TRUE,
+      'applyCompass' => FALSE,
+    ),
+  );
+  return $defaults;
+}
+
 function graph_phyz_physics() {
   return array(
     'showForces' => 'Show forces applied',
@@ -79,6 +85,26 @@ function graph_phyz_physics() {
  */
 function theme_graph_phyz_graphapi($vars) {
   return theme('graph_phyz_container', $vars);
+}
+
+/**
+ * Implements hook_graphapi_default_settings().
+ *
+ * @see graph_phyz_default_settings()
+ * @see views_object::option_definition()
+ */
+function graph_phyz_graphapi_default_settings() {
+  foreach (graph_phyz_default_settings() as $setting => $value) {
+    if (!is_array($value)) {
+      $settings['graph_phyz']['contains'][$setting] = array('default' => $value);
+    }
+    else {
+      foreach ($value as $key => $val) {
+        $settings['graph_phyz']['contains'][$setting]['contains'][$key] = array('default' => $val);
+      }
+    }
+  }
+  return $settings;
 }
 
 /**
