@@ -15,6 +15,116 @@
  */
 
 /**
+ * Implements hook_menu().
+ */
+function graphapi_menu() {
+  return array(
+    'admin/config/system/graphapi' => array(
+      'title' => 'Graph API',
+      'description' => 'Graph API and engines settings.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('graphapi_engines_form'),
+      'access arguments' => array('administer site configuration'),
+    ),
+    'admin/config/system/graphapi/engines' => array(
+      'title' => 'Engines overview',
+      'description' => 'Show and adjust the engines',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('graphapi_engines_form'),
+      'access arguments' => array('administer site configuration'),
+      'type' => MENU_LOCAL_TASK,
+    ),
+  );
+}
+
+/**
+ * Helper function to remove the views oriented default values.
+ *
+ * @param array $values
+ *
+ * @return array
+ *   A tree of key/value pairs
+ *
+ * @see hook_graphapi_settings_form()
+ * @see views_plugin_style::option_definition()
+
+ */
+function _graphapi_remove_views_defaults($values = array()) {
+  $result = array();
+  foreach ($values as $key => $value) {
+    if (isset($value['contains'])) {
+      $result[$key] = _graphapi_remove_views_defaults($value['contains']);
+    }
+    else {
+      $result[$key] = $value['default'];
+    }
+  }
+  return $result;
+}
+
+function graphapi_engines_form() {
+  $form = array();
+
+  $form_state = array();
+  $form = graphapi_settings_form($form, $form_state);
+
+  $engines = graphapi_views_formats();
+  //unset($engines['thejit_forcedirected']);
+  unset($engines['thejit_spacetree']);
+  foreach ($engines as $engine => $data) {
+    // we need to extract the views structure :(
+    $settings = module_invoke($engine, 'graphapi_default_settings');
+    if (!isset($settings)) {
+      $defaults = array($engine => array());
+    }
+    else {
+      $defaults = _graphapi_remove_views_defaults($settings);
+    }
+    $config = $defaults[$engine];
+    $config['id'] = $engine;
+    $config['engine'] = $engine;
+    $config += array(
+      'height' => 300,
+      'width' => 400,
+    );
+    $setup = array(
+      'graph' => _graphapi_demo_graph(),
+      'config' => $config,
+    );
+    $result = theme('graphapi_dispatch', $setup);
+    $form[$engine]['demo'] = array(
+      '#type' => 'fieldset',
+      '#title' => check_plain($data),
+      '#description' => t("This is a graph rendered with the defaults from the engine."),
+    );
+    $form[$engine]['demo']['content'] = array(
+      '#prefix' => '<div>',
+      '#markup' => $result,
+      '#suffix' => '</div>',
+      '#weight' => -1,
+    );
+    $form[$engine]['#collapsed'] = FALSE;
+  }
+
+  return $form;
+}
+
+function _graphapi_demo_graph() {
+  $graph = graphapi_new_graph();
+  graphapi_add_link($graph, "graphapi_relation", "relation");
+  graphapi_add_link($graph, "graphapi_relation", "graphapi");
+  graphapi_add_link($graph, "graphapi", "views");
+  graphapi_add_link($graph, "php", "graphapi");
+  graphapi_add_link($graph, "graphapi", "graph_phyz");
+  graphapi_add_link($graph, "graphapi", "graphviz_filter");
+  graphapi_add_link($graph, "graphapi", "thejit");
+  graphapi_add_link($graph, "thejit", "thejit_spacetree");
+  graphapi_add_link($graph, "thejit", "thejit_forcedirected");
+  graphapi_add_link($graph, "thejit", "thejit_x");
+  return $graph;
+}
+
+/**
  * Creates a new empty graph array.
  */
 function graphapi_new_graph() {
@@ -630,7 +740,7 @@ function graphapi_global_settings_form($values) {
  * @see graph_phyz_settings_form().
  */
 function graphapi_settings_form($form, &$form_state) {
-  $values = $form_state['values'];
+  $values = isset($form_state['values']) ? $form_state['values'] : array();
   if (!isset($values['graphapi'])) {
     $values['graphapi'] = array();
   }
@@ -677,18 +787,7 @@ function _graphapi_engine_form($engine, $values) {
 }
 
 function graphapi_demo_engines($engine = 'graph_phyz') {
-  $graph = graphapi_new_graph();
-
-  graphapi_add_link($graph, "graphapi_relation", "relation");
-  graphapi_add_link($graph, "graphapi_relation", "graphapi");
-  graphapi_add_link($graph, "graphapi", "views");
-  graphapi_add_link($graph, "php", "graphapi");
-  graphapi_add_link($graph, "graphapi", "graph_phyz");
-  graphapi_add_link($graph, "graphapi", "graphviz_filter");
-  graphapi_add_link($graph, "graphapi", "thejit");
-  graphapi_add_link($graph, "thejit", "thejit_spacetree");
-  graphapi_add_link($graph, "thejit", "thejit_forcedirected");
-  graphapi_add_link($graph, "thejit", "thejit_x");
+  $graph = _graphapi_demo_graph();
 
   $config = array(
     'engine' => $engine,
