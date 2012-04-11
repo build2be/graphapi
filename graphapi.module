@@ -47,7 +47,6 @@ function graphapi_menu() {
  *
  * @see hook_graphapi_settings_form()
  * @see views_plugin_style::option_definition()
-
  */
 function _graphapi_remove_views_defaults($values = array()) {
   $result = array();
@@ -691,14 +690,66 @@ function theme_graphapi_graphviz_filter_graphapi($vars) {
 }
 
 /**
- * Provide general settings
+ * Implements hook_graphapi_default_settings().
  */
-function graphapi_global_settings_form($values) {
-  $values += array(
+function graphapi_graphapi_default_settings() {
+  $engine = 'graphapi';
+  foreach (graphapi_global_settings() as $setting => $value) {
+    if (!is_array($value)) {
+      $settings[$engine]['contains'][$setting] = array('default' => $value);
+    }
+    else {
+      foreach ($value as $key => $val) {
+        $settings[$engine]['contains'][$setting]['contains'][$key] = array('default' => $val);
+      }
+    }
+  }
+  return $settings;
+}
+
+/**
+ * Convert a settings array to a views compatible one.
+ *
+ * @param $engine
+ * @param $values
+ *
+ * @see views_plugin_style::option_definition()
+ */
+function graphapi_settings_to_views($engine, $values) {
+  $result = array(
+    $engine => _graphapi_settings_to_views($values),
+  );
+  return $result;
+}
+
+function _graphapi_settings_to_views($value) {
+  if (!is_array($value)) {
+    $result = array('default' => $value);
+  }
+  else {
+    $result = array();
+    foreach ($value as $key => $val) {
+      $result['contains'][$key] = _graphapi_settings_to_views($val);
+    }
+  }
+  return $result;
+}
+
+function graphapi_global_settings() {
+  return array(
     'width' => 400,
     'height' => 300,
     'background-color' => 'yellow',
+    'cascade' => '',
   );
+}
+
+/**
+ * Provide general settings
+ */
+function graphapi_global_settings_form($values) {
+  $values += graphapi_global_settings();
+
   // This is our 'global' engine
   $engine = 'graphapi';
   $form[$engine] = array(

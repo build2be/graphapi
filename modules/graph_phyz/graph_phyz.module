@@ -94,17 +94,9 @@ function theme_graph_phyz_graphapi($vars) {
  * @see views_object::option_definition()
  */
 function graph_phyz_graphapi_default_settings() {
-  foreach (graph_phyz_default_settings() as $setting => $value) {
-    if (!is_array($value)) {
-      $settings['graph_phyz']['contains'][$setting] = array('default' => $value);
-    }
-    else {
-      foreach ($value as $key => $val) {
-        $settings['graph_phyz']['contains'][$setting]['contains'][$key] = array('default' => $val);
-      }
-    }
-  }
-  return $settings;
+  $engine = 'graph_phyz';
+  $values = graph_phyz_default_settings(FALSE);
+  return graphapi_settings_to_views($engine, $values);
 }
 
 /**
