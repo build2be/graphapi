@@ -53,28 +53,8 @@ function _views_graphapi_style_build_graph_data(&$vars) {
   else {
     $view = $vars['view'];
     $options = $vars['options'];
-    // We need to check for the correct field labels
-    $handler = $view->display_handler->get_handlers('field');
 
-    //$fields   = &$view->field;
-    //$columns  = $handler->sanitize_columns($options['columns'], $fields);
-    //dsm($columns);
-    //$vars['xml'] = "Empty testing";
-    //return;
-    $mapping = array();
-    $mapping['from'] = array();
-    $mapping['to'] = array();
-
-    foreach ($options['mapping']['from'] as $id => $data) {
-      if (isset($options['mapping']['from'][$id]) && isset($view->field[$options['mapping']['from'][$id]])) {
-        $mapping['from'][$id] = $view->field[$options['mapping']['from'][$id]]->field_alias;
-      }
-    }
-    foreach ($options['mapping']['to'] as $id => $data) {
-      if (isset($options['mapping']['to'][$id]) && isset($view->field[$options['mapping']['to'][$id]])) {
-        $mapping['to'][$id] = $view->field[$options['mapping']['to'][$id]]->field_alias;
-      }
-    }
+    $mapping = $options['mapping'];
     // Fix label field if not set yet
     if (empty($mapping['from']['label'])) {
       $mapping['from']['label'] = $mapping['from']['id'];
@@ -86,20 +66,62 @@ function _views_graphapi_style_build_graph_data(&$vars) {
     //merlinofchaos>	ClemensTolboom: $view->field[$field_id]->field_alias should then match 'comment_node_cid'.
     //merlinofchaos>	ClemensTolboom: Though in general you should try to avoid ever referencing what's in $row directly if you can.
     //merlinofchaos>	ClemensTolboom: There's always things like $view->style_plugin->rendered_fields[] and $view->field[$id]->get_value()
-    $graph = graphapi_new_graph();
-    foreach ($view->result as $id => $row) {
-      // Node values
-      $from_id = $row->{$mapping['from']['id']};
-      $from_title = $row->{$mapping['from']['label']};
-      $to_id = $row->{$mapping['to']['id']};
-      $to_title = $row->{$mapping['to']['label']};
+//dsm($view->field['picture']->aliases);
+//dsm($view->field['picture']->get_value($row));
 
+    $graph = graphapi_new_graph();
+
+    $side = $mapping['from'];
+
+    $mapping_from_id = $side['id'];
+    $mapping_from_title = $side['label'];
+    if (empty($mapping_from_title)) {
+      $mapping_from_title = $mapping_from_id;
+    }
+    $mapping_from_uri = $side['uri'];
+    $mapping_from_content = $side['content'];
+
+    $side = $mapping['to'];
+    $mapping_to_id = $side['id'];
+    $mapping_to_title = $side['label'];
+    if (empty($mapping_to_title)) {
+      $mapping_to_title = $mapping_to_id;
+    }
+    $mapping_to_uri = $side['uri'];
+    $mapping_to_content = $side['content'];
+
+    foreach ($view->result as $count => $row) {
+      $view->row_index = $count;
+      // Node values
+      $from_id = $view->field[$mapping_from_id]->render($row);
+      $from_title = $view->field[$mapping_from_title]->render($row);
       graphapi_add_node($graph, $from_id);
       graphapi_set_node_title($graph, $from_id, $from_title);
+
+      if (!empty($mapping_from_uri)) {
+        $from_uri = $view->field[$mapping_from_uri]->render($row);
+        graphapi_set_node_uri($graph, $from_id, $from_uri);
+      }
+      if (!empty($mapping_from_content)) {
+        $from_content = $view->field[$mapping_from_content]->render($row);
+        graphapi_set_node_content($graph, $from_id, $from_content);
+      }
+
+      $to_id = $view->field[$mapping_to_id]->render($row);
       // Make sure only add a link when exists
-      if (isset($to_id)) {
+      // NOTE: a value of 0 or '0' is OK so cannot use empty
+      if (!is_null($to_id) && $to_id != '') {
+        $to_title = $view->field[$mapping_to_title]->render($row);
         graphapi_add_node($graph, $to_id);
         graphapi_set_node_title($graph, $to_id, $to_title);
+        if (!empty($mapping_to_uri)) {
+          $to_uri = $view->field[$mapping_to_uri]->render($row);
+          graphapi_set_node_uri($graph, $to_id, $to_uri);
+        }
+        if (!empty($mapping_to_content)) {
+          $to_content = $view->field[$mapping_to_content]->render($row);
+          graphapi_set_node_content($graph, $to_id, $to_content);
+        }
 
         graphapi_add_link($graph, $from_id, $to_id);
       }
