@@ -200,7 +200,7 @@ function graphapi_set_node_uri(&$graph, $id, $uri) {
 }
 
 /**
- * Sets the uri of a graph node, to which the graph will link.
+ * Sets the content of a graph node.
  *
  * @param $graph
  *   Graph array, passed by reference.
@@ -737,9 +737,9 @@ function _graphapi_settings_to_views($value) {
 
 function graphapi_global_settings() {
   return array(
-    'width' => 400,
-    'height' => 300,
-    'background-color' => 'yellow',
+    'width' => 1024,
+    'height' => 800,
+    'background-color' => 'grey',
     'cascade' => '',
   );
 }
