@@ -24,6 +24,10 @@ class views_plugin_style_graphapi extends views_plugin_style {
         'title' => '(tbd) Link to more info',
         'description' => 'Used for popup or link to the detailed information',
       ),
+      'content' => array(
+        'title' => '(tdb) Content',
+        'description' => 'Displayed immediately.',
+      ),
     ),
     'to' => array(
       'id' => array(
@@ -37,6 +41,10 @@ class views_plugin_style_graphapi extends views_plugin_style {
       'uri' => array(
         'title' => '(tdb) Link to more info',
         'description' => 'Used for popup or link to the detailed information',
+      ),
+      'content' => array(
+        'title' => '(tdb) Content',
+        'description' => 'Displayed immediately.',
       ),
     ),
   );
