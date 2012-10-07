@@ -54,6 +54,10 @@ function _views_graphapi_style_build_graph_data(&$vars) {
     $view = $vars['view'];
     $options = $vars['options'];
 
+    if (isset($view->build_info['substitutions']) && is_array($view->build_info['substitutions'])) {
+      _views_graphapi_ugly_hack_replace_args($vars['settings'], $view->build_info['substitutions']);
+    }
+
     $mapping = $options['mapping'];
     // Fix label field if not set yet
     if (empty($mapping['from']['label'])) {
@@ -123,4 +127,23 @@ function _views_graphapi_style_build_graph_data(&$vars) {
   }
   $vars['graph'] = $graph;
   $vars['graph-config'] = $vars['settings'];
+}
+
+/**
+ * Replace all views placeholders.
+ *
+ * This is a quick hack http://drupal.org/node/1597928 but very useful
+ *
+ * @param string $value
+ * @param type $substitutions
+ */
+function _views_graphapi_ugly_hack_replace_args(&$value, &$substitutions) {
+  if (is_array($value)) {
+    foreach( $value as $key => $dummy) {
+      _views_graphapi_ugly_hack_replace_args($value[$key], $substitutions);
+    }
+  }
+  else {
+    $value = str_replace(array_keys($substitutions), $substitutions, $value);
+  }
 }
