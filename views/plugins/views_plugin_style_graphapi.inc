@@ -54,12 +54,10 @@ class views_plugin_style_graphapi extends views_plugin_style {
    */
   function option_definition() {
     $options = parent::option_definition();
-    //$options['use grouping'] = FALSE;
     $options['engine'] = array('default' => 'graphapi');
     foreach ($this->graph_fields as $id => $data) {
       foreach ($data as $key => $value) {
         $options['mapping']['contains'][$id]['contains'][$key] = array('default' => NULL);
-        //$options['mapping'][$id][$key] = array('default' => NULL);
       }
     }
 
@@ -158,7 +156,7 @@ class views_plugin_style_graphapi extends views_plugin_style {
    */
   function theme_functions() {
     $options = $this->options + $this->option_definition();
-    $hook =  'views_graphapi_style_graphapi';
+    $hook = 'views_graphapi_style_graphapi';
     return views_theme_functions($hook, $this->view, $this->display);
   }
 
@@ -199,3 +197,4 @@ class views_plugin_style_graphapi extends views_plugin_style {
   }
 
 }
+

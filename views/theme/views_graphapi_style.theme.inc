@@ -63,12 +63,6 @@ function _views_graphapi_style_build_graph_data(&$vars) {
       $mapping['to']['label'] = $mapping['to']['id'];
     }
 
-    //merlinofchaos>	ClemensTolboom: $view->field[$field_id]->field_alias should then match 'comment_node_cid'.
-    //merlinofchaos>	ClemensTolboom: Though in general you should try to avoid ever referencing what's in $row directly if you can.
-    //merlinofchaos>	ClemensTolboom: There's always things like $view->style_plugin->rendered_fields[] and $view->field[$id]->get_value()
-//dsm($view->field['picture']->aliases);
-//dsm($view->field['picture']->get_value($row));
-
     $graph = graphapi_new_graph();
 
     $side = $mapping['from'];

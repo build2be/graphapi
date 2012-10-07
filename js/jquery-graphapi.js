@@ -92,7 +92,7 @@
       applyCoulombsLaw: true,
       applyDamping : true,
       applyHookesLaw : true,
-      applyCompass : true,
+      applyCompass : false,
       applyRank : false,
 
       attractToCenter : 200.0,
@@ -200,7 +200,7 @@
           label: 'Hookes law'
         },
         applyRank : {
-          label: 'Apply Ranking'
+          label: 'Ranking'
         }
       }
 
@@ -395,7 +395,7 @@
         
         physics.dx = $node.width() / 2;
         physics.dy = $node.height() / 2;
-        $node.css('left', physics.px - physics.dx).css('top', physics.py- physics.dy);
+        $node.css({'left': physics.px - physics.dx,'top': physics.py- physics.dy});
       },
 
       /**
@@ -680,6 +680,7 @@
         });
       });
 
+      // Contrained interactions due to edges.
       $container.children('edges').children().each(function() {
         var $this = $(this);
         var from = '#' + $this.attr('from');
