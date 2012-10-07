@@ -66,6 +66,20 @@ class views_plugin_style_graphapi extends views_plugin_style {
     return $options;
   }
 
+  function options_validate(&$form, &$form_state) {
+    $values = $form_state['values']['style_options'];
+    $engine = $values['engine'];
+    $fields = $values[$engine]['fields'];
+    $mapping = array_flip($fields);
+    unset($mapping[0]);
+    if (!isset($mapping['from:id'])) {
+      form_error($form[$engine]['fields'], 'You must set an From ID value for ' . $engine);
+    }
+    if (!isset($mapping['to:id'])) {
+      form_error($form[$engine]['fields'], 'You must set an To ID value for ' . $engine);
+    }
+  }
+
   /**
    * Provide a form for setting options.
    */
@@ -107,44 +121,36 @@ class views_plugin_style_graphapi extends views_plugin_style {
     }
     $field_names = $this->display->handler->get_field_labels();
     $fields = $this->display->handler->get_option('fields');
-    array_unshift($field_names, "- none -");
 
-    $form['mapping'] = array(
-      '#type' => 'fieldset',
-      '#title' => 'Field mapping',
-      '#collapsible' => TRUE,
-    );
-
-    $form['mapping']['from'] = array(
-      '#type' => 'fieldset',
-      '#title' => 'From settings',
-      '#collapsible' => TRUE,
-      '#collapsed' => !empty($options['mapping']['from']['id']),
-    );
-    foreach ($this->graph_fields['from'] as $id => $info) {
-      $form['mapping']['from'][$id] = array(
-        '#type' => 'select',
-        '#required' => isset($info['required']) && $info['required'],
-        '#title' => t($info['title']),
-        '#description' => isset($info['description']) ? $info['description'] : '',
-        '#options' => $field_names,
-        '#default_value' => $options['mapping']['from'][$id],
+    $engines = graphapi_views_formats();
+    foreach ($engines as $engine => $dummy) {
+      $form[$engine]['#collapsed'] = TRUE;
+      $form[$engine]['fields'] = array(
+        '#type' => 'fieldset',
+        '#title' => 'Map field destinations',
+        '#description' => 'Map the views field to the correct Graph group and field.<br/>By reordering your views fields you can make this easier to follow.',
+        '#collapsible' => TRUE,
+        '#collapsed' => FALSE,
+        '#weight' => -10,
       );
-    }
-    $form['mapping']['to'] = array(
-      '#type' => 'fieldset',
-      '#title' => 'To settings',
-      '#collapsible' => TRUE,
-      '#collapsed' => !empty($options['mapping']['to']['id']),
-    );
-    foreach ($this->graph_fields['to'] as $id => $info) {
-      $form['mapping']['to'][$id] = array(
-        '#type' => 'select',
-        '#required' => isset($info['required']) && $info['required'],
-        '#title' => t($info['title']),
-        '#options' => $field_names,
-        '#default_value' => $options['mapping']['to'][$id],
-      );
+      $opts = _graphapi_mapping_options($engine);
+      $values = array();
+      foreach ($options['mapping'] as $src => $v) {
+        foreach ($v as $f => $dummy) {
+          $values["$src:$f"] = $options['mapping'][$src][$f];
+        }
+      }
+      $values = array_flip($values);
+      unset($values[0]);
+      foreach ($field_names as $field => $label) {
+        $form[$engine]['fields'][$field] = array(
+          '#type' => 'select',
+          '#title' => $label,
+          '#description' => 'Uses ' . $field,
+          '#options' => $opts,
+          '#default_value' => isset($options[$engine]['fields'][$field]) ? $options[$engine]['fields'][$field] : 0,
+        );
+      }
     }
     return $form;
   }

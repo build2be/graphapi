@@ -58,67 +58,109 @@ function _views_graphapi_style_build_graph_data(&$vars) {
       _views_graphapi_ugly_hack_replace_args($vars['settings'], $view->build_info['substitutions']);
     }
 
-    $mapping = $options['mapping'];
-    // Fix label field if not set yet
-    if (empty($mapping['from']['label'])) {
-      $mapping['from']['label'] = $mapping['from']['id'];
+    $engine = $options['engine'];
+    $fields = $options[$engine]['fields'];
+
+    $mapping = array_flip($fields);
+    unset($mapping[0]);
+
+    // Make sure we have required values like label
+    if (!isset($mapping['from:label'])) {
+      $mapping['from:label'] = $mapping['from:id'];
     }
-    if (empty($mapping['to']['label'])) {
-      $mapping['to']['label'] = $mapping['to']['id'];
+    $mapping_from_id = $mapping['from:id'];
+    $mapping_from_label = $mapping['from:label'];
+    if (isset($mapping['from:URI'])) {
+      $mapping_from_uri = $mapping['from:URI'];
     }
+    if (isset($mapping['from:content'])) {
+      $mapping_from_content = $mapping['from:content'];
+    }
+    unset($mapping['from:id']);
+    unset($mapping['from:URI']);
+    unset($mapping['from:label']);
+    unset($mapping['from:content']);
+
+    if (!isset($mapping['to:label'])) {
+      $mapping['to:label'] = $mapping['to:id'];
+    }
+    $mapping_to_id = $mapping['to:id'];
+    $mapping_to_label = $mapping['to:label'];
+    if (isset($mapping['to:URI'])) {
+      $mapping_to_uri = $mapping['to:URI'];
+    }
+    if (isset($mapping['to:content'])) {
+      $mapping_to_content = $mapping['to:content'];
+    }
+    unset($mapping['to:id']);
+    unset($mapping['to:URI']);
+    unset($mapping['to:label']);
+    unset($mapping['to:content']);
+
+    // Split of remaining into from + to + link fragments
+    $split = array(
+      'from' => array(),
+      'link' => array(),
+      'to' => array(),
+    );
+    foreach ($mapping as $key => $value) {
+      list($left, $rest) = preg_split('/:/', $key, 2);
+      if (isset($left) && isset($rest)) {
+        $split[$left][$rest] = $value;
+      }
+    }
+    $mapping = $split;
 
     $graph = graphapi_new_graph();
-
-    $side = $mapping['from'];
-
-    $mapping_from_id = $side['id'];
-    $mapping_from_title = $side['label'];
-    if (empty($mapping_from_title)) {
-      $mapping_from_title = $mapping_from_id;
-    }
-    $mapping_from_uri = $side['uri'];
-    $mapping_from_content = $side['content'];
-
-    $side = $mapping['to'];
-    $mapping_to_id = $side['id'];
-    $mapping_to_title = $side['label'];
-    if (empty($mapping_to_title)) {
-      $mapping_to_title = $mapping_to_id;
-    }
-    $mapping_to_uri = $side['uri'];
-    $mapping_to_content = $side['content'];
 
     foreach ($view->result as $count => $row) {
       $view->row_index = $count;
       // Node values
       $from_id = $view->field[$mapping_from_id]->render($row);
-      $from_title = $view->field[$mapping_from_title]->render($row);
       graphapi_add_node($graph, $from_id);
+
+      $from_title = $view->field[$mapping_from_label]->render($row);
       graphapi_set_node_title($graph, $from_id, $from_title);
 
+      $data = array();
+      foreach ($mapping['from'] as $key => $value) {
+        $data[$key] = $view->field[$value]->render($row);
+      }
+      if (!empty($data)) {
+        graphapi_set_node_data($graph, $from_id, $data);
+      }
+
       if (!empty($mapping_from_uri)) {
-        $from_uri = $view->field[$mapping_from_uri]->render($row);
-        graphapi_set_node_uri($graph, $from_id, $from_uri);
+        $value = $view->field[$mapping_from_uri]->render($row);
+        graphapi_set_node_uri($graph, $from_id, $value);
       }
       if (!empty($mapping_from_content)) {
-        $from_content = $view->field[$mapping_from_content]->render($row);
-        graphapi_set_node_content($graph, $from_id, $from_content);
+        $value = $view->field[$mapping_from_content]->render($row);
+        graphapi_set_node_content($graph, $from_id, $value);
       }
 
       $to_id = $view->field[$mapping_to_id]->render($row);
       // Make sure only add a link when exists
       // NOTE: a value of 0 or '0' is OK so cannot use empty
       if (!is_null($to_id) && $to_id != '') {
-        $to_title = $view->field[$mapping_to_title]->render($row);
         graphapi_add_node($graph, $to_id);
+
+        $to_title = $view->field[$mapping_to_label]->render($row);
         graphapi_set_node_title($graph, $to_id, $to_title);
         if (!empty($mapping_to_uri)) {
-          $to_uri = $view->field[$mapping_to_uri]->render($row);
-          graphapi_set_node_uri($graph, $to_id, $to_uri);
+          $value = $view->field[$mapping_to_uri]->render($row);
+          graphapi_set_node_uri($graph, $to_id, $value);
         }
         if (!empty($mapping_to_content)) {
           $to_content = $view->field[$mapping_to_content]->render($row);
           graphapi_set_node_content($graph, $to_id, $to_content);
+        }
+        $data = array();
+        foreach ($mapping['to'] as $key => $value) {
+          $data[$key] = $view->field[$key]->render($row);
+        }
+        if (!empty($data)) {
+          graphapi_set_node_data($graph, $to_id, $data);
         }
 
         graphapi_add_link($graph, $from_id, $to_id);
@@ -139,7 +181,7 @@ function _views_graphapi_style_build_graph_data(&$vars) {
  */
 function _views_graphapi_ugly_hack_replace_args(&$value, &$substitutions) {
   if (is_array($value)) {
-    foreach( $value as $key => $dummy) {
+    foreach ($value as $key => $dummy) {
       _views_graphapi_ugly_hack_replace_args($value[$key], $substitutions);
     }
   }

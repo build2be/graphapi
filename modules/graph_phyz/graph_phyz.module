@@ -286,3 +286,18 @@ function theme_graph_phyz_links($variables) {
   $result.= '</edges>';
   return $result;
 }
+
+function graph_phyz_graphapi_node_properties() {
+  return array(
+    'background-color' => 'Background Color',
+    'shape' => 'Shape',
+    'rank' => 'Rank',
+  );
+}
+
+function graph_phyz_graphapi_link_properties() {
+  return array(
+    'title' => 'Title',
+    'color' => 'Color',
+  );
+}

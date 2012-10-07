@@ -847,3 +847,50 @@ function graphapi_demo_engines($engine = 'graph_phyz') {
   );
   return theme('graphapi_dispatch', array('graph' => $graph, 'config' => $config));
 }
+
+function _graphapi_mapping_options($engine) {
+  $node_options = graphapi_node_properties($engine);
+  $opts = array(
+    0 => t('-none-'),
+  );
+  $opts['from'] = array();
+  foreach ($node_options as $key => $label) {
+    $opts['from']["from:$key"] = $label;
+  }
+  $opts['link'] = array(
+    'link:color' => t('Link Color'),
+  );
+  $opts['to'] = array();
+  foreach ($node_options as $key => $label) {
+    $opts['to']["to:$key"] = $label;
+  }
+  return $opts;
+}
+
+function graphapi_node_properties($engine) {
+  $result = array();
+  $engines = graphapi_views_formats();
+  if (isset($engines[$engine])) {
+    $defaults = graphapi_graphapi_node_properties();
+    $settings = module_invoke($engine, 'graphapi_node_properties');
+    if (empty($settings)) {
+      $settings = array();
+    }
+    $result= array_merge($defaults, $settings);
+  }
+  return $result;
+}
+
+function graphapi_graphapi_node_properties() {
+  return array(
+    'id' => 'ID',
+    'label' => 'Label',
+    'URI' => 'URI',
+    'content' => 'Content',
+  );
+}
+
+function graphapi_graphapi_link_properties() {
+  return array(
+  );
+}
