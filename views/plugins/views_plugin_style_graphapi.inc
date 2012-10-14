@@ -106,7 +106,7 @@ class views_plugin_style_graphapi extends views_plugin_style {
     $form['engine'] = array(
       '#type' => 'radios',
       '#title' => t('Render type'),
-      '#required' => 1,
+      '#required' => TRUE,
       '#description' => t('The render engine to use. Known render engines are graph_phyz and !thejit. graphviz_filter is supported only in concept.', array('!thejit' => l('thejit', 'http://drupal.org/project/thejit'))),
       '#options' => graphapi_views_formats(),
       '#default_value' => $engine,
