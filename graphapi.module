@@ -21,6 +21,13 @@
  */
 function graphapi_menu() {
   return array(
+    'graphapi/info' => array(
+      'title' => 'Graph API entity info',
+      'description' => 'Callback to provide more info on an entity.',
+      'page callback' => 'graphapi_callback',
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+    ),
     'admin/config/system/graphapi' => array(
       'title' => 'Graph API',
       'description' => 'Overview of Graph API and its supporting engines.',
@@ -37,6 +44,22 @@ function graphapi_menu() {
       'type' => MENU_LOCAL_TASK,
     ),
   );
+}
+
+function graphapi_callback($engine, $entity_type, $entity_id) {
+  $args = func_get_args();
+  $items = array();
+  $items[] = check_plain("Engine: $engine");
+  $items[] = check_plain("Type: $entity_type");
+  $items[] = check_plain("Id: $entity_id");
+
+  $entity_info = array(
+    'title' => '<strong>' . $node_id . '</strong>',
+    'body' => '<div>' . theme('item_list',array('items' => $items)) . '</div>',
+    // needed for forcedirected to indicate a successful retrieval.
+    'success' => true,
+  );
+  drupal_json_output($entity_info);
 }
 
 /**

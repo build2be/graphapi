@@ -24,17 +24,34 @@ function graphapi_demo_engines_list() {
   $engines = graphapi_views_formats();
   $items = array();
   $config = graphapi_demo_config();
-  $graph = graphap_demo_graph();
+  $engine_configs = graphapi_demo_engine_config();
+  $graph = graphapi_demo_graph();
   foreach ($engines as $engine => $title) {
     $vars = array(
       'graph' => $graph,
       'config' => $config,
     );
+    if (isset($engine_configs[$engine])) {
+      $vars['config'] += $engine_configs[$engine];
+    }
     $vars['config']['engine'] = $engine;
 
     $items[] = '<h3>' . $title . '</h3>' . theme('graphapi_dispatch', $vars);
   }
   return theme('item_list', array('items' => $items, 'title' => t('Available Graph API engines.')));
+}
+
+function graphapi_demo_engine_config() {
+  return array(
+    'thejit_spacetree' => array(
+      'enable_node_info' => TRUE,
+      'node_info_path' => 'graphapi/info/thejit_spacetree/module/',
+    ),
+    'thejit_forcedirected' => array(
+      'enable_node_info' => TRUE,
+      'node_info_path' => 'graphapi/info/thejit_forcedirected/module/',
+    ),
+  );
 }
 
 function graphapi_demo_config() {
@@ -45,13 +62,35 @@ function graphapi_demo_config() {
   return $config;
 }
 
-function graphap_demo_graph() {
+function graphapi_demo_graph() {
   $graph = graphapi_new_graph();
   graphapi_add_link($graph, 'graphapi_demo', 'graphapi');
+
+  graphapi_add_link($graph, 'thejit', 'thejit_spacetree');
+  graphapi_add_link($graph, 'thejit', 'thejit_forcedirected');
+
   graphapi_add_link($graph, 'thejit_spacetree', 'graphapi');
   graphapi_add_link($graph, 'thejit_forcedirected', 'graphapi');
 
   graphapi_add_link($graph, 'graphapi', 'views');
   graphapi_add_link($graph, 'views_ui', 'views');
+
+  graphapi_set_node_content($graph, 'graphapi', _graphapi_demo_module_content('graphapi'));
+  graphapi_set_node_content($graph, 'thejit', _graphapi_demo_module_content('thejit'));
+  graphapi_set_node_content($graph, 'views', _graphapi_demo_module_content('views'));
+  graphapi_set_node_content($graph, 'views_ui', _graphapi_demo_module_content('views_ui', 'views'));
   return $graph;
+}
+
+function _graphapi_demo_module_content($id, $project_id= NULL) {
+  $text = '';
+  if (is_null($project_id)) {
+    $text .= "Project: " . $id . '<br/>';
+    $project_id = $id;
+  }
+  else {
+    $text .= "$id is part of project: " . $id . '<br/>';
+  }
+  $text .= 'See ' . l("$project_id", 'http://drupal.org/project/graphapi') . ' on drupal.org';
+  return $text;
 }
