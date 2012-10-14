@@ -1,0 +1,57 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function graphapi_demo_menu() {
+  $items['admin/config/system/graphapi/demo'] = array(
+    'title' => 'Graph API demo page',
+    'description' => t("A graph of all defined 'update_dependencies'."),
+    'page callback' => 'graphapi_demo_page',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  return $items;
+}
+
+function graphapi_demo_page() {
+  $demos = array();
+  $demos[] = graphapi_demo_engines_list();
+  return theme('item_list', array('items' => $demos, 'title' => t('Graph API Demo.')));
+}
+
+function graphapi_demo_engines_list() {
+  $engines = graphapi_views_formats();
+  $items = array();
+  $config = graphapi_demo_config();
+  $graph = graphap_demo_graph();
+  foreach ($engines as $engine => $title) {
+    $vars = array(
+      'graph' => $graph,
+      'config' => $config,
+    );
+    $vars['config']['engine'] = $engine;
+
+    $items[] = '<h3>' . $title . '</h3>' . theme('graphapi_dispatch', $vars);
+  }
+  return theme('item_list', array('items' => $items, 'title' => t('Available Graph API engines.')));
+}
+
+function graphapi_demo_config() {
+  $config = array(
+    'width' => 400,
+    'height' => 400,
+  );
+  return $config;
+}
+
+function graphap_demo_graph() {
+  $graph = graphapi_new_graph();
+  graphapi_add_link($graph, 'graphapi_demo', 'graphapi');
+  graphapi_add_link($graph, 'thejit_spacetree', 'graphapi');
+  graphapi_add_link($graph, 'thejit_forcedirected', 'graphapi');
+
+  graphapi_add_link($graph, 'graphapi', 'views');
+  graphapi_add_link($graph, 'views_ui', 'views');
+  return $graph;
+}
