@@ -16,19 +16,21 @@
 
 /**
  * Implements hook_menu().
+ *
+ * @see graphapi_demo_menu().
  */
 function graphapi_menu() {
   return array(
     'admin/config/system/graphapi' => array(
       'title' => 'Graph API',
-      'description' => 'Graph API and engines settings.',
+      'description' => 'Overview of Graph API and its supporting engines.',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('graphapi_engines_form'),
       'access arguments' => array('administer site configuration'),
     ),
     'admin/config/system/graphapi/engines' => array(
-      'title' => 'Engines overview',
-      'description' => 'Show and adjust the engines',
+      'title' => 'Engine forms overview',
+      'description' => 'Overview of all engine forms',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('graphapi_engines_form'),
       'access arguments' => array('administer site configuration'),
@@ -807,13 +809,13 @@ function graphapi_settings_form($form, &$form_state) {
     else {
       $no_settings = array();
       $no_settings[$engine] = array(
-        '#title' => t('No settings for') . ': ' . $title,
+        '#title' => t($title),
         '#type' => 'fieldset',
         '#collapsed' => TRUE,
         '#collapsible' => FALSE,
       );
       $no_settings[$engine]['dummy'] = array(
-        '#markup' => 'The module does not yet support a graphapi settings form. You could check the issue queue for that module.',
+        '#markup' => 'The engine does not yet support a graphapi settings form. You could check the issue queue for that module.',
       );
       $form += $no_settings;
       $form[$engine]['#weight'] = count($engines);

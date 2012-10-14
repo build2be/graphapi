@@ -4,37 +4,37 @@
  * Implements hook_menu().
  */
 function graphapi_devel_menu() {
-  $items['admin/modules/graph_old'] = array(
-    'title' => 'Graph',
-    'description' => t("A graph of all defined 'update_dependencies'."),
+  $items['admin/config/system/graphapi/modules'] = array(
+    'title' => 'Module dependencies',
+    'description' => t("A graph of all modules."),
     'page callback' => 'graphapi_devel_system_modules_layout',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
     'weight' => 100,
   );
-  $items['admin/modules/graph_old/modules'] = array(
+  $items['admin/config/system/graphapi/modules/current'] = array(
     'title' => 'Module dependencies',
     'description' => t("A graph of all modules."),
     'page callback' => 'graphapi_devel_system_modules_layout',
     'access arguments' => array('access devel information'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => 100,
+    'weight' => 10,
   );
-  $items['admin/modules/graph_old/all-modules'] = array(
+  $items['admin/config/system/graphapi/modules/hidden'] = array(
     'title' => 'All module dependencies',
     'description' => t("A graph of all modules including hidden."),
     'page callback' => 'graphapi_devel_system_all_modules_layout',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
-    'weight' => 100,
+    'weight' => 20,
   );
-  $items['admin/modules/graph_old/install'] = array(
+  $items['admin/config/system/graphapi/modules/install'] = array(
     'title' => 'Update Dependencies',
     'description' => t("A graph of all hook_update_dependencies'."),
     'page callback' => 'graphapi_devel_system_module_install_layout',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
-    'weight' => 100,
+    'weight' => 30,
   );
   return $items;
 }
