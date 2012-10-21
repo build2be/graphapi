@@ -11,34 +11,50 @@ function graphapi_demo_menu() {
     'access arguments' => array('administer site configuration'),
     'type' => MENU_LOCAL_TASK,
   );
+
+  $engines = graphapi_get_engines();
+
+  $default = TRUE;
+  $weight = 0;
+  foreach ($engines as $engine => $data) {
+    $items["admin/config/system/graphapi/demo/$engine"] = array(
+      'title' => $data,
+      'page callback' => 'graphapi_demo_page',
+      'page arguments' => array($engine),
+      'access arguments' => array('administer site configuration'),
+      'type' => $default ? MENU_DEFAULT_LOCAL_TASK : MENU_LOCAL_TASK,
+      'weight' => $weight++,
+    );
+    $default = FALSE;
+  }
   return $items;
 }
 
-function graphapi_demo_page() {
-  $demos = array();
-  $demos[] = graphapi_demo_engines_list();
-  return theme('item_list', array('items' => $demos, 'title' => t('Graph API Demo.')));
+function graphapi_demo_page($engine = NULL) {
+  $engines = graphapi_get_engines();
+  if (is_null($engine) && count($engines)) {
+    $engine = key($engines);
+  }
+  return graphapi_demo_engine($engine);
 }
 
-function graphapi_demo_engines_list() {
+function graphapi_demo_engine($engine) {
   $engines = graphapi_views_formats();
   $items = array();
   $config = graphapi_demo_config();
   $engine_configs = graphapi_demo_engine_config();
   $graph = graphapi_demo_graph();
-  foreach ($engines as $engine => $title) {
-    $vars = array(
-      'graph' => $graph,
-      'config' => $config,
-    );
-    if (isset($engine_configs[$engine])) {
-      $vars['config'] += $engine_configs[$engine];
-    }
-    $vars['config']['engine'] = $engine;
 
-    $items[] = '<h3>' . $title . '</h3>' . theme('graphapi_dispatch', $vars);
+  $title = $engines[$engine];
+  $vars = array(
+    'graph' => $graph,
+    'config' => $config,
+  );
+  if (isset($engine_configs[$engine])) {
+    $vars['config'] += $engine_configs[$engine];
   }
-  return theme('item_list', array('items' => $items, 'title' => t('Available Graph API engines.')));
+  $vars['config']['engine'] = $engine;
+  return '<h3>' . $title . '</h3>' . theme('graphapi_dispatch', $vars);
 }
 
 function graphapi_demo_engine_config() {
@@ -82,7 +98,7 @@ function graphapi_demo_graph() {
   return $graph;
 }
 
-function _graphapi_demo_module_content($id, $project_id= NULL) {
+function _graphapi_demo_module_content($id, $project_id = NULL) {
   $text = '';
   if (is_null($project_id)) {
     $text .= "Project: " . $id . '<br/>';
