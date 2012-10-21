@@ -20,7 +20,7 @@
  * @see graphapi_demo_menu().
  */
 function graphapi_menu() {
-  return array(
+  $items = array(
     'graphapi/info' => array(
       'title' => 'Graph API entity info',
       'description' => 'Callback to provide more info on an entity.',
@@ -44,6 +44,24 @@ function graphapi_menu() {
       'type' => MENU_LOCAL_TASK,
     ),
   );
+
+  $engines = array('graphapi' => 'Graph API') + graphapi_get_engines();
+
+  $default = TRUE;
+  $weight = 0;
+  foreach ($engines as $engine => $data) {
+    $items["admin/config/system/graphapi/engines/$engine"] = array(
+      'title' => $data,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('graphapi_engines_form', $engine),
+      'access arguments' => array('administer site configuration'),
+      'type' => $default ? MENU_DEFAULT_LOCAL_TASK : MENU_LOCAL_TASK,
+      'weight' => $weight++,
+    );
+    $default = FALSE;
+  }
+
+  return $items;
 }
 
 function graphapi_callback($engine, $entity_type, $entity_id) {
@@ -55,7 +73,7 @@ function graphapi_callback($engine, $entity_type, $entity_id) {
 
   $entity_info = array(
     'title' => '<strong>' . $node_id . '</strong>',
-    'body' => '<div>' . theme('item_list',array('items' => $items)) . '</div>',
+    'body' => '<div>' . theme('item_list', array('items' => $items)) . '</div>',
     // needed for forcedirected to indicate a successful retrieval.
     'success' => true,
   );
@@ -86,48 +104,10 @@ function _graphapi_remove_views_defaults($values = array()) {
   return $result;
 }
 
-function graphapi_engines_form() {
-  $form = array();
-
-  $form_state = array();
-  $form = graphapi_settings_form($form, $form_state);
-
-  $engines = graphapi_views_formats();
-  foreach ($engines as $engine => $data) {
-    // we need to extract the views structure :(
-    $settings = module_invoke($engine, 'graphapi_default_settings');
-    if (!isset($settings)) {
-      $defaults = array($engine => array());
-    }
-    else {
-      $defaults = _graphapi_remove_views_defaults($settings);
-    }
-    $config = $defaults[$engine];
-    $config['id'] = $engine;
-    $config['engine'] = $engine;
-    $config += array(
-      'height' => 300,
-      'width' => 400,
-    );
-    $setup = array(
-      'graph' => _graphapi_demo_graph(),
-      'config' => $config,
-    );
-    $result = theme('graphapi_dispatch', $setup);
-    $form[$engine]['demo'] = array(
-      '#type' => 'fieldset',
-      '#title' => check_plain($data),
-      '#description' => t("This is a graph rendered with the defaults from the engine."),
-    );
-    $form[$engine]['demo']['content'] = array(
-      '#prefix' => '<div>',
-      '#markup' => $result,
-      '#suffix' => '</div>',
-      '#weight' => -1,
-    );
-    $form[$engine]['#collapsed'] = FALSE;
-  }
-
+function graphapi_engines_form($form, $form_state, $engine = 'graphapi') {
+  $forms = graphapi_settings_form($form, $form_state);
+  $form = array($engine => $forms[$engine]);
+  $form[$engine]['#collapsed'] = FALSE;
   return $form;
 }
 
@@ -901,7 +881,7 @@ function graphapi_node_properties($engine) {
     if (empty($settings)) {
       $settings = array();
     }
-    $result= array_merge($defaults, $settings);
+    $result = array_merge($defaults, $settings);
   }
   return $result;
 }
@@ -918,4 +898,16 @@ function graphapi_graphapi_node_properties() {
 function graphapi_graphapi_link_properties() {
   return array(
   );
+}
+
+/**
+ * Returns engines sorted by title.
+ *
+ * @return key-value array
+ */
+function graphapi_get_engines() {
+  // TODO: currently title is the value but that could change.
+  $engines = graphapi_views_formats();
+  asort($engines);
+  return $engines;
 }
