@@ -70,7 +70,7 @@ function hook_graphapi_default_settings() {
 /**
  * Example function: creates a graph of user logins by day.
  */
-function user_last_login_by_day($n=40) {
+function user_last_login_by_day($n = 40) {
   $query = db_select('users');
   $query->addField('users', 'name');
   $query->addField('users', 'uid');
@@ -99,4 +99,46 @@ function user_last_login_by_day($n=40) {
     'engine' => 'graph_phyz'
   );
   return theme('graphapi_dispatch', array('graph' => $g, 'config' => $options));
+}
+
+/**
+ * Theme functions to implement
+ *
+ * @see graphapi_theme().
+ * @see theme_graphapi_dispatch().
+ */
+function hook_theme() {
+  return array(
+    // This is required as graphapi dispatched to the engine.
+    // See theme_graphapi_dispatch()
+    'engine_graphapi' => array(
+      'variables' => array(
+        'graph' => NULL,
+        'config' => NULL,
+      ),
+    ),
+    // To make everything themable it is likely to dispatch the engine_graphapi
+    // to it's own overridable implementation
+    'engine_container' => array(
+      'variables' => array(
+        'graph' => NULL,
+        'config' => NULL,
+      ),
+    ),
+    // This gives themers the oportunity to override the links
+    'engine_links' => array(
+      'variables' => array(
+        'graph' => NULL,
+        'config' => NULL,
+      ),
+    ),
+    // This gives themers the oportunity to override the links
+    'engine_node' => array(
+      'variables' => array(
+        'dom_id' => NULL,
+        'data' => NULL,
+        'config' => NULL,
+      ),
+    ),
+  );
 }
