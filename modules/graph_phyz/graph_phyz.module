@@ -182,7 +182,7 @@ function theme_graph_phyz_title($variables) {
   $data = $variables['data'];
 
   $attributes = array(
-    'class' => 'graph-phyz-title',
+    'class' => 'graphapi-title',
   );
   if (isset($data['background-color'])) {
     $attributes['style'] = 'background-color: ' . $data['background-color'] . ';';
@@ -205,14 +205,14 @@ function theme_graph_phyz_node($variables) {
 
   $attributes = array(
     'id' => $dom_id,
-    'class' => 'graph-phyz-node',
+    'class' => 'graphapi-node',
   );
   // We always add a rank ... all ranks <= 0 are not used for layout
   $attributes['rank'] = isset($data['rank']) ? $data['rank'] : 0;
   $a = drupal_attributes($attributes);
 
   if (isset($data['content'])) {
-    $content = '<div class="graph-phyz-content" title="' . $data['title'] . '">' . $data['content'] . '</div>';
+    $content = '<div class="graphapi-content" title="' . $data['title'] . '">' . $data['content'] . '</div>';
   }
   else {
     $content = '';
