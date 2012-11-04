@@ -103,12 +103,14 @@ class views_plugin_style_graphapi extends views_plugin_style {
     if (!isset($engine) || !isset($engines[$engine])) {
       $engine = array_shift(array_keys($engines));
     }
+    $opts = graphapi_views_formats();
+    asort($opts);
     $form['engine'] = array(
       '#type' => 'radios',
       '#title' => t('Render type'),
       '#required' => TRUE,
       '#description' => t('The render engine to use. Known render engines are graph_phyz and !thejit. graphviz_filter is supported only in concept.', array('!thejit' => l('thejit', 'http://drupal.org/project/thejit'))),
-      '#options' => graphapi_views_formats(),
+      '#options' => $opts,
       '#default_value' => $engine,
     );
     if (!isset($from_state['values'])) {
@@ -123,8 +125,11 @@ class views_plugin_style_graphapi extends views_plugin_style {
     $fields = $this->display->handler->get_option('fields');
 
     $engines = graphapi_views_formats();
+    asort($engines);
+    $weight= 20;
     foreach ($engines as $engine => $dummy) {
       $form[$engine]['#collapsed'] = TRUE;
+      $form[$engine]['#weight'] = $weight++;
       $form[$engine]['fields'] = array(
         '#type' => 'fieldset',
         '#title' => 'Map field destinations',
