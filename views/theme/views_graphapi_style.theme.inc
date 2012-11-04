@@ -65,9 +65,9 @@ function _views_graphapi_style_build_graph_data(&$vars) {
 
     // Check for the existance of all fields
     $defined_fields = array_keys($view->field);
-    $diff = array_diff($fields, $defined_fields);
+    $diff = array_diff(array_keys($fields), $defined_fields);
     if (count($diff)) {
-      drupal_set_message(t("Some fields are removed from %view. Please check it's definition.", array('%view' => $view->human_name)));
+      drupal_set_message(t("Some fields are removed from %view. Please check it's definition.", array('%view' => $view->human_name)), 'error');
       $vars['graph'] = array();
       $vars['graph-config'] = $vars['settings'];
       return;
