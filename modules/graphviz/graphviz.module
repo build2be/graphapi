@@ -1,0 +1,121 @@
+<?php
+
+/**
+ * Implements hook_graphapi_formats().
+ */
+function graphviz_graphapi_formats() {
+  return array(
+    'graphviz' => 'Graphviz',
+  );
+}
+
+/**
+ * Implements hook_graphapi_settings_form().
+ */
+function graphviz_graphapi_settings_form($values) {
+  $engine = 'graphviz';
+  $values += graphviz_default_settings();
+
+  $form[$engine] = array(
+    '#title' => t('Graphviz settings'),
+    '#type' => 'fieldset',
+    '#collapsed' => TRUE,
+    '#collapsible' => TRUE,
+  );
+  return $form;
+}
+
+function graphviz_default_settings() {
+  $defaults = array(
+  );
+  return $defaults;
+}
+
+/**
+ * Implementations of theme_ENGINE_graphapi
+ * 
+ * @param type $vars 
+ */
+function theme_graphviz_graphapi($vars) {
+  return theme('graphviz_container', $vars);
+}
+
+/**
+ * Implements hook_graphapi_default_settings().
+ *
+ * @see graphviz_default_settings()
+ * @see views_object::option_definition()
+ */
+function graphviz_graphapi_default_settings() {
+  $engine = 'graphviz';
+  $values = graphviz_default_settings(FALSE);
+  return graphapi_settings_to_views($engine, $values);
+}
+
+function graphviz_theme() {
+  return array(
+    'graphviz_graphapi' => array(
+      'variables' => array(
+        'graph' => NULL,
+        'config' => NULL,
+      ),
+    ),
+    'graphviz_container' => array(
+      'variables' => array(
+        'graph' => NULL,
+        'config' => NULL,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements theme_ENGINE_graphapi().
+ */
+function theme_graphapi_graphviz_graphapi($vars) {
+  $config = $vars['config'];
+  return '<xmp>' . graphviz_to_dot($vars['graph']) . '</xmp>';
+}
+
+function graphviz_to_dot($graph) {
+  $dot = array();
+  $dot[] = "digraph {";
+  foreach ($graph as $id => $node) {
+    $dot[] = '  ' . 'node_' . $id . ' [';
+
+    $dot[] = '    label = "' . $node['data']['title'] . '"';
+    $dot[] = '  ]';
+  }
+
+  foreach ($graph as $id => $node) {
+    foreach ($node['edges'] as $eid => $edge) {
+      $dot[] = "  node_$id -> node_$eid";
+    }
+  }
+  $dot[] = '}';
+
+  return join("\n", $dot);
+}
+
+/**
+ * Theme implementation, returns graphviz container as HTML.
+ */
+function theme_graphviz_container($vars) {
+  return '<xmp>' . graphviz_to_dot($vars['graph']) . '</xmp>';
+}
+
+
+function graphviz_graphapi_node_properties() {
+  return array(
+    'background-color' => 'Background Color',
+    'shape' => 'Shape',
+    'rank' => 'Rank',
+  );
+}
+
+function graphviz_graphapi_link_properties() {
+  return array(
+    'title' => 'Title',
+    'color' => 'Color',
+  );
+}

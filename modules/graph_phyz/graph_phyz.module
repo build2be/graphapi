@@ -110,12 +110,6 @@ function graph_phyz_graphapi_formats() {
 
 function graph_phyz_theme() {
   return array(
-    'views-graphapi-style-graph-phyz' => array(
-      'variables' => array(
-        'graph' => NULL,
-        'config' => NULL,
-      ),
-    ),
     'graph_phyz_graphapi' => array(
       'variables' => array(
         'graph' => NULL,
@@ -165,7 +159,6 @@ function graph_phyz_views_api() {
   );
 }
 
-//TODO: move to graph_phyz.module
 function template_preprocess_views_graphapi_style_graph_phyz(&$vars) {
   _views_graph_phyz_style_build_graph_data($vars);
 
@@ -178,7 +171,7 @@ function template_preprocess_views_graphapi_style_graph_phyz(&$vars) {
  * Theme implementation, returns graph_phyz container as HTML.
  */
 function theme_graph_phyz_container($variables) {
-  return graphapi_container($variables['graph'], $variables['config']);
+  return graph_phyz_container($variables['graph'], $variables['config']);
 }
 
 /**
@@ -300,4 +293,79 @@ function graph_phyz_graphapi_link_properties() {
     'title' => 'Title',
     'color' => 'Color',
   );
+}
+
+/**
+ * Renders the HTML for the given graph containing the canvas and divs
+ *
+ * @param $graph
+ *   Graph array.
+ * @param $config
+ *   Graph config array (see graphapi_default_config() for details).
+ */
+function graph_phyz_container($graph, $config = array()) {
+  $config+= graphapi_default_config();
+  $config['id'] = 'graphapi-' . $config['id'];
+  $config['canvas-id'] = $config['id'] . '-canvas';
+
+  $styles = array(
+    'width' => $config['width'] . 'px',
+    'height' => $config['height'] . 'px',
+    'background-color' => $config['background-color'],
+    '-webkit-user-select' => 'none',
+    '-moz-user-select' => 'none',
+    'overflow' => 'hidden',
+    'position' => 'relative',
+  );
+  $s = '';
+  foreach ($styles as $style => $value) {
+    $s .= "$style: $value; ";
+  }
+  $attributes = array(
+    'id' => $config['id'],
+    'class' => 'graphapi',
+    'style' => $s,
+  );
+  $a = drupal_attributes($attributes);
+  $nl = "\n";
+  $result = '';
+  $result.= '<div ' . $a . '>';
+  $result.= $nl . '<noscript>' . t('This page element requires JavaScript to be enabled.') . '</noscript>';
+  $result.= $nl . theme('graph_phyz_links', array('graph' => $graph, 'config' => $config));
+  $result.= $nl . '<div class="graphapi-nodes">';
+  $nodes = array();
+  foreach ($graph as $id => $data) {
+    $dom_id = _graphapi_uniform_id($config, $id);
+    if (!(isset($data['data']) && isset($data['data']['title']))) {
+      $data['data']['title'] = $id;
+    }
+    $result .= $nl . theme('graph_phyz_node', array('dom_id' => $dom_id, 'data' => $data['data'], 'config' => $config));
+  }
+  $result .= $nl . '</div>';
+  $result .= $nl . '</div>';
+  _graph_phyz_add_graph($graph, $config);
+  return $result;
+}
+
+/**
+ * Helper function. Adds javascript and css on to drupal pages.
+ */
+function _graph_phyz_add_graph($graph, $config) {
+  $dom_prefix = $config['id'];
+  $path = drupal_get_path('module', 'graphapi');
+  drupal_add_library('system', 'ui.dialog');
+  drupal_add_library('system', 'ui.draggable');
+  drupal_add_library('system', 'ui.droppable');
+  drupal_add_js($path . '/js/jquery-graphapi.js');
+  drupal_add_js($path . '/js/graphapi.js');
+  drupal_add_css($path . '/css/graphapi.css');
+  $conf = drupal_json_encode($config);
+  $id = '#' . $config['id'];
+  drupal_add_js('jQuery(document).ready( function() {'
+      . "\n" . '  var config = ' . $conf . ';'
+      . "\n" . '  jQuery("' . $id . '").graphapi(config);'
+      . "\n" . '});'
+      , 'inline');
+
+  return;
 }
