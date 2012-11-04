@@ -344,7 +344,7 @@ function graphapi_theme() {
 
 /**
  * Dispatch the graph to the correct engine
- * 
+ *
  * @param type $vars
  * @return type 
  */

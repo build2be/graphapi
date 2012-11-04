@@ -33,8 +33,8 @@ function graphviz_default_settings() {
 
 /**
  * Implementations of theme_ENGINE_graphapi
- * 
- * @param type $vars 
+ *
+ * @param type $vars
  */
 function theme_graphviz_graphapi($vars) {
   return theme('graphviz_container', $vars);
