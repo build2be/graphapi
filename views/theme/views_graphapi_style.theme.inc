@@ -5,6 +5,8 @@ function _views_graphapi_style_build_graph_data(&$vars) {
   $rows = $vars["rows"];
   $options = $vars["options"];
 
+  $view->style_plugin->render_fields($view->result);
+
   $base = $view->base_table;
   if ($base == 'system') {
     // We cannot use system_rebuild_module_data as this calls build_dependencies
@@ -14,7 +16,7 @@ function _views_graphapi_style_build_graph_data(&$vars) {
     ksort($modules);
     system_get_files_database($modules, 'module');
 
-    // Weird dry alert (some modules declare dependency on a theme
+    // Weird dry alert : some modules declare dependency on a theme
     $themes = system_rebuild_theme_data();
     foreach ($themes as $theme => $info) {
       $themes[$theme]->info['dependencies'] = array();
@@ -116,48 +118,48 @@ function _views_graphapi_style_build_graph_data(&$vars) {
     foreach ($view->result as $count => $row) {
       $view->row_index = $count;
       // Node values
-      $from_id = $view->field[$mapping_from_id]->render($row);
+      $from_id = $view->style_plugin->rendered_fields[$count][$mapping_from_id];
       graphapi_add_node($graph, $from_id);
 
-      $from_title = $view->field[$mapping_from_label]->render($row);
+      $from_title = $view->style_plugin->rendered_fields[$count][$mapping_from_label];
       graphapi_set_node_title($graph, $from_id, $from_title);
 
       $data = array();
       foreach ($mapping['from'] as $key => $value) {
-        $data[$key] = $view->field[$value]->render($row);
+        $data[$key] = $view->style_plugin->rendered_fields[$count][$key];
       }
       if (!empty($data)) {
         graphapi_set_node_data($graph, $from_id, $data);
       }
 
       if (!empty($mapping_from_uri)) {
-        $value = $view->field[$mapping_from_uri]->render($row);
+        $value = $view->style_plugin->rendered_fields[$count][$mapping_from_uri];
         graphapi_set_node_uri($graph, $from_id, $value);
       }
       if (!empty($mapping_from_content)) {
-        $value = $view->field[$mapping_from_content]->render($row);
+        $value = $view->style_plugin->rendered_fields[$count][$mapping_from_content];
         graphapi_set_node_content($graph, $from_id, $value);
       }
 
-      $to_id = $view->field[$mapping_to_id]->render($row);
+      $to_id = $view->style_plugin->rendered_fields[$count][$mapping_to_id];
       // Make sure only add a link when exists
       // NOTE: a value of 0 or '0' is OK so cannot use empty
       if (!is_null($to_id) && $to_id != '') {
         graphapi_add_node($graph, $to_id);
 
-        $to_title = $view->field[$mapping_to_label]->render($row);
+        $to_title = $view->style_plugin->rendered_fields[$count][$mapping_to_label];
         graphapi_set_node_title($graph, $to_id, $to_title);
         if (!empty($mapping_to_uri)) {
-          $value = $view->field[$mapping_to_uri]->render($row);
+          $value = $view->style_plugin->rendered_fields[$count][$mapping_to_uri];
           graphapi_set_node_uri($graph, $to_id, $value);
         }
         if (!empty($mapping_to_content)) {
-          $to_content = $view->field[$mapping_to_content]->render($row);
+          $to_content = $view->style_plugin->rendered_fields[$count][$mapping_to_content];
           graphapi_set_node_content($graph, $to_id, $to_content);
         }
         $data = array();
         foreach ($mapping['to'] as $key => $value) {
-          $data[$key] = $view->field[$key]->render($row);
+          $data[$key] = $view->style_plugin->rendered_fields[$count][$key];
         }
         if (!empty($data)) {
           graphapi_set_node_data($graph, $to_id, $data);
