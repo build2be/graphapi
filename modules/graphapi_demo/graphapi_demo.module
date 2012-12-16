@@ -101,6 +101,21 @@ function graphapi_demo_graph() {
   graphapi_set_node_content($graph, 'thejit', _graphapi_demo_module_content('thejit'));
   graphapi_set_node_content($graph, 'views', _graphapi_demo_module_content('views'));
   graphapi_set_node_content($graph, 'views_ui', _graphapi_demo_module_content('views_ui', 'views'));
+
+  $sub = _graphapi_demo_subgraph();
+  graphapi_add_sub_graph($graph, 'S', $sub);
+  graphapi_set_node_title($graph, 'S', 'Subgraph if supported');
+  graphapi_add_link($graph, 'graphapi', 'A');
+  graphapi_add_link($graph, 'A', 'S');
+
+  return $graph;
+}
+
+function _graphapi_demo_subgraph() {
+  $graph = graphapi_new_graph();
+
+  graphapi_add_link($graph, 'A', 'B');
+  graphapi_add_link($graph, 'B', 'C');
   return $graph;
 }
 

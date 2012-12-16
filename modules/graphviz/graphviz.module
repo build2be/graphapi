@@ -77,14 +77,41 @@ function theme_graphapi_graphviz_graphapi($vars) {
   return '<xmp>' . graphviz_to_dot($vars['graph']) . '</xmp>';
 }
 
+/**
+ * Generate a .dot file structure.
+ *
+ * @param type $graph
+ * @return type
+ *
+ * TODO: We should generate subgraphs first in topological sorted order.
+ *       This results in a TSL which we can process.
+ *       Current implementation has only one level of subgraphs.
+ *       This should be deliverd by function graphapi_get_graph_tree()
+ */
 function graphviz_to_dot($graph) {
   $dot = array();
   $dot[] = "digraph {";
+  // TODO: make a proper result
+  //$tree = graphapi_get_graph_tree();
   foreach ($graph as $id => $node) {
-    $dot[] = '  ' . 'node_' . $id . ' [';
+    if (isset($node['_subgraph'])) {
+      $dot[] = '  subgraph cluster_' . $id . ' {';
+      foreach ($node['_subgraph'] as $sub_id) {
+        $dot[] = '    ' . 'node_' . $sub_id;
+      }
+    }
+    else {
+      $dot[] = '  ' . 'node_' . $id . ' [';
+    }
 
     $dot[] = '    label = "' . $node['data']['title'] . '"';
-    $dot[] = '  ]';
+
+    if (isset($node['_subgraph'])) {
+      $dot[] = '  }';
+    }
+    else {
+      $dot[] = '  ]';
+    }
   }
 
   foreach ($graph as $id => $node) {
@@ -103,7 +130,6 @@ function graphviz_to_dot($graph) {
 function theme_graphviz_container($vars) {
   return '<xmp>' . graphviz_to_dot($vars['graph']) . '</xmp>';
 }
-
 
 function graphviz_graphapi_node_properties() {
   return array(

@@ -151,6 +151,50 @@ function graphapi_add_node(&$graph, $id) {
 }
 
 /**
+ * Merge a graph into the current one.
+ *
+ * @param type $graph
+ * @param type $sub
+ */
+function graphapi_merge_graph(&$graph, $sub) {
+  foreach($sub as $id => $node) {
+    graphapi_add_node($graph, $id);
+    if (count($graph[$id]['data']) > 1) {
+      watchdog('graphapi', 'Adding data while already available', NULL, WATCHDOG_NOTICE);
+    }
+    $graph[$id]['data'] = $node['data'];
+    foreach ($node['edges'] as $to => $data) {
+      graphapi_set_link_data($graph, $id, $to, $data);
+    }
+  }
+}
+
+/**
+ * A subgraph is simply a node with a special data value _subgraph.
+ *
+ * The _subgraph value contains an array of child node IDs.
+ * The render engine decides what to do with it.
+ *
+ * @param array $graph
+ * @param string $id
+ * @param array $sub
+ */
+function graphapi_add_sub_graph(&$graph, $id, $sub) {
+  graphapi_add_node($graph, $id);
+  graphapi_merge_graph($graph, $sub);
+  $graph[$id]['_subgraph'] = array_keys($sub);
+}
+
+/**
+ * Calculate the tree of subgraphs.
+ * @return array tree structure of sub graphs
+ */
+function graphapi_get_graph_tree() {
+  // TODO: provide a result
+  return array();
+}
+
+/**
  * Adds data to a graph node.
  *
  * @param $graph
