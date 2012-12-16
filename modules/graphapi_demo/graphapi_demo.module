@@ -35,7 +35,13 @@ function graphapi_demo_page($engine = NULL) {
   if (is_null($engine) && count($engines)) {
     $engine = key($engines);
   }
-  return graphapi_demo_engine($engine);
+  if (isset($engine)) {
+    return graphapi_demo_engine($engine);
+  }
+  else {
+    graphapi_no_engine_founds();
+    return "";
+  }
 }
 
 function graphapi_demo_engine($engine) {

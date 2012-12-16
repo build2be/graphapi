@@ -363,11 +363,15 @@ function theme_graphapi_dispatch($vars) {
       return t("Graph API render engine !engine not found.", array('!engine' => $engine));
     }
     else {
-      return t("No Graph API render engines enabled. Check your modules page for a Graph API render engine");
+      graphapi_no_engine_founds();
+      return "";
     }
   }
 }
 
+function graphapi_no_engine_founds() {
+  drupal_set_message(t('No Graph API render engines enabled. Check your !modules_page for a Graph API render engine.', array('!modules_page' => l(t('modules page'), 'admin/modules'))), 'warning');
+}
 /**
  * Rendering a graph from views
  * 
