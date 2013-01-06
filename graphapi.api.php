@@ -22,12 +22,11 @@
 /**
  * Defines Graph display formats.
  *
+ * @return
+ *   An array with key (format) value (label) pair defining the callback and display name.
  *
  * @see theme_graphapi_dispatch
  * @see theme_FORMAT_graphapi
- *
- * @return
- *   An array with key (format) value (label) pair defining the callback and display name.
  */
 function hook_graphapi_formats() {
   return array(
@@ -56,6 +55,7 @@ function theme_FORMAT_graphapi(array $vars) {
  *
  * @return
  *   A Drupal sub-form.
+ *
  * @see graphapi_global_settings_form()
  * @see graphapi_settings_form()
  * @see _graphapi_engine_form()

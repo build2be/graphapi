@@ -557,10 +557,9 @@ function graphapi_settings_form($form, &$form_state) {
   $form += graphapi_global_settings_form($values['graphapi']);
 
   $engines = graphapi_views_formats();
-  $implementations = module_implements('graphapi_settings_form');
   $order = 1;
   foreach ($engines as $engine => $title) {
-    if (in_array($engine, $implementations)) {
+    if (function_exists($engine . '_graphapi_settings_form')) {
       $form += _graphapi_engine_form($engine, $values);
       $form[$engine]['#weight'] = $order++;
     }
