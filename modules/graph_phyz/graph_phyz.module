@@ -62,6 +62,9 @@ function graph_phyz_default_settings() {
       'applyCompass' => FALSE,
     ),
   );
+  // TODO: remove this dependency with graphapi
+  $global_defaults = graphapi_default_config();
+  $defaults += $global_defaults;
   return $defaults;
 }
 
@@ -79,7 +82,7 @@ function graph_phyz_physics() {
 }
 
 /**
- * Implementations of theme_ENGINE_graphapi
+ * Implementations of theme_FORMAT_graphapi
  * 
  * @param type $vars 
  */
@@ -289,7 +292,7 @@ function graph_phyz_graphapi_link_properties() {
  *   Graph config array (see graphapi_default_config() for details).
  */
 function graph_phyz_container($graph, $config = array()) {
-  $config+= graphapi_default_config();
+  $config+= graph_phyz_default_settings();
   $config['id'] = 'graphapi-' . $config['id'];
   $config['canvas-id'] = $config['id'] . '-canvas';
 
