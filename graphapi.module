@@ -111,21 +111,6 @@ function graphapi_engines_form($form, $form_state, $engine = 'graphapi') {
   return $form;
 }
 
-function _graphapi_demo_graph() {
-  $graph = graphapi_new_graph();
-  graphapi_add_link($graph, "graphapi_relation", "relation");
-  graphapi_add_link($graph, "graphapi_relation", "graphapi");
-  graphapi_add_link($graph, "graphapi", "views");
-  graphapi_add_link($graph, "php", "graphapi");
-  graphapi_add_link($graph, "graphapi", "graph_phyz");
-  graphapi_add_link($graph, "graphapi", "graphviz");
-  graphapi_add_link($graph, "graphapi", "thejit");
-  graphapi_add_link($graph, "thejit", "thejit_spacetree");
-  graphapi_add_link($graph, "thejit", "thejit_forcedirected");
-  graphapi_add_link($graph, "thejit", "thejit_x");
-  return $graph;
-}
-
 /**
  * Creates a new empty graph array.
  */
@@ -330,6 +315,8 @@ function graphapi_default_config() {
 /**
  * Provide default setup values
  *
+ * TODO: remove from modules/relation/graphapi_relation.module
+ *
  * @return type
  */
 function graphapi_settings_defaults() {
@@ -340,25 +327,9 @@ function graphapi_settings_defaults() {
         'use_global' => FALSE,
       ),
       'graph' => array(
-        'animate' => TRUE,
         'background-color' => 'grey',
         'height' => '800',
-        'menu' => TRUE,
-        'randomize' => TRUE,
-        'rankType' => 'TopBottom',
-        'rankDepth' => 2,
-        'showLinks' => FALSE,
         'width' => '800',
-      ),
-      'physics' => array(
-        'showForces' => FALSE,
-        'applyAttractToCenter' => TRUE,
-        'applyBoundingBox' => FALSE,
-        'applyBoxOverlap' => FALSE,
-        'applyCoulombsLaw' => TRUE,
-        'applyDamping' => TRUE,
-        'applyHookesLaw' => TRUE,
-        'applyCompass' => FALSE,
       ),
       'links' => array(),
     ),
@@ -390,7 +361,7 @@ function graphapi_theme() {
  * Dispatch the graph to the correct engine
  *
  * @param type $vars
- * @return type 
+ * @return type
  */
 function theme_graphapi_dispatch($vars) {
   $engines = graphapi_views_formats();
@@ -418,12 +389,11 @@ function graphapi_no_engine_founds() {
 }
 /**
  * Rendering a graph from views
- * 
- * @param array $vars 
+ *
+ * @param array $vars
  */
 function template_preprocess_views_graphapi_style_graphapi(&$vars) {
   _views_graphapi_style_build_graph_data($vars);
-  //dsm(func_get_args(), __FUNCTION__);
   $config = $vars['graph-config'];
   $vars["xml"] = theme('graphapi_dispatch', array('graph' => $vars['graph'], 'config' => $config));
 }
@@ -521,6 +491,7 @@ function _graphapi_settings_to_views($value) {
 
 function graphapi_global_settings() {
   return array(
+    'id' => 'graphapi-default',
     'width' => 1024,
     'height' => 800,
     'background-color' => 'grey',
@@ -541,6 +512,11 @@ function graphapi_global_settings_form($values) {
     '#type' => 'fieldset',
     '#collapsed' => FALSE,
     '#collapsible' => TRUE,
+  );
+  $form[$engine]['id'] = array(
+    '#title' => t('ID'),
+    '#type' => 'textfield',
+    '#default_value' => $values['id'],
   );
   $form[$engine]['width'] = array(
     '#title' => t('Width'),
@@ -565,10 +541,10 @@ function graphapi_global_settings_form($values) {
  * Gathers all relevant settings for all engines
  *
  * Each engine form is a fieldset containing it's specific settings
- * 
+ *
  * Ie width, height, background-color are graphapi settings
  * Ie show_menu or node_color is engine specific.
- * 
+ *
  * @see graphapi_global_settings_form().
  * @see graph_phyz_settings_form().
  */
@@ -617,19 +593,6 @@ function _graphapi_engine_form($engine, $values) {
   $values = $values[$engine];
   $function = $engine . "_graphapi_settings_form";
   return call_user_func($function, $values);
-}
-
-function graphapi_demo_engines($engine = 'graph_phyz') {
-  $graph = _graphapi_demo_graph();
-
-  $config = array(
-    'engine' => $engine,
-    'width' => 400,
-    'height' => 300,
-    'background-color' => '#AAA',
-    'duration' => 400,
-  );
-  return theme('graphapi_dispatch', array('graph' => $graph, 'config' => $config));
 }
 
 function _graphapi_mapping_options($engine) {
