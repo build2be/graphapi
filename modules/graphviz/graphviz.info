@@ -1,7 +1,0 @@
-name = Graphviz
-description = A text implementation of the Graphviz data structure
-package = Visualization
-core = 7.x
-dependencies[] = graphapi
-
-files[] = graphviz.module
