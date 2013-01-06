@@ -12,18 +12,40 @@
  *
  * Module integrations with the graphapi module.
  *
+ * ENGINE is similar to MODULE
+ * FORMAT is provided by an ENGINE
+ *
+ * Each engine can provide multiple formats.
+ * Ie a textual and a visual representation of it's structure
  */
 
 /**
  * Defines Graph display formats.
  *
+ *
+ * @see theme_graphapi_dispatch
+ * @see theme_FORMAT_graphapi
+ *
  * @return
- *   An array with key value pair defining the callback and display name.
+ *   An array with key (format) value (label) pair defining the callback and display name.
  */
 function hook_graphapi_formats() {
   return array(
     'graphapi_graphviz_filter' => 'Graphviz Filter',
   );
+}
+
+/**
+ * Format specific theme function
+ *
+ * The $vars contains at least
+ * - $graph : the graph structure
+ * - $settings : the format specific settings
+ *
+ * @param array $vars
+ */
+function theme_FORMAT_graphapi(array $vars) {
+
 }
 
 /**
@@ -45,6 +67,9 @@ function hook_graphapi_settings_form() {
 
 /**
  * Declares settings that should be exportable in Views.
+ *
+ * TODO: rewrite this views specific structure to normal.
+ * - that is remove default
  *
  * The settings declared here will be included in the option_definition()
  * method, as implemented in the Graph API style plugin.
@@ -107,7 +132,7 @@ function user_last_login_by_day($n = 40) {
  * @see graphapi_theme().
  * @see theme_graphapi_dispatch().
  */
-function hook_theme() {
+function ENGINE_theme() {
   return array(
     // This is required as graphapi dispatched to the engine.
     // See theme_graphapi_dispatch()
