@@ -41,7 +41,7 @@ function graphapi_menu() {
       'page callback' => 'drupal_get_form',
       'page arguments' => array('graphapi_engines_form'),
       'access arguments' => array('administer site configuration'),
-      'type' => MENU_LOCAL_TASK,
+      'type' => MENU_DEFAULT_LOCAL_TASK,
     ),
   );
 
