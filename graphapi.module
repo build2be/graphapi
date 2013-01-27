@@ -142,7 +142,7 @@ function graphapi_add_node(&$graph, $id) {
  * @param type $sub
  */
 function graphapi_merge_graph(&$graph, $sub) {
-  foreach($sub as $id => $node) {
+  foreach ($sub as $id => $node) {
     graphapi_add_node($graph, $id);
     if (count($graph[$id]['data']) > 1) {
       watchdog('graphapi', 'Adding data while already available', NULL, WATCHDOG_NOTICE);
@@ -387,6 +387,7 @@ function theme_graphapi_dispatch($vars) {
 function graphapi_no_engine_founds() {
   drupal_set_message(t('No Graph API render engines enabled. Check your !modules_page for a Graph API render engine.', array('!modules_page' => l(t('modules page'), 'admin/modules'))), 'warning');
 }
+
 /**
  * Rendering a graph from views
  *
@@ -553,9 +554,7 @@ function graphapi_settings_form($form, &$form_state) {
   if (!isset($values['graphapi'])) {
     $values['graphapi'] = array();
   }
-
   $form += graphapi_global_settings_form($values['graphapi']);
-
   $engines = graphapi_views_formats();
   $order = 1;
   foreach ($engines as $engine => $title) {
@@ -618,9 +617,10 @@ function _graphapi_mapping_options($engine) {
   foreach ($node_options as $key => $label) {
     $opts['from']["from:$key"] = $label;
   }
-  $opts['link'] = array(
-    'link:color' => t('Link Color'),
-  );
+  $link_options = graphapi_graphapi_link_properties();
+  foreach ($link_options as $key => $label) {
+    $opts['link']["link:$key"] = $label;
+  }
   $opts['to'] = array();
   foreach ($node_options as $key => $label) {
     $opts['to']["to:$key"] = $label;
@@ -653,6 +653,7 @@ function graphapi_graphapi_node_properties() {
 
 function graphapi_graphapi_link_properties() {
   return array(
+    'color' => 'Color',
   );
 }
 
