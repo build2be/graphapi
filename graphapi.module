@@ -594,6 +594,21 @@ function _graphapi_engine_form($engine, $values) {
   return call_user_func($function, $values);
 }
 
+/**
+ * Prepare select options for each views field.
+ *
+ * Each part of a graph relation node - link - node is grouped into the return
+ * array.
+ *
+ * This way we can flip the mapping between unique-key and view field name
+ *
+ * - [from][unique-key] => label
+ * - [link][unique-key] => label
+ * - [to][unique-key] => label
+ *
+ * @param type $engine
+ * @return type
+ */
 function _graphapi_mapping_options($engine) {
   $node_options = graphapi_node_properties($engine);
   $opts = array(

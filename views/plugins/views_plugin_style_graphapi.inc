@@ -139,14 +139,6 @@ class views_plugin_style_graphapi extends views_plugin_style {
         '#weight' => -10,
       );
       $opts = _graphapi_mapping_options($engine);
-      $values = array();
-      foreach ($options['mapping'] as $src => $v) {
-        foreach ($v as $f => $dummy) {
-          $values["$src:$f"] = $options['mapping'][$src][$f];
-        }
-      }
-      $values = array_flip($values);
-      unset($values[0]);
       foreach ($field_names as $field => $label) {
         $form[$engine]['fields'][$field] = array(
           '#type' => 'select',
