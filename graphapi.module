@@ -480,6 +480,9 @@ function graphapi_settings_to_views($engine, $values) {
 function _graphapi_settings_to_views($value) {
   if (!is_array($value)) {
     $result = array('default' => $value);
+    if (is_bool($value)) {
+      $result['bool'] = TRUE;
+    }
   }
   else {
     $result = array();
