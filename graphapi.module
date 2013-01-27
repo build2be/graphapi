@@ -671,3 +671,42 @@ function graphapi_get_engines() {
   asort($engines);
   return $engines;
 }
+
+/**
+ * Temporary helper function to dump array as properties.
+ *
+ * @param type $options
+ * @param type $recurse
+ * @return string
+ */
+function _graphapi_dump_to_properties($options, $recurse=FALSE) {
+  if (is_array($options)) {
+    $result = array();
+    foreach ($options as $key => $value) {
+      $val = _graphapi_dump_to_properties($value, TRUE);
+      if (is_array($val)) {
+        foreach ($val as $v) {
+          $result[] = "$key.$v";
+        }
+      }
+      else {
+        $result[] = "$key$val";
+      }
+    }
+    if ($recurse) {
+      return $result;
+    }
+    return join("\n", $result);
+  }
+  else {
+    if (is_object($options)) {
+      return ' = object:XXX';
+    }
+    else {
+      if (is_bool($options)) {
+        $options = $options ? "TRUE" : "FALSE";
+      }
+      return " = " . str_replace("\n", '\n', $options);
+    }
+  }
+}
