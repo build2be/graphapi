@@ -19,10 +19,9 @@ class DirectedGraph extends Graph {
    * @param string $from_id
    * @param string $to_id
    */
-  protected function _addLink($from_id, $to_id) {
-    if (!in_array($to_id, $this->_list[$from_id][Graph::GRAPH_LINKS])) {
-      $this->_list[$from_id][Graph::GRAPH_LINKS][] = $to_id;
-    }
+  protected function _addLink($from_id, $to_id, $data, $key) {
+    $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key]['_id'] = $to_id;
+    $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key][GRAPH::GRAPH_DATA] = $data;
   }
 
   /**

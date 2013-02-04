@@ -59,7 +59,11 @@ class Graph {
     return $this;
   }
 
-  public function getData($id) {
+  public function getNodeIds() {
+    return array_keys($this->_list);
+  }
+
+  public function getNodeData($id) {
     return $this->_list[$id][Graph::GRAPH_DATA];
   }
 
@@ -72,11 +76,19 @@ class Graph {
    *   The end point of the link.
    * @return Graph
    */
-  public function addLink($from_id, $to_id) {
+  public function addLink($from_id, $to_id, $data = NULL, $key = GRAPH::GRAPH_LINK_NO_KEY) {
     $this->add($from_id);
     $this->add($to_id);
-    $this->_addLink($from_id, $to_id);
+    $this->_addLink($from_id, $to_id, $data, $key);
     return $this;
+  }
+
+  public function getLinkKeys($from_id, $to_id) {
+    return array_keys($this->_list[$from_id][Graph::GRAPH_LINKS][$to_id]);
+  }
+
+  public function getLinkData($from_id, $to_id, $key = GRAPH::GRAPH_LINK_NO_KEY) {
+    return $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key][GRAPH::GRAPH_DATA];
   }
 
   /**
@@ -84,14 +96,17 @@ class Graph {
    *
    * @param string $from_id
    * @param string $to_id
+   * @param any $data
+   *   Can hold anything. Not it get's duplicate unless it's a reference.
+   * @param string $key
+   *   Unique key to identify this particular link relation.
    */
-  protected function _addLink($from_id, $to_id) {
-    if (!in_array($to_id, $this->getLinks($from_id))) {
-      $this->_list[$from_id][Graph::GRAPH_LINKS][] = $to_id;
-    }
-    if (!in_array($from_id, $this->getLinks($to_id))) {
-      $this->_list[$to_id][Graph::GRAPH_LINKS][] = $from_id;
-    }
+  protected function _addLink($from_id, $to_id, $data, $key) {
+    $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key]['_id'] = $to_id;
+    $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key][GRAPH::GRAPH_DATA] = $data;
+
+    $this->_list[$to_id][Graph::GRAPH_LINKS][$from_id][$key]['_id'] = $from_id;
+    $this->_list[$to_id][Graph::GRAPH_LINKS][$from_id][$key][GRAPH::GRAPH_DATA] = $data;
   }
 
   /**
@@ -117,7 +132,7 @@ class Graph {
    */
   public function getLinks($id) {
     if (isset($this->_list[$id])) {
-      return array_values($this->_list[$id][Graph::GRAPH_LINKS]);
+      return array_keys($this->_list[$id][Graph::GRAPH_LINKS]);
     }
   }
 

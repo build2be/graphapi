@@ -78,6 +78,15 @@ function testAcyclicDirectedGraph() {
   $g = new AcyclicDirectedGraph();
   buildDisjunctACyclicGraph($g);
   dumpGraph($g, 'Disjunct A-Cyclic');
+
+  $g = new AcyclicDirectedGraph();
+  buildModuleVersionDependency($g);
+  dumpGraph($g, 'Module version dependency');
+}
+
+function buildModuleVersionDependency(Graph $g) {
+  $g->addLink('views', 'ctools', array('testing'), '>=2.x');
+  $g->addLink('views_ui', 'views', array('testing'), '>=2.x');
 }
 
 function dumpGraph(Graph $g, $message) {
@@ -129,12 +138,14 @@ function buildCyclicGraph(Graph $g) {
   $g->addLink('a', 'b');
   $g->addLink('b', 'c');
   $g->addLink('c', 'a');
+  $g->addLink('a', 'b', 'DATA','KEY');
 }
 
 function buildACyclicGraph(Graph $g) {
   $g->addLink('a', 'b');
   $g->addLink('b', 'c');
   $g->addLink('a', 'c');
+  $g->addLink('a', 'b', 'DATA','KEY');
 }
 
 /**
