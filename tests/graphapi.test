@@ -1,0 +1,147 @@
+<?php
+
+require dirname(__FILE__) . "/../lib/Graph.class.php";
+require dirname(__FILE__) . "/../lib/DirectedGraph.class.php";
+
+class GraphTest extends DrupalUnitTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Graph Test',
+      'description' => 'Test the Graph.',
+      'group' => 'Graph',
+    );
+  }
+
+  function setUp() {
+    drupal_load('module', 'graphapi');
+    parent::setUp();
+  }
+
+  function newGraph() {
+    return new \GraphAPI\Component\Graph\Graph();
+  }
+
+  function newDirectedGraph() {
+    return new \GraphAPI\Component\Graph\DirectedGraph();
+  }
+
+  public function testGraph() {
+    $g = $this->newGraph();
+    $this->buildCyclicGraph($g);
+
+    $expected = array(
+      'a' => array('b', 'c'),
+      'b' => array('c', 'a'),
+      'c' => array('a', 'b'),
+    );
+    $this->checkLinkedNodes($g, $expected, 'Graph', 'Cyclic Graph');
+
+    $g = $this->newGraph();
+    // This is the same for a Graph as a - b == b - a 
+    $this->buildACyclicGraph($g);
+    $this->checkLinkedNodes($g, $expected, 'Graph', 'A-Cyclic Graph');
+
+    $g = $this->newGraph();
+    $this->buildDisjunctCyclicGraph($g);
+
+    $expected['p'] = array('q');
+    $expected['q'] = array('p');
+
+    $this->checkLinkedNodes($g, $expected, 'Graph', 'Disjunct Cyclic Graph');
+
+    $g = $this->newGraph();
+    // This is the same for a Graph as a - b == b - a 
+    $this->buildDisjunctACyclicGraph($g);
+    $this->checkLinkedNodes($g, $expected, 'Graph', 'Disjunct A-Cyclic Graph');
+  }
+
+  public function testDirectedGraph() {
+    $g = $this->newDirectedGraph();
+    $this->buildCyclicGraph($g);
+
+    $expected = array(
+      'a' => array('b'),
+      'b' => array('c'),
+      'c' => array('a'),
+    );
+    $this->checkLinkedNodes($g, $expected, 'DirectedGraph', 'Cyclic Graph');
+
+    $g = $this->newDirectedGraph();
+    $this->buildACyclicGraph($g);
+    $expected = array(
+      'a' => array('b', 'c'),
+      'b' => array('c'),
+    );
+    $this->checkLinkedNodes($g, $expected, 'DirectedGraph', 'A-Cyclic Graph');
+
+    $g = $this->newDirectedGraph();
+    $this->buildDisjunctCyclicGraph($g);
+
+    $expected = array(
+      'a' => array('b'),
+      'b' => array('c'),
+      'c' => array('a'),
+    );
+    $expected['p'] = array('q');
+
+    $this->checkLinkedNodes($g, $expected, 'DirectedGraph', 'Disjunct Cyclic Graph');
+
+    $g = $this->newDirectedGraph();
+    $this->buildDisjunctACyclicGraph($g);
+    $expected = array(
+      'a' => array('b', 'c'),
+      'b' => array('c'),
+    );
+    $expected['p'] = array('q');
+    $this->checkLinkedNodes($g, $expected, 'DirectedGraph', 'Disjunct A-Cyclic Graph');
+  }
+
+  function checkLinkedNodes($g, $expected, $message, $group) {
+    foreach($expected as $from => $tos) {
+      $result = $g->getLinks($from);
+      asort($result);
+      asort($tos);
+      $this->assertEqual(array_values($tos), array_values($result), $message, $group);
+    }
+    
+  }
+  
+  /**
+   * a - b - c - a
+   */
+  function buildCyclicGraph($g) {
+    $g->addLink('a', 'b');
+    $g->addLink('b', 'c');
+    $g->addLink('c', 'a');
+  }
+
+  /**
+   * a - b - c + a - c
+   * @param type $g
+   */
+  function buildACyclicGraph($g) {
+    $g->addLink('a', 'b');
+    $g->addLink('b', 'c');
+    $g->addLink('a', 'c');
+  }
+
+  function buildDisjunctCyclicGraph($g) {
+    $this->buildCyclicGraph($g);
+    $g->addLink('p', 'q');
+  }
+
+  function buildDisjunctACyclicGraph($g) {
+    $this->buildACyclicGraph($g);
+    $g->addLink('p', 'q');
+  }
+
+  function addLink() {
+    $g->addLink('a', 'b');
+  }
+
+  function addKeyedLink() {
+    $g->addLink('a', 'b', 'DATA', 'KEY');
+  }
+
+}
