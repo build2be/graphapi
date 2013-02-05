@@ -4,7 +4,7 @@ namespace GraphAPI\Component\Graph;
 
 use GraphAPI\Component\Graph\DirectedGraph;
 
-class AcyclicDirectedGraph extends DirectedGraph {
+class DirectedAcyclicGraph extends DirectedGraph {
 
   /**
    * Prevent adding a cycle.

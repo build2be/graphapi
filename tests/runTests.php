@@ -4,11 +4,11 @@ $lib_path = dirname(__FILE__) . '/../lib/';
 
 require_once $lib_path . 'Graph.class.php';
 require_once $lib_path . 'DirectedGraph.class.php';
-require_once $lib_path . 'AcyclicDirectedGraph.class.php';
+require_once $lib_path . 'DirectedAcyclicGraph.class.php';
 
 use GraphAPI\Component\Graph\Graph;
 use GraphAPI\Component\Graph\DirectedGraph;
-use GraphAPI\Component\Graph\AcyclicDirectedGraph;
+use GraphAPI\Component\Graph\DirectedAcyclicGraph;
 
 testGraph();
 testDirectedGraph();
@@ -53,7 +53,7 @@ function testDirectedGraph() {
 }
 
 function testAcyclicDirectedGraph() {
-  $g = new AcyclicDirectedGraph();
+  $g = new DirectedAcyclicGraph();
   try {
     buildCyclicGraph($g);
   }
@@ -61,11 +61,11 @@ function testAcyclicDirectedGraph() {
     echo "\n\nException: " . $exc->getMessage() . "\n\n";
   }
 
-  $g = new AcyclicDirectedGraph();
+  $g = new DirectedAcyclicGraph();
   buildACyclicGraph($g);
   dumpGraph($g, 'A-Cyclic');
 
-  $g = new AcyclicDirectedGraph();
+  $g = new DirectedAcyclicGraph();
   try {
     buildDisjunctCyclicGraph($g);
     dumpGraph($g, 'Disjunct Cyclic');
@@ -75,11 +75,11 @@ function testAcyclicDirectedGraph() {
     echo "\n" . $exc->getMessage() . "\n\n";
   }
 
-  $g = new AcyclicDirectedGraph();
+  $g = new DirectedAcyclicGraph();
   buildDisjunctACyclicGraph($g);
   dumpGraph($g, 'Disjunct A-Cyclic');
 
-  $g = new AcyclicDirectedGraph();
+  $g = new DirectedAcyclicGraph();
   buildModuleVersionDependency($g);
   dumpGraph($g, 'Module version dependency');
 }
