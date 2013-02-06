@@ -10,11 +10,22 @@ use GraphAPI\Component\Graph\Graph;
 use GraphAPI\Component\Graph\DirectedGraph;
 use GraphAPI\Component\Graph\DirectedAcyclicGraph;
 
+testDelete();
 testGraph();
 testDirectedGraph();
 testAcyclicDirectedGraph();
 
 echo "\n\n";
+
+function testDelete() {
+  $g = new Graph();
+  $g->addLink('a', 'b');
+  echo $g . "\n";
+  $g->delete('a');
+  echo $g . "\n";
+  $g->delete('b');
+  echo $g . "\n";
+}
 
 function testGraph() {
   $g = new Graph();
@@ -93,7 +104,10 @@ function dumpGraph(Graph $g, $message) {
   $c = get_class($g);
   echo "\n\n\n====== $message ======\n\n";
   echo $g . "\n";
-  $ids = array('a', 'b', 'c', 'p', 'q', 'z');
+
+  $ids = $g->getNodeIds();
+  // Add non existing node to the list.
+  $ids[] = 'z';
   foreach ($ids as $id) {
     dumpLink($g, $id);
     dumpParticipants($g, $id);
@@ -138,14 +152,14 @@ function buildCyclicGraph(Graph $g) {
   $g->addLink('a', 'b');
   $g->addLink('b', 'c');
   $g->addLink('c', 'a');
-  $g->addLink('a', 'b', 'DATA','KEY');
+  $g->addLink('a', 'b', 'DATA', 'KEY');
 }
 
 function buildACyclicGraph(Graph $g) {
   $g->addLink('a', 'b');
   $g->addLink('b', 'c');
   $g->addLink('a', 'c');
-  $g->addLink('a', 'b', 'DATA','KEY');
+  $g->addLink('a', 'b', 'DATA', 'KEY');
 }
 
 /**

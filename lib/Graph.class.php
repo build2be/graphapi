@@ -4,14 +4,16 @@ namespace GraphAPI\Component\Graph;
 
 /**
  * @file
- *   Provides Graph related Classes.
+ *   Provides Graph class.
  *
- * The following classes are available:
- * - Graph which is a basic graph.
- * - DirectedGraph which is based on Graph.
+ * This implementation uses the terms node and links.
+ * A node is also called vertice while a link is equivalent with edge
  *
- * Future extensions could provide:
- * - Tree which is a special Directed Acyclic Graph.
+ * @see DirectedGraph
+ * @see DirectedAcyclicGraph
+ *
+ * @see http://en.wikipedia.org/wiki/Graph_%28data_structure%29
+ * @see http://en.wikipedia.org/wiki/Graph_%28mathematics%29
  */
 
 /**
@@ -46,6 +48,8 @@ class Graph {
   /**
    * Adds id to the list of nodes.
    *
+   * The data is only added when the node was non-existing yet.
+   *
    * @param String $id
    *   The Id of the node to add.
    * @return Graph
@@ -59,6 +63,27 @@ class Graph {
     return $this;
   }
 
+  /**
+   * Deletes a node from the graph
+   *
+   * @param type $id
+   * @return Graph
+   */
+  public function delete($id) {
+    if (isset($this->_list[$id])) {
+      unset($this->_list[$id]);
+      foreach ($this->getNodeIds() as $nid) {
+        unset($this->_list[$nid][Graph::GRAPH_LINKS][$id]);
+      }
+    }
+    return $this;
+  }
+
+  /**
+   * Returns the IDs of the added nodes.
+   *
+   * @return array with IDs as values
+   */
   public function getNodeIds() {
     return array_keys($this->_list);
   }
@@ -70,10 +95,16 @@ class Graph {
   /**
    * Adds a link between two node ids.
    *
+   * We allow for multigraph vertices or multiple links between 2 nodes
+   *
    * @param String $from_id
    *   The start point of the link.
    * @param String $to_id
    *   The end point of the link.
+   * @param any $data
+   *   Can hold anything. Note this get's duplicate unless it's a reference.
+   * @param string $key
+   *   Unique key to identify this particular link relation.
    * @return Graph
    */
   public function addLink($from_id, $to_id, $data = NULL, $key = GRAPH::GRAPH_LINK_NO_KEY) {
@@ -83,30 +114,19 @@ class Graph {
     return $this;
   }
 
-  public function getLinkKeys($from_id, $to_id) {
-    return array_keys($this->_list[$from_id][Graph::GRAPH_LINKS][$to_id]);
+  public function getLinkIds($from_id, $to_id) {
+    $result = $this->getLinks($from_id);
+    if (is_array($result) && isset($this->_list[$from_id][Graph::GRAPH_LINKS][$to_id])) {
+      return array_keys($this->_list[$from_id][Graph::GRAPH_LINKS][$to_id]);
+    }
   }
 
   public function getLinkData($from_id, $to_id, $key = GRAPH::GRAPH_LINK_NO_KEY) {
     return $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key][GRAPH::GRAPH_DATA];
   }
 
-  /**
-   * Implementation of bidirection links between the given node ids.
-   *
-   * @param string $from_id
-   * @param string $to_id
-   * @param any $data
-   *   Can hold anything. Not it get's duplicate unless it's a reference.
-   * @param string $key
-   *   Unique key to identify this particular link relation.
-   */
-  protected function _addLink($from_id, $to_id, $data, $key) {
-    $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key]['_id'] = $to_id;
-    $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key][GRAPH::GRAPH_DATA] = $data;
-
-    $this->_list[$to_id][Graph::GRAPH_LINKS][$from_id][$key]['_id'] = $from_id;
-    $this->_list[$to_id][Graph::GRAPH_LINKS][$from_id][$key][GRAPH::GRAPH_DATA] = $data;
+  public function setLinkData($from_id, $to_id, $data, $key = GRAPH::GRAPH_LINK_NO_KEY) {
+    $this->_setLinkData($from_id, $to_id, $data, $key);
   }
 
   /**
@@ -146,7 +166,7 @@ class Graph {
    */
   public function getParticipants($list = array()) {
     if (empty($list)) {
-      return array_keys($this->_list);
+      return $this->getNodeIds();
     }
     $visited = array();
     $agenda = array_values($list);
@@ -163,17 +183,6 @@ class Graph {
     return array_keys($visited);
   }
 
-  public function isCircularMember($id) {
-    $route = $this->getParticipants(array($id));
-    foreach ($route as $visited_id) {
-      $links = $this->getLinks($visited_id);
-      if (is_array($links) && in_array($id, $links)) {
-        return TRUE;
-      }
-    }
-    return FALSE;
-  }
-
   public function __toString() {
     $result = array();
     foreach (array_keys($this->_list) as $id) {
@@ -185,7 +194,30 @@ class Graph {
       $row .= ')';
       $result[] = $row;
     }
-    return get_class($this) . ': ' . join(",", $result);
+    return join(",", $result);
+  }
+
+  protected function _setLinkData($from_id, $to_id, $data, $key) {
+    $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key][GRAPH::GRAPH_DATA] = $data;
+    $this->_list[$to_id][Graph::GRAPH_LINKS][$from_id][$key][GRAPH::GRAPH_DATA] = $data;
+  }
+
+  /**
+   * Implementation of bidirection links between the given node ids.
+   *
+   * A Graph is bidirectional so we need to store the link twice.
+   *
+   * @param string $from_id
+   * @param string $to_id
+   * @param any $data
+   *   Can hold anything. Note this get's duplicate unless it's a reference.
+   * @param string $key
+   *   Unique key to identify this particular link relation.
+   */
+  protected function _addLink($from_id, $to_id, $data, $key) {
+    $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key]['_id'] = $to_id;
+    $this->_list[$to_id][Graph::GRAPH_LINKS][$from_id][$key]['_id'] = $from_id;
+    $this->_setLinkData($from_id, $to_id, $data, $key);
   }
 
 }

@@ -24,6 +24,17 @@ class DirectedGraph extends Graph {
     $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key][GRAPH::GRAPH_DATA] = $data;
   }
 
+  public function isCircularMember($id) {
+    $route = $this->getParticipants(array($id));
+    foreach ($route as $visited_id) {
+      $links = $this->getLinks($visited_id);
+      if (is_array($links) && in_array($id, $links)) {
+        return TRUE;
+      }
+    }
+    return FALSE;
+  }
+
   /**
    * Builds a reversed graph.
    *
