@@ -26,10 +26,10 @@ class DirectedAcyclicGraph extends DirectedGraph {
   /**
    * Calculates the Topological Sorted List.
    *
-   * A Topological Sorted List is a Depth First Search ordered
+   * A Topological Sorted List is a Depth First Search (DFS) ordered
    * list of participants.
    *
-   * TODO: Do we need a Directed Acyclic Graph?
+   * TODO: Do we need this method for DirectedGraph?
    * If there are cycles/loops then the algorithme does not loop forever.
    * But the TSL is not really a TSL.
    *
@@ -55,7 +55,6 @@ class DirectedAcyclicGraph extends DirectedGraph {
         $links = $g->getLinks($inspect);
         if (!empty($links)) {
           array_push($agenda, $inspect);
-          //$agenda = array_merge( $agenda, array_diff( $links, array_keys( $visited)));
           foreach ($links as $id) {
             if (!isset($visited[$id])) {
               $agenda[] = $id;
