@@ -156,6 +156,8 @@ class GraphTest extends DrupalUnitTestCase {
       'c' => array('a'),
     );
     $this->checkLinkedNodes($g, $expected, 'DirectedGraph', 'Cyclic Graph');
+    $this->assertTrue($g->isCircularMember('a'), 'The node a is part of a circular subgraph.');
+    $this->checkParticipants($g, array('a'), array('a', 'b', 'c'), 'DirectedGraph', 'Cyclic Graph');
 
     $g = $this->newDirectedGraph();
     $this->buildACyclicGraph($g);
@@ -164,6 +166,8 @@ class GraphTest extends DrupalUnitTestCase {
       'b' => array('c'),
     );
     $this->checkLinkedNodes($g, $expected, 'DirectedGraph', 'A-Cyclic Graph');
+    $this->assertFalse($g->isCircularMember('a'), 'The node a is not part of a circular subgraph.');
+    $this->checkParticipants($g, array('a'), array('a', 'b', 'c'), 'DirectedGraph', 'A-Cyclic Graph');
 
     $g = $this->newDirectedGraph();
     $this->buildDisjunctCyclicGraph($g);
@@ -176,6 +180,9 @@ class GraphTest extends DrupalUnitTestCase {
     $expected['p'] = array('q');
 
     $this->checkLinkedNodes($g, $expected, 'DirectedGraph', 'Disjunct Cyclic Graph');
+    $this->assertFalse($g->isCircularMember('p'), 'The node p is not part of a circular subgraph.');
+    $this->checkParticipants($g, array('a'), array('a', 'b', 'c'), 'DirectedGraph', 'Cyclic Graph');
+    $this->checkParticipants($g, array('p'), array('p', 'q'), 'DirectedGraph', 'Cyclic Graph');
 
     $g = $this->newDirectedGraph();
     $this->buildDisjunctACyclicGraph($g);
@@ -185,6 +192,7 @@ class GraphTest extends DrupalUnitTestCase {
     );
     $expected['p'] = array('q');
     $this->checkLinkedNodes($g, $expected, 'DirectedGraph', 'Disjunct A-Cyclic Graph');
+    $this->assertFalse($g->isCircularMember('p'), 'The node p is not part of a circular subgraph.');
   }
 
   public function testDirectedAcyclicGraph() {
@@ -247,6 +255,13 @@ class GraphTest extends DrupalUnitTestCase {
     }
   }
 
+  private function checkParticipants($g, array $filter, array $expected, $message, $group) {
+    $p = $g->getParticipants($filter);
+    asort($p);
+    $p = array_values($p);
+    $this->assertEqual($expected, $p, 'Participants filtered on ' . join(',', $filter) . ' of ' . $g);
+  }
+
   /**
    * a - b - c - a
    */
@@ -266,6 +281,11 @@ class GraphTest extends DrupalUnitTestCase {
     $g->addLink('a', 'c');
   }
 
+  /**
+   * We add 2 nodes (p, q) not connected to existing ones
+   *
+   * @param Graph $g
+   */
   private function buildDisjunctCyclicGraph($g) {
     $this->buildCyclicGraph($g);
     $g->addLink('p', 'q');

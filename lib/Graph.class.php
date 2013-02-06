@@ -114,6 +114,13 @@ class Graph {
     return $this;
   }
 
+  /**
+   * Returns the array keys of the multigraph between given node ids.
+   *
+   * @param string $from_id
+   * @param string $to_id
+   * @return array
+   */
   public function getLinkIds($from_id, $to_id) {
     $result = $this->getLinks($from_id);
     if (is_array($result) && isset($this->_list[$from_id][Graph::GRAPH_LINKS][$to_id])) {
@@ -121,6 +128,14 @@ class Graph {
     }
   }
 
+  /**
+   * Returns the data element of the given node ids and link id.
+   *
+   * @param string $from_id
+   * @param string $to_id
+   * @param string $key
+   * @return any
+   */
   public function getLinkData($from_id, $to_id, $key = GRAPH::GRAPH_LINK_NO_KEY) {
     return $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key][GRAPH::GRAPH_DATA];
   }
@@ -183,6 +198,18 @@ class Graph {
     return array_keys($visited);
   }
 
+  public function isCircularMember($id) {
+    $route = $this->getParticipants(array($id));
+    foreach ($route as $visited_id) {
+      $links = $this->getLinks($visited_id);
+      if (is_array($links) && in_array($id, $links)) {
+        return TRUE;
+      }
+    }
+    return FALSE;
+  }
+
+
   public function __toString() {
     $result = array();
     foreach (array_keys($this->_list) as $id) {
@@ -195,11 +222,6 @@ class Graph {
       $result[] = $row;
     }
     return join(",", $result);
-  }
-
-  protected function _setLinkData($from_id, $to_id, $data, $key) {
-    $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key][GRAPH::GRAPH_DATA] = $data;
-    $this->_list[$to_id][Graph::GRAPH_LINKS][$from_id][$key][GRAPH::GRAPH_DATA] = $data;
   }
 
   /**
@@ -218,6 +240,11 @@ class Graph {
     $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key]['_id'] = $to_id;
     $this->_list[$to_id][Graph::GRAPH_LINKS][$from_id][$key]['_id'] = $from_id;
     $this->_setLinkData($from_id, $to_id, $data, $key);
+  }
+
+  protected function _setLinkData($from_id, $to_id, $data, $key) {
+    $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key][GRAPH::GRAPH_DATA] = $data;
+    $this->_list[$to_id][Graph::GRAPH_LINKS][$from_id][$key][GRAPH::GRAPH_DATA] = $data;
   }
 
 }
