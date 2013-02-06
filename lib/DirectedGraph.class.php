@@ -12,35 +12,17 @@ class DirectedGraph extends Graph {
   protected $_root = DirectedGraph::GRAPH_ROOT;
 
   /**
-   * Implementation of uni directed link between two nodes
+   * Builds a reversed graph without data elements or multigraph.
    *
-   * @see addLink()
+   * By reversing a graph one can easily add a root or do other calculations.
+   * This method is a helper utility.
    *
-   * @param string $from_id
-   * @param string $to_id
-   */
-  protected function _addLink($from_id, $to_id, $data, $key) {
-    $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key]['_id'] = $to_id;
-    $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key][GRAPH::GRAPH_DATA] = $data;
-  }
-
-  public function isCircularMember($id) {
-    $route = $this->getParticipants(array($id));
-    foreach ($route as $visited_id) {
-      $links = $this->getLinks($visited_id);
-      if (is_array($links) && in_array($id, $links)) {
-        return TRUE;
-      }
-    }
-    return FALSE;
-  }
-
-  /**
-   * Builds a reversed graph.
-   *
-   * All unidirectional links are reversed.
+   * Note: It is of no use to reverse a Graph.
+   * Note: data items especially link data is semantic useless when reversed.
    *
    * @return DirectedGraph
+   * @see DirectedGraph::addRoot
+   *
    */
   public function getReversedGraph() {
     $g = new DirectedGraph();
@@ -63,8 +45,6 @@ class DirectedGraph extends Graph {
    * All elements not linked to will be linked to by a root.
    *
    * @see getTSL()
-   *
-   * @param unknown_type $id
    */
   protected function addRoot() {
     $g = $this->getReversedGraph();
@@ -97,4 +77,20 @@ class DirectedGraph extends Graph {
     return $g;
   }
 
+  /**
+   * Implementation of uni directed link between two nodes
+   *
+   * @see addLink()
+   *
+   * @param string $from_id
+   * @param string $to_id
+   */
+  protected function _addLink($from_id, $to_id, $data, $key) {
+    $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key]['_id'] = $to_id;
+    $this->_setLinkData($from_id, $to_id, $data, $key);
+  }
+
+  protected function _setLinkData($from_id, $to_id, $data, $key) {
+    $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key][GRAPH::GRAPH_DATA] = $data;
+  }
 }
