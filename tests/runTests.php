@@ -13,7 +13,7 @@ use GraphAPI\Component\Graph\DirectedAcyclicGraph;
 testDelete();
 testGraph();
 testDirectedGraph();
-testAcyclicDirectedGraph();
+testDirectedAcyclicGraph();
 
 echo "\n\n";
 
@@ -21,9 +21,9 @@ function testDelete() {
   $g = new Graph();
   $g->addLink('a', 'b');
   echo $g . "\n";
-  $g->delete('a');
+  $g->deleteNode('a');
   echo $g . "\n";
-  $g->delete('b');
+  $g->deleteNode('b');
   echo $g . "\n";
 }
 
@@ -63,13 +63,37 @@ function testDirectedGraph() {
   dumpGraph($g, 'Disjunct A-Cyclic');
 }
 
-function testAcyclicDirectedGraph() {
+function testDirectedAcyclicGraph() {
   $g = new DirectedAcyclicGraph();
+  $message = "CyclicGraph";
   try {
     buildCyclicGraph($g);
+    echo "\nERROR : ($message) should throw an exception.";
+  }
+  catch (\Exception $exc) {
+    echo "\nOK : ($message) " . $exc->getMessage();
+  }
+
+  $g = new DirectedGraph();
+  buildCyclicGraph($g);
+  $message = "Unable to convert CyclicGraph from DG to DAG";
+  try {
+    $d = DirectedAcyclicGraph::fromDirectedGraph($g);
+    echo "\nERROR : ($message) should throw an exception.";
   }
   catch (Exception $exc) {
-    echo "\n\nException: " . $exc->getMessage() . "\n\n";
+    echo "\nOK : ($message) " . $exc->getMessage();
+  }
+
+  $g = new DirectedGraph();
+  buildCyclicGraph($g);
+  $message = "Converting CyclicGraph from DG to DAG";
+  try {
+    $d = DirectedAcyclicGraph::fromDirectedGraph($g, TRUE);
+    echo "\nOK : ($message) $g trasnformed into $d";
+  }
+  catch (\Exception $exc) {
+    echo "\nERROR : ($message) " . $exc->getMessage();
   }
 
   $g = new DirectedAcyclicGraph();
@@ -95,6 +119,13 @@ function testAcyclicDirectedGraph() {
   dumpGraph($g, 'Module version dependency');
 }
 
+function dumpRooted($g) {
+  $g->addRoot('ROOT');
+  echo "\nROOTED: " . $g;
+  $g->addRoot('ROOT-WOOT');
+  echo "\nROOT-WOOTED: " . $g;
+}
+
 function buildModuleVersionDependency(Graph $g) {
   $g->addLink('views', 'ctools', array('testing'), '>=2.x');
   $g->addLink('views_ui', 'views', array('testing'), '>=2.x');
@@ -102,30 +133,34 @@ function buildModuleVersionDependency(Graph $g) {
 
 function dumpGraph(Graph $g, $message) {
   $c = get_class($g);
-  echo "\n\n\n====== $message ======\n\n";
+  echo "\n\n\n====== " . get_class($g) . " : $message ======\n\n";
   echo $g . "\n";
 
+  dumpRooted($g);
   $ids = $g->getNodeIds();
   // Add non existing node to the list.
   $ids[] = 'z';
-  foreach ($ids as $id) {
-    dumpLink($g, $id);
-    dumpParticipants($g, $id);
-  }
   dumpParticipants($g);
+  showParts($g);
   if ($g instanceof DirectedGraph) {
     dumpReverse($g);
   }
-  if ($g instanceof AcyclicDirectedGraph) {
+  if ($g instanceof DirectedAcyclicGraph) {
     dumpTSL($g);
   }
+}
+
+function showParts(Graph $g) {
+  echo "\nDisjunct: " . ($g->isSplit() ? "YES" : "NO");
+  $p = $g->getParts();
+  echo "\nParts: " . join(",", $p);
 }
 
 function dumpReverse(DirectedGraph $g) {
   echo "\nReversed: " . $g->getReversedGraph() . "\n";
 }
 
-function dumpTSL(AcyclicDirectedGraph $g) {
+function dumpTSL(DirectedAcyclicGraph $g) {
   echo "\nTSL: " . join(',', $g->getTSL()) . "\n";
 }
 
@@ -139,13 +174,23 @@ function dumpLink(Graph $g, $id) {
   }
 }
 
-function dumpParticipants(Graph $g, $id = NULL) {
-  if (is_null($id)) {
-    echo "\nParticipants ALL: " . join(',', $g->getParticipants());
+function dumpParticipants(Graph $g) {
+  $nids = $g->getNodeIds();
+
+  $parts = array();
+  foreach ($nids as $id) {
+    $p = $g->getParticipants(array($id));
+    asort($p);
+    $key = join(',', $p);
+    $parts[$key] = "Participating group: $key";
   }
-  else {
-    echo "\nParticipants $id: " . join(',', $g->getParticipants(array($id)));
-  }
+  echo "\n" . join("\n", $parts);
+  // All
+  $p = $g->getParticipants();
+  asort($p);
+  $key = join(',', $p);
+
+  echo "\nParticipants ALL   : $key";
 }
 
 function buildCyclicGraph(Graph $g) {

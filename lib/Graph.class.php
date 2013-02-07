@@ -54,7 +54,7 @@ class Graph {
    *   The Id of the node to add.
    * @return Graph
    */
-  public function add($id, $data = NULL) {
+  public function addNode($id, $data = NULL) {
     if (!isset($this->_list[$id])) {
       $this->_list[$id] = array();
       $this->_list[$id][Graph::GRAPH_LINKS] = array();
@@ -69,7 +69,7 @@ class Graph {
    * @param type $id
    * @return Graph
    */
-  public function delete($id) {
+  public function deleteNode($id) {
     if (isset($this->_list[$id])) {
       unset($this->_list[$id]);
       foreach ($this->getNodeIds() as $nid) {
@@ -77,6 +77,10 @@ class Graph {
       }
     }
     return $this;
+  }
+
+  public function hasNode($id) {
+    return isset($this->_list[$id]);
   }
 
   /**
@@ -108,8 +112,8 @@ class Graph {
    * @return Graph
    */
   public function addLink($from_id, $to_id, $data = NULL, $key = GRAPH::GRAPH_LINK_NO_KEY) {
-    $this->add($from_id);
-    $this->add($to_id);
+    $this->addNode($from_id);
+    $this->addNode($to_id);
     $this->_addLink($from_id, $to_id, $data, $key);
     return $this;
   }
@@ -134,6 +138,7 @@ class Graph {
    * @param string $from_id
    * @param string $to_id
    * @param string $key
+   *
    * @return any
    */
   public function getLinkData($from_id, $to_id, $key = GRAPH::GRAPH_LINK_NO_KEY) {
@@ -147,10 +152,12 @@ class Graph {
   /**
    * Adds a list of links to a node.
    *
+   * This is a utility function ignoring data or multilinks.
+   *
    * @param string $from_id
    * @param array $to_ids
    *
-   * @return Graph
+   * @return $this
    */
   public function addLinks($from_id, $to_ids) {
     foreach ($to_ids as $to_id) {
@@ -186,6 +193,9 @@ class Graph {
     $visited = array();
     $agenda = array_values($list);
     while ($id = array_shift($agenda)) {
+      if (!$this->hasNode($id)) {
+        continue;
+      }
       // Prevent infinite looping
       if (!isset($visited[$id])) {
         $visited[$id] = TRUE;
@@ -209,6 +219,29 @@ class Graph {
     return FALSE;
   }
 
+  public function addRoot($root_id) {
+    $p = $this->getParts();
+    foreach ($p as $nid) {
+      $this->addLink($root_id, $nid);
+    }
+  }
+
+  public function isSplit() {
+    return count($this->getParts()) > 1;
+  }
+
+  public function getParts() {
+    $nids = $this->getNodeIds();
+    $parts = array();
+    while (!empty($nids)) {
+      $nid = array_shift($nids);
+      $p = $this->getParticipants(array($nid));
+      $nids = array_diff($nids, $p);
+      $parts = array_diff($parts, $p);
+      $parts[] = $nid;
+    }
+    return $parts;
+  }
 
   public function __toString() {
     $result = array();
@@ -247,4 +280,7 @@ class Graph {
     $this->_list[$to_id][Graph::GRAPH_LINKS][$from_id][$key][GRAPH::GRAPH_DATA] = $data;
   }
 
+  protected function me() {
+    return spl_object_hash($this);
+  }
 }

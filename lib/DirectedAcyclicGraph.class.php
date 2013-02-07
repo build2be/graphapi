@@ -24,6 +24,34 @@ class DirectedAcyclicGraph extends DirectedGraph {
   }
 
   /**
+   * Converts a DirectedGraph into a DirectedAcyclicGraph.
+   *
+   * A DirectedGraph can be converted into a DirectedAcyclicGraph when
+   * is does not contain any cycle.
+   *
+   * @param \GraphAPI\Component\Graph\DirectedGraph $g
+   * @param type $ignore_exception
+   * @throws \GraphAPI\Component\Graph\Exception
+   */
+  static function fromDirectedGraph(DirectedGraph $g, $ignore_exception = FALSE) {
+    $d = new DirectedAcyclicGraph();
+    foreach ($g->getNodeIds() as $id) {
+      $links = $g->getLinks($id);
+      foreach ($links as $link) {
+        try {
+          $d->addLink($id, $link);
+        }
+        catch (\Exception $exc) {
+          if (!$ignore_exception) {
+            throw $exc;
+          }
+        }
+      }
+    }
+    return $d;
+  }
+
+  /**
    * Calculates the Topological Sorted List.
    *
    * A Topological Sorted List is a Depth First Search (DFS) ordered
@@ -45,8 +73,10 @@ class DirectedAcyclicGraph extends DirectedGraph {
   public function getTSL($ids = array()) {
     $g = $this->subGraph($ids);
     // By adding a root the DFS is more cleaner/predictable for tests
-    $g->addRoot();
-    $agenda = array($g->getRoot());
+    $root = $g->me();
+    $g->addRoot($root);
+    $agenda = array($root);
+
     $visited = array();
     $tsl = array();
     while ($inspect = array_pop($agenda)) {
@@ -71,7 +101,7 @@ class DirectedAcyclicGraph extends DirectedGraph {
         $tsl[] = $inspect;
       }
     }
-    return array_diff($tsl, array($g->getRoot()));
+    return array_diff($tsl, array($root));
   }
 
 }

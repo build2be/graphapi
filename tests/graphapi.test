@@ -72,30 +72,30 @@ class GraphTest extends DrupalUnitTestCase {
     $g->addLink('a', 'b');
     $this->assertEqual(count($g->getNodeIds()), 2, 'Graph');
 
-    $g->delete('a');
+    $g->deleteNode('a');
     $this->assertEqual(count($g->getNodeIds()), 1, 'Graph');
 
-    $g->delete('b');
+    $g->deleteNode('b');
     $this->assertEqual(count($g->getNodeIds()), 0, 'Graph');
 
     $g = $this->newDirectedGraph();
     $g->addLink('a', 'b');
     $this->assertEqual(count($g->getNodeIds()), 2, 'Directed Graph');
 
-    $g->delete('a');
+    $g->deleteNode('a');
     $this->assertEqual(count($g->getNodeIds()), 1, 'Directed Graph');
 
-    $g->delete('b');
+    $g->deleteNode('b');
     $this->assertEqual(count($g->getNodeIds()), 0, 'Directed Graph');
 
     $g = $this->newDirectedAcyclicGraph();
     $g->addLink('a', 'b');
     $this->assertEqual(count($g->getNodeIds()), 2, 'Directed Acyclic Graph');
 
-    $g->delete('a');
+    $g->deleteNode('a');
     $this->assertEqual(count($g->getNodeIds()), 1, 'Directed Acyclic Graph');
 
-    $g->delete('b');
+    $g->deleteNode('b');
     $this->assertEqual(count($g->getNodeIds()), 0, 'Directed Acyclic Graph');
   }
 
@@ -193,6 +193,12 @@ class GraphTest extends DrupalUnitTestCase {
     $expected['p'] = array('q');
     $this->checkLinkedNodes($g, $expected, 'DirectedGraph', 'Disjunct A-Cyclic Graph');
     $this->assertFalse($g->isCircularMember('p'), 'The node p is not part of a circular subgraph.');
+  }
+
+  public function testRoot() {
+    $g = $this->newDirectedGraph();
+    $this->buildCyclicGraph($g);
+    $g->addRoot('ROOT');
   }
 
   public function testDirectedAcyclicGraph() {

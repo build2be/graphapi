@@ -6,11 +6,6 @@ use GraphAPI\Component\Graph\Graph;
 
 class DirectedGraph extends Graph {
 
-  const GRAPH_ROOT = '_root';
-
-  // Top level node id.
-  protected $_root = DirectedGraph::GRAPH_ROOT;
-
   /**
    * Builds a reversed graph without data elements or multigraph.
    *
@@ -27,32 +22,12 @@ class DirectedGraph extends Graph {
   public function getReversedGraph() {
     $g = new DirectedGraph();
     foreach (array_keys($this->_list) as $from_id) {
-      $g->add($from_id);
+      $g->addNode($from_id);
       foreach ($this->getLinks($from_id) as $to_id) {
         $g->addLink($to_id, $from_id);
       }
     }
     return $g;
-  }
-
-  protected function getRoot() {
-    return $this->_root;
-  }
-
-  /**
-   * Adds a root element to the graph.
-   *
-   * All elements not linked to will be linked to by a root.
-   *
-   * @see getTSL()
-   */
-  protected function addRoot() {
-    $g = $this->getReversedGraph();
-    foreach ($g->_list as $key => $data) {
-      if (empty($data[Graph::GRAPH_LINKS]) && ($key !== $this->_root)) {
-        $this->addLink($this->_root, $key);
-      }
-    }
   }
 
   /**
@@ -67,7 +42,7 @@ class DirectedGraph extends Graph {
     $g = new DirectedGraph();
     $participants = $this->getParticipants($ids);
     foreach ($participants as $id) {
-      $g->add($id);
+      $g->addNode($id);
       // Only participating links are added.
       $links = $this->getLinks($id);
       if (is_array($links)) {
@@ -93,4 +68,5 @@ class DirectedGraph extends Graph {
   protected function _setLinkData($from_id, $to_id, $data, $key) {
     $this->_list[$from_id][Graph::GRAPH_LINKS][$to_id][$key][GRAPH::GRAPH_DATA] = $data;
   }
+
 }
