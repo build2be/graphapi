@@ -8,8 +8,8 @@ class GraphTest extends DrupalUnitTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => 'Graph Test',
-      'description' => 'Test the Graph.',
+      'name' => 'Graph API Test',
+      'description' => 'Test the Graphs provided by Graph API.',
       'group' => 'Graph',
     );
   }
