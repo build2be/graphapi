@@ -73,7 +73,7 @@ class DirectedAcyclicGraph extends DirectedGraph {
   public function getTSL($ids = array()) {
     $g = $this->subGraph($ids);
     // By adding a root the DFS is more cleaner/predictable for tests
-    $root = $g->me();
+    $root = $g->getId();
     $g->addRoot($root);
     $agenda = array($root);
 

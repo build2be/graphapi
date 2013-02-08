@@ -320,7 +320,7 @@ class Graph {
     $this->_list[$to_id][Graph::GRAPH_LINKS][$from_id][$key][GRAPH::GRAPH_DATA] = $data;
   }
 
-  protected function me() {
+  protected function getId() {
     return spl_object_hash($this);
   }
 }
