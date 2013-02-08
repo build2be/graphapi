@@ -199,6 +199,25 @@ class GraphTest extends DrupalUnitTestCase {
     $g = $this->newDirectedGraph();
     $this->buildCyclicGraph($g);
     $g->addRoot('ROOT');
+
+    $result = $g->getParticipants(array('ROOT'));
+    $expected = array('ROOT', 'a', 'b', 'c');
+    $this->assertEqual($result, $expected);
+  }
+
+  public function testTSL() {
+    // a -> b -> c
+    $g = $this->newDirectedAcyclicGraph();
+    $this->buildACyclicGraph($g);
+    $result = $g->getTSL();
+    $expected = array('c', 'b', 'a');
+    $this->assertEqual($result, $expected);
+
+    $g = $this->newDirectedAcyclicGraph();
+    $this->buildDisjunctACyclicGraph($g);
+    $result = $g->getTSL();
+    $expected = array('q', 'p', 'c', 'b', 'a');
+    $this->assertEqual($result, $expected);
   }
 
   public function testDirectedAcyclicGraph() {
