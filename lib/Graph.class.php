@@ -45,6 +45,16 @@ class Graph {
    */
   protected $_list = array();
 
+  protected $_data = NULL;
+
+  public function getData() {
+    return $this->_data;
+  }
+
+  public function setData($data) {
+    $this->_data = $data;
+  }
+
   /**
    * Adds id to the list of nodes.
    *
@@ -94,6 +104,10 @@ class Graph {
 
   public function getNodeData($id) {
     return $this->_list[$id][Graph::GRAPH_DATA];
+  }
+
+  public function setNodeData($id, $data) {
+    $this->_list[$id][Graph::GRAPH_DATA] = $data;
   }
 
   /**
@@ -219,17 +233,36 @@ class Graph {
     return FALSE;
   }
 
+  /**
+   * Adds a root to the graph connecting islands or loops
+   *
+   * A graph may have disconnected sub graphs or be one big loop. So there is
+   * no single entry point into the graph.
+   *
+   * @param type $root_id
+   */
   public function addRoot($root_id) {
     $p = $this->getParts();
     foreach ($p as $nid) {
       $this->addLink($root_id, $nid);
     }
+    return $this;
   }
 
+  /**
+   * A Graph is split when having disconnected subgraphs.
+   *
+   * @return type
+   */
   public function isSplit() {
     return count($this->getParts()) > 1;
   }
 
+  /**
+   * Gets list or IDs one for each subgraph.
+   *
+   * @return type
+   */
   public function getParts() {
     $nids = $this->getNodeIds();
     $parts = array();
@@ -243,6 +276,13 @@ class Graph {
     return $parts;
   }
 
+  /**
+   * Get a simple representation of the graph as a string.
+   *
+   * This contains a(b,c) like fragments indicating a connects to b and c.
+   *
+   * @return string
+   */
   public function __toString() {
     $result = array();
     foreach (array_keys($this->_list) as $id) {
