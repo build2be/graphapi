@@ -97,8 +97,9 @@ function graphapi_devel_system_modules_layout() {
 function graphapi_devel_system_module_install_layout() {
   $graph = _graphapi_devel_system_module_install_layout();
 
-  include "includes/graph.inc";
-  drupal_depth_first_search($graph);
+  // Apply Graph weight algoritm
+  $g = new Drupal\Component\Graph\Graph($graph);
+  $graph = $g->searchAndSort();
   foreach ($graph as $id => $node) {
     $graph[$id]['data']['rank'] = 1 - $graph[$id]['weight'];
     $graph[$id]['data']['title'] .= " (" . $graph[$id]['data']['rank'] . ")";
@@ -130,12 +131,12 @@ function graphapi_devel_system_module_install_layout() {
  */
 function _graphapi_devel_system_module_install_layout() {
   $modules = module_list(TRUE, FALSE);
-  module_load_all_includes('install');
   $graph = graphapi_new_graph();
   $links = array();
   // Remember links between module's own hook_update_N
   $selfs = array();
   foreach ($modules as $module) {
+    module_load_install($module);
     $update = module_invoke($module, 'update_dependencies');
     if (count($update)) {
       foreach ($update as $src_module => $versions) {

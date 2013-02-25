@@ -2,7 +2,7 @@ name = Devel Graphs
 description = Displays devel related graphs
 package = Development
 version = VERSION
-core = 7.x
+core = 8.x
 dependencies[] = graphapi
 
 files[] = graphapi_devel.module
