@@ -75,7 +75,7 @@ function graphapi_callback($engine, $entity_type, $entity_id) {
     'title' => '<strong>' . $node_id . '</strong>',
     'body' => '<div>' . theme('item_list', array('items' => $items)) . '</div>',
     // needed for forcedirected to indicate a successful retrieval.
-    'success' => true,
+    'success' => TRUE,
   );
   drupal_json_output($entity_info);
 }
@@ -709,4 +709,28 @@ function _graphapi_dump_to_properties($options, $recurse=FALSE) {
       return " = " . str_replace("\n", '\n', $options);
     }
   }
+}
+
+function graphapi_direct_dump($g) {
+  //TODO: is this the way?
+  $loader = drupal_classloader();
+  $loader->registerNamespace('Fhaculty\\Graph', DRUPAL_ROOT . '/sites/all/libraries/graph/lib');
+  $graph = new Fhaculty\Graph\Graph();
+  foreach ($g as $from_id => $from_data) {
+    $graph->createVertex($from_id);
+  }
+  foreach ($g as $from_id => $from_data) {
+    $from_vertex =  $graph->getVertex($from_id);
+    foreach ($from_data['edges'] as $to_id => $dummy) {
+      if (!$graph->hasVertex($to_id)) {
+          $graph->createVertex($to_id);
+      }
+      $to_vertex = $graph->getVertex($to_id);
+      $from_vertex->createEdgeTo($to_vertex);
+    }
+  }
+  $executable = '/usr/local/bin/dot';
+  $gviz = new Fhaculty\Graph\GraphViz($graph, array('executable' => $executable));
+  $gviz->setFormat('svg');
+  return $gviz->createImageHtml();
 }
