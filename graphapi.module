@@ -375,7 +375,12 @@ function theme_graphapi_dispatch($vars) {
   }
   else {
     if (!empty($engine)) {
-      return t("Graph API render engine !engine not found.", array('!engine' => $engine));
+      //Uncomment to bypass
+      //$r = '';
+      // Comment to ignore dumper
+      $r = graphapi_direct_dump($vars['graph']);
+
+      return t("Graph API render engine !engine not found.", array('!engine' => $engine)) . $r;
     }
     else {
       graphapi_no_engine_founds();
