@@ -1,7 +1,7 @@
 name = Graph API
-description = Allow developer to create graphs
+description = Allow site builders to create graphs
 package = Visualization
-core = 7.x
+core = 8.x
 
 dependencies[] = views
 
