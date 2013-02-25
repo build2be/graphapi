@@ -1,0 +1,24 @@
+<?php
+
+function graphapi_requirements($phase) {
+  $requirements = array();
+  // Ensure translations don't break during installation.
+  $t = get_t();
+
+  // Report Drupal version
+  if ($phase == 'runtime') {
+    $requirements['graphapi'] = array(
+      'title' => $t('clue/graph'),
+      'value' => 'Available',
+      'severity' => REQUIREMENT_INFO,
+    );
+    $path = 'sites/all/libraries/graph';
+    if (!is_dir($path) || !file_exists("$path/composer.json")) {
+      $requirements['graphapi']['description'] = $t('Please install !link into sites/all/libraries/graph. Make sure the location of composer.json is sites/all/libraries/graph/composer.json', array('!link' => l("clue/graph", "https://github.com/clue/graph")));
+      $requirements['graphapi']['value'] = 'Missing';
+      $requirements['graphapi']['severity'] = REQUIREMENT_ERROR;
+    }
+  }
+  return $requirements;
+}
+
