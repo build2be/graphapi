@@ -113,7 +113,7 @@ class views_plugin_style_graphapi extends views_plugin_style {
       '#options' => $opts,
       '#default_value' => $engine,
     );
-    if (!isset($from_state['values'])) {
+    if (!isset($form_state['values'])) {
       $form_state['values'] = $options;
     }
     $form = graphapi_settings_form($form, $form_state);
