@@ -206,25 +206,17 @@ function _graphapi_devel_system_module_install_layout() {
  */
 function _graphapi_devel_system_module_layout($show_hidden = FALSE) {
   $modules = system_rebuild_module_data();
-  $graph = array();
+  $graph = graphapi_new_graph();
   foreach ($modules as $module => $data) {
     if ($show_hidden || !(isset($data->info['hidden']) && $data->info['hidden'])) {
-      if (!isset($graph[$module])) {
-        $graph[$module]['edges'] = array();
-      }
-      //foreach ($data->requires as $key => $value) {
+      graphapi_add_node($graph, $module);
       foreach ($data->info['dependencies'] as $key) {
         if ($module != $key) {
-          $graph[$module]['edges'][$key] = 1;
-        }
-        else {
-          $circular = TRUE;
-        }
-        if (!isset($graph[$key])) {
-          $graph[$key]['edges'] = array();
+          graphapi_add_link($graph, $module, $key);
         }
       }
       $graph[$module]['data'] = theme_graphapi_devel_module_object($data);
+      graphapi_set_node_uri($graph, $module, "http://api.drupal.org/api/search/$module/8");
     }
   }
   return $graph;
