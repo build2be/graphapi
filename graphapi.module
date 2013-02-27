@@ -1,5 +1,8 @@
 <?php
 
+use Fhaculty\Graph\Graph;
+use Fhaculty\Graph\GraphViz;
+
 /**
  * @file
  *
@@ -684,7 +687,7 @@ function graphapi_get_engines() {
  * @param type $recurse
  * @return string
  */
-function _graphapi_dump_to_properties($options, $recurse=FALSE) {
+function _graphapi_dump_to_properties($options, $recurse = FALSE) {
   if (is_array($options)) {
     $result = array();
     foreach ($options as $key => $value) {
@@ -717,25 +720,51 @@ function _graphapi_dump_to_properties($options, $recurse=FALSE) {
 }
 
 function graphapi_direct_dump($g) {
-  //TODO: is this the way?
-  $loader = drupal_classloader();
-  $loader->registerNamespace('Fhaculty\\Graph', DRUPAL_ROOT . '/sites/all/libraries/graph/lib');
   $graph = new Fhaculty\Graph\Graph();
   foreach ($g as $from_id => $from_data) {
-    $graph->createVertex($from_id);
+    $v = $graph->createVertex($from_id);
+    if (isset($from_data['data'])) {
+      $data = $from_data['data'];
+      $mapping = array(
+        'title' => 'tooltip',
+        'background-color' => 'fillcolor',
+        'color' => 'color',
+        'uri' => 'URL',
+      );
+      foreach ($mapping as $key => $target) {
+        if (isset($data[$key])) {
+          $v->setLayoutAttribute($target, $data[$key]);
+        }
+      }
+    }
   }
   foreach ($g as $from_id => $from_data) {
-    $from_vertex =  $graph->getVertex($from_id);
+    $from_vertex = $graph->getVertex($from_id);
     foreach ($from_data['edges'] as $to_id => $dummy) {
       if (!$graph->hasVertex($to_id)) {
-          $graph->createVertex($to_id);
+        $graph->createVertex($to_id);
       }
       $to_vertex = $graph->getVertex($to_id);
       $from_vertex->createEdgeTo($to_vertex);
     }
   }
+
   $executable = '/usr/local/bin/dot';
-  $gviz = new Fhaculty\Graph\GraphViz($graph, array('executable' => $executable));
+  $gviz = new GraphViz($graph, array('executable' => $executable));
+  $gviz->setLayout(GraphViz::LAYOUT_VERTEX, 'style', 'filled');
   $gviz->setFormat('svg');
+  //return '<xmp>' . $gviz->createScript() . '</xmp>';
   return $gviz->createImageHtml();
+}
+
+/**
+ * Implements hook_init().
+ */
+function graphapi_init() {
+  $loader = drupal_classloader();
+ /*
+  * TODO: this is somehow necessary but what if other modules
+  *       need this library too?
+  */
+  $loader->registerNamespace('Fhaculty\\Graph', DRUPAL_ROOT . '/sites/all/libraries/graph/lib');
 }
