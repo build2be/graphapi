@@ -749,12 +749,22 @@ function graphapi_direct_dump($g) {
     }
   }
 
+  // TODO: make this configurable.
   $executable = '/usr/local/bin/dot';
-  $gviz = new GraphViz($graph, array('executable' => $executable));
-  $gviz->setLayout(GraphViz::LAYOUT_VERTEX, 'style', 'filled');
+  $gviz = new GraphViz($graph);
+  $gviz->setExecutable($executable);
+  $gviz->setLayouts(GraphViz::LAYOUT_GRAPH, 'rankdir', 'TB');
+  $gviz->setLayouts(GraphViz::LAYOUT_VERTEX, 'style', 'filled');
   $gviz->setFormat('svg');
-  //return '<xmp>' . $gviz->createScript() . '</xmp>';
-  return $gviz->createImageHtml();
+  $result = '';
+  try {
+    $result .= $gviz->createImageHtml();
+  }
+  catch (Exception $exc) {
+    drupal_set_message($exc->getMessage());
+  }
+  $result .= '<xmp>' . $gviz->createScript() . '</xmp>';
+  return $result;
 }
 
 /**
