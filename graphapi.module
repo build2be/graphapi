@@ -772,9 +772,10 @@ function graphapi_direct_dump($g) {
  */
 function graphapi_init() {
   $loader = drupal_classloader();
- /*
-  * TODO: this is somehow necessary but what if other modules
-  *       need this library too?
-  */
-  $loader->registerNamespace('Fhaculty\\Graph', DRUPAL_ROOT . '/sites/all/libraries/graph/lib');
+  /*
+   * TODO: this is somehow necessary but what if other modules
+   *       need this library too?
+   */
+  // Values copied from library composer.json
+  $loader->registerNamespace('Fhaculty', DRUPAL_ROOT . '/sites/all/libraries/graph/lib');
 }
