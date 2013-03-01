@@ -1,0 +1,117 @@
+<?php
+
+use Fhaculty\Graph\Loader\UmlClassDiagram;
+use Fhaculty\Graph\GraphViz;
+use Fhaculty\Graph\Graph  ;
+
+/**
+ * Implements hook_menu().
+ */
+function graphapi_class_menu() {
+  $items['admin/config/system/graphapi/uml'] = array(
+    'title' => 'UML Diagrams',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('graphapi_class_form'),
+    'access arguments' => array('access devel information'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 100,
+  );
+  $items['admin/config/system/graphapi/uml/%'] = array(
+    'title' => 'UML Diagrams',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('graphapi_class_form', 5),
+    'access arguments' => array('access devel information'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 100,
+  );
+  return $items;
+}
+
+function graphapi_class_form($form, &$form_state, $class = 'stdClass') {
+  graphapi_class_loader();
+  $classes = get_declared_classes();
+  asort($classes);
+  $classes = array_combine($classes, $classes);
+  $interfaces = get_declared_interfaces();
+  asort($interfaces);
+  $interfaces = array_combine($interfaces, $interfaces);
+  $kinds = array(
+    'classes' => $classes,
+    'interfaces' => $interfaces,
+  );
+  $form['class'] = array(
+    '#type' => 'select',
+    '#title' => 'Select your class or interface',
+    '#description' => 'This class will be displayed as part of a Class Diagram.',
+    '#options' => $kinds,
+    '#default_value' => $class,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Submit',
+  );
+  $form['result'] = array(
+    '#title' => 'Classes',
+    '#prefix' => '<div>',
+    '#markup' => graphapi_class_class($class),
+    '#suffix' => '</div>',
+  );
+  return $form;
+}
+
+function graphapi_class_form_submit($form, &$form_state) {
+  $class = $form_state['values']['class'];
+  drupal_goto('admin/config/system/graphapi/uml/' . $class);
+}
+
+function graphapi_class_class($class) {
+  return graphapi_class_build(array($class));
+}
+
+/**
+ * Load more Classes.
+ *
+ * TODO: This is hacky.
+ *   Is there a better way to load ALL class definitions?
+ */
+function graphapi_class_loader() {
+  new UmlClassDiagram();
+  $gviz = new GraphViz($g = new Graph);
+  $v = $g->createVertex('a');
+  $g->createVertex()->createEdge($v);
+  $g->createVertex()->createEdgeTo($v);
+  views_get_all_views();
+}
+
+function graphapi_class_build(array $classes = array()) {
+  asort($classes);
+  $cid = __FUNCTION__ . '-' . join("-", $classes);
+  $cache = cache();
+  if ($o = $cache->get($cid)) {
+    return $o->data;
+  }
+  $result = array();
+
+  $loader = new UmlClassDiagram();
+  foreach ($classes as $class) {
+    $loader->createVertexClass($class);
+  }
+
+  foreach ($loader->createGraphsComponents() as $graph) {
+    $executable = '/usr/local/bin/dot';
+    $gviz = new GraphViz($graph);
+    $gviz->setExecutable($executable);
+    $gviz->setLayouts(GraphViz::LAYOUT_GRAPH, 'rankdir', 'BT');
+
+    $gviz->setFormat('svg');
+    try {
+      $result[] = $gviz->createImageHtml();
+    }
+    catch (Exception $exc) {
+      $result[] = $exc->getMessage();
+    }
+  }
+  $result = join("<hr />", $result);
+  $cache->set($cid, $result);
+  return $result;
+}

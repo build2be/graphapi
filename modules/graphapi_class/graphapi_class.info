@@ -1,0 +1,8 @@
+name = Devel UML Diagrams
+description = Displays Class and ...
+package = Development
+
+core = 8.x
+dependencies[] = graphapi
+
+files[] = graphapi_class.module
