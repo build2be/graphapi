@@ -731,11 +731,23 @@ function graphapi_direct_dump($g) {
         'color' => 'color',
         'uri' => 'URL',
       );
+      // Save title
+      $label = array();
+      $label['title'] = html_entity_decode($data['title']);
+      // Special treat known mappings
       foreach ($mapping as $key => $target) {
         if (isset($data[$key])) {
           $v->setLayoutAttribute($target, $data[$key]);
+          unset($data[$key]);
         }
       }
+      $v->setLayoutAttribute('shape', 'record');
+      // Zip all values into label
+      foreach ($data as $key => $value) {
+        $label[$key] = html_entity_decode($value);
+      }
+      $v->setLayoutAttribute('rankdir', 'LR');
+      //$v->setLayoutAttribute('label', theme_graphapi_record($label));
     }
   }
   foreach ($g as $from_id => $from_data) {
@@ -753,8 +765,8 @@ function graphapi_direct_dump($g) {
   $executable = '/usr/local/bin/dot';
   $gviz = new GraphViz($graph);
   $gviz->setExecutable($executable);
-  $gviz->setLayouts(GraphViz::LAYOUT_GRAPH, 'rankdir', 'TB');
-  $gviz->setLayouts(GraphViz::LAYOUT_VERTEX, 'style', 'filled');
+  $gviz->setLayoutBy(GraphViz::LAYOUT_GRAPH, 'rankdir', 'TB');
+  $gviz->setLayoutBy(GraphViz::LAYOUT_VERTEX, 'style', 'filled');
   $gviz->setFormat('svg');
   $result = '';
   try {
@@ -765,6 +777,14 @@ function graphapi_direct_dump($g) {
   }
   $result .= '<xmp>' . $gviz->createScript() . '</xmp>';
   return $result;
+}
+
+function theme_graphapi_record($rows) {
+  $result = array();
+  foreach ($rows as $key => $value) {
+    $result[] = '<tr><td>' . html_entity_decode($key) . '</td><td>' . html_entity_decode($value) . '</td></tr>';
+  }
+  return '<<table>' . join("", $result) . '</table>>';
 }
 
 /**

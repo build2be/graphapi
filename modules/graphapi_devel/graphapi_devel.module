@@ -207,6 +207,7 @@ function _graphapi_devel_system_module_install_layout() {
 function _graphapi_devel_system_module_layout($show_hidden = FALSE) {
   $modules = system_rebuild_module_data();
   $graph = graphapi_new_graph();
+  $i = 0;
   foreach ($modules as $module => $data) {
     if ($show_hidden || !(isset($data->info['hidden']) && $data->info['hidden'])) {
       graphapi_add_node($graph, $module);
@@ -216,7 +217,7 @@ function _graphapi_devel_system_module_layout($show_hidden = FALSE) {
         }
       }
       $graph[$module]['data'] = theme_graphapi_devel_module_object($data);
-      graphapi_set_node_uri($graph, $module, "http://api.drupal.org/api/search/$module/8");
+      graphapi_set_node_uri($graph, $module, "http://api.drupal.org/api/drupal/core!modules!$module!$module.module/8");
     }
   }
   return $graph;
