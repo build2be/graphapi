@@ -733,7 +733,7 @@ function graphapi_direct_dump($g) {
       );
       // Save title
       $label = array();
-      $label['title'] = html_entity_decode($data['title']);
+      $label[''] = htmlentities($data['title']);
       // Special treat known mappings
       foreach ($mapping as $key => $target) {
         if (isset($data[$key])) {
@@ -747,7 +747,8 @@ function graphapi_direct_dump($g) {
         $label[$key] = html_entity_decode($value);
       }
       $v->setLayoutAttribute('rankdir', 'LR');
-      //$v->setLayoutAttribute('label', theme_graphapi_record($label));
+      $label = theme_graphapi_record($label);
+      $v->setLayoutAttribute('label', GraphViz::raw($label));
     }
   }
   foreach ($g as $from_id => $from_data) {
@@ -782,7 +783,7 @@ function graphapi_direct_dump($g) {
 function theme_graphapi_record($rows) {
   $result = array();
   foreach ($rows as $key => $value) {
-    $result[] = '<tr><td>' . html_entity_decode($key) . '</td><td>' . html_entity_decode($value) . '</td></tr>';
+    $result[] = '<tr><td>' . htmlentities($key) . '</td><td>' . htmlentities($value) . '</td></tr>';
   }
   return '<<table>' . join("", $result) . '</table>>';
 }
