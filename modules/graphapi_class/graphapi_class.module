@@ -101,7 +101,7 @@ function graphapi_class_build(array $classes = array()) {
     $executable = '/usr/local/bin/dot';
     $gviz = new GraphViz($graph);
     $gviz->setExecutable($executable);
-    $gviz->setLayouts(GraphViz::LAYOUT_GRAPH, 'rankdir', 'BT');
+    $gviz->setLayoutBy(GraphViz::LAYOUT_GRAPH, 'rankdir', 'BT');
 
     $gviz->setFormat('svg');
     try {
@@ -110,6 +110,8 @@ function graphapi_class_build(array $classes = array()) {
     catch (Exception $exc) {
       $result[] = $exc->getMessage();
     }
+    $result[] = '<xmp>' . $gviz->createScript() . '</xmp>';
+
   }
   $result = join("<hr />", $result);
   $cache->set($cid, $result);
