@@ -238,9 +238,14 @@ function theme_graphapi_devel_module_object($module) {
   }
   $result = array(
     'title' => $module->name,
-    'content' => print_r($module, true),
     'background-color' => $background_color,
   );
+  $info = $module->info;
+  foreach ($info as $key => $item) {
+    if (!is_array($item)) {
+      $result[$key] = $item;
+    }
+  }
   return $result;
 }
 
