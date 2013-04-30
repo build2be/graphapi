@@ -798,5 +798,6 @@ function graphapi_init() {
    *       need this library too?
    */
   // Values copied from library composer.json
-  $loader->registerNamespace('Fhaculty', DRUPAL_ROOT . '/sites/all/libraries/graph/lib');
+  $loader->addPrefix(NULL, DRUPAL_ROOT . '/sites/all/libraries/graph/lib');
+  #$loader->registerNamespace('Fhaculty', DRUPAL_ROOT . '/sites/all/libraries/graph/lib');
 }
