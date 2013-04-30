@@ -1,0 +1,8 @@
+name : 'Graph API Demo'
+description : 'Displays various aspect of Graph API'
+package : 'Demo'
+core : 8.x
+dependencies:
+  - graphapi
+tags:
+  - demo
