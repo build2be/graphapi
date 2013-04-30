@@ -2,7 +2,7 @@
 
 use Fhaculty\Graph\Loader\UmlClassDiagram;
 use Fhaculty\Graph\GraphViz;
-use Fhaculty\Graph\Graph  ;
+use Fhaculty\Graph\Graph;
 
 /**
  * Implements hook_menu().
@@ -27,7 +27,8 @@ function graphapi_class_menu() {
   return $items;
 }
 
-function graphapi_class_form($form, &$form_state, $class = 'stdClass') {
+function graphapi_class_form($form, &$form_state, $types = 'stdClass') {
+  $types = explode('+', $types);
   graphapi_class_loader();
   $classes = get_declared_classes();
   asort($classes);
@@ -44,7 +45,10 @@ function graphapi_class_form($form, &$form_state, $class = 'stdClass') {
     '#title' => 'Select your class or interface',
     '#description' => 'This class will be displayed as part of a Class Diagram.',
     '#options' => $kinds,
-    '#default_value' => $class,
+    '#required' => TRUE,
+    '#multiple' => TRUE,
+    '#size' => 10,
+    '#default_value' => $types,
   );
   $form['submit'] = array(
     '#type' => 'submit',
@@ -53,7 +57,7 @@ function graphapi_class_form($form, &$form_state, $class = 'stdClass') {
   $form['result'] = array(
     '#title' => 'Classes',
     '#prefix' => '<div>',
-    '#markup' => graphapi_class_class($class),
+    '#markup' => graphapi_class_build($types),
     '#suffix' => '</div>',
   );
   return $form;
@@ -61,11 +65,8 @@ function graphapi_class_form($form, &$form_state, $class = 'stdClass') {
 
 function graphapi_class_form_submit($form, &$form_state) {
   $class = $form_state['values']['class'];
-  drupal_goto('admin/config/system/graphapi/uml/' . $class);
-}
-
-function graphapi_class_class($class) {
-  return graphapi_class_build(array($class));
+  $list = join('+', $class);
+  drupal_goto('admin/config/system/graphapi/uml/' . $list);
 }
 
 /**
@@ -80,12 +81,45 @@ function graphapi_class_loader() {
   $v = $g->createVertex('a');
   $g->createVertex()->createEdge($v);
   $g->createVertex()->createEdgeTo($v);
-  views_get_all_views();
+
+  $functions = array(
+    'views_get_all_views' => FALSE,
+    'simpletest_classloader_register' => FALSE,
+    'simpletest_phpunit_get_available_tests' => FALSE,
+  );
+  $classes = array();
+  foreach ($functions as $function => $factory) {
+    if (function_exists($function)) {
+      $result = $function();
+      if ($factory) {
+        $classes = array_merge($classes, $factory($result));
+      }
+    }
+  }
+
+  if (module_exists('simpletest')) {
+
+    class graphapi_class_A extends Drupal\simpletest\UnitTestBase {
+
+    }
+
+    new graphapi_class_A();
+
+    class graphapi_class_B extends Drupal\simpletest\DrupalUnitTestBase {
+
+    }
+
+    new graphapi_class_B();
+  }
 }
 
-function graphapi_class_build(array $classes = array()) {
+function graphapi_class_build(array $classes = array(), $script_only = FALSE) {
+  graphapi_init();
+  $classes = array_flip($classes);
+  $classes = array_keys($classes);
   asort($classes);
   $cid = __FUNCTION__ . '-' . join("-", $classes);
+  $cid = md5($cid);
   $cache = cache();
   if ($o = $cache->get($cid)) {
     return $o->data;
@@ -93,8 +127,13 @@ function graphapi_class_build(array $classes = array()) {
   $result = array();
 
   $loader = new UmlClassDiagram();
-  foreach ($classes as $class) {
-    $loader->createVertexClass($class);
+  try {
+    foreach ($classes as $class) {
+      $loader->createVertexClass($class);
+    }
+  }
+  catch (Exception $exc) {
+    return $exc->getMessage();
   }
 
   foreach ($loader->createGraphsComponents() as $graph) {
@@ -105,13 +144,14 @@ function graphapi_class_build(array $classes = array()) {
 
     $gviz->setFormat('svg');
     try {
-      $result[] = $gviz->createImageHtml();
+      if (!$script_only) {
+        $result[] = $gviz->createImageHtml();
+      }
     }
     catch (Exception $exc) {
       $result[] = $exc->getMessage();
     }
     $result[] = '<xmp>' . $gviz->createScript() . '</xmp>';
-
   }
   $result = join("<hr />", $result);
   $cache->set($cid, $result);
