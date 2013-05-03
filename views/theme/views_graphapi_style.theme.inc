@@ -136,7 +136,7 @@ function _views_graphapi_style_build_graph_data(&$vars) {
 
       $data = array();
       foreach ($mapping['from'] as $key => $value) {
-        $data[$key] = $view->style_plugin->rendered_fields[$count][$key];
+        $data[$key] = $view->style_plugin->rendered_fields[$count][$value];
       }
       if (!empty($data)) {
         graphapi_set_node_data($graph, $from_id, $data);
@@ -169,7 +169,7 @@ function _views_graphapi_style_build_graph_data(&$vars) {
         }
         $data = array();
         foreach ($mapping['to'] as $key => $value) {
-          $data[$key] = $view->style_plugin->rendered_fields[$count][$key];
+          $data[$key] = $view->style_plugin->rendered_fields[$count][$value];
         }
         if (!empty($data)) {
           graphapi_set_node_data($graph, $to_id, $data);
