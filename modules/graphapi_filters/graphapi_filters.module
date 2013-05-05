@@ -106,7 +106,6 @@ class GraphapiTrivialGraphParser {
       $config = array('engine' => $engine);
       $g = theme('graphapi_dispatch', array('graph' => $this->graph, 'config' => $config));
       $text = substr($text,0, $this->start) . $g . substr($text, $this->end+1);
-      $text = 'REPLACED ' . $text;
     }
   }
 
