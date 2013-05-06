@@ -103,9 +103,12 @@ class GraphapiTrivialGraphParser {
 
   function replace(&$text, $engine) {
     if ($this->start != $this->end) {
-      $config = array('engine' => $engine);
+      $config = array(
+        'engine' => $engine,
+        'inline' => TRUE,
+      );
       $g = theme('graphapi_dispatch', array('graph' => $this->graph, 'config' => $config));
-      $text = substr($text,0, $this->start) . $g . substr($text, $this->end+1);
+      $text = substr($text, 0, $this->start) . $g . substr($text, $this->end + 1);
     }
   }
 
