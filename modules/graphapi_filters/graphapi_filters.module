@@ -42,7 +42,7 @@ function _graphapi_filters_tgf_settings($form, &$form_state, $filter, $format, $
 
 function _graphapi_filters_tgf_tips($filter, $format, $long) {
   if ($long) {
-    return t('See http://en.wikipedia.org/wiki/Trivial_Graph_Format');
+    return t('With !link you can quickly define simple graphs. Try this where the first and last lines are filter markers:<br/>[tgf<br/>A label<br/>B label<br/>#<br/>A B label<br/>]', array('!link' => l('Trivial Graph Format', 'http://en.wikipedia.org/wiki/Trivial_Graph_Format')));
   }
   else {
     return t('Renders a Trivial Graph Format to the given engine.');
@@ -56,7 +56,7 @@ class GraphapiTrivialGraphParser {
   var $text = NULL;
   var $start = -1;
   var $end = -1;
-  var $meta = '';
+  var $meta = array();
   var $graph = NULL;
 
   function __construct($text, $start) {
@@ -71,12 +71,17 @@ class GraphapiTrivialGraphParser {
       $lines = substr($this->text, $this->start, $this->end - $this->start);
       $lines = explode("\n", $lines);
       // consume first line [tgf ...
-      $this->meta = array_shift($lines);
+      $meta = array_shift($lines);
+      $this->parseMeta($meta);
       $graph = graphapi_new_graph();
       $mode = 'nodes';
       while ($line = array_shift($lines)) {
+        $line = trim($line);
         if ($line == '#') {
           $mode = 'links';
+        }
+        elseif (empty($line)) {
+          // Skip empty lines
         }
         else if ($mode == 'nodes') {
           $items = preg_split('/ /', $line);
@@ -110,9 +115,34 @@ class GraphapiTrivialGraphParser {
         'engine' => $engine,
         'inline' => TRUE,
       );
+      if (!empty($this->meta)) {
+        $config = array_merge($config, $this->meta);
+      }
       $g = theme('graphapi_dispatch', array('graph' => $this->graph, 'config' => $config));
       $text = substr($text, 0, $this->start) . $g . substr($text, $this->end + 1);
     }
   }
 
+  /**
+   * Process meta line to set engine etc.
+   *
+   * @param string $meta
+   *   Contains '[tgf ...'
+   */
+  function parseMeta($meta) {
+    // TODO: remove ugly escaping
+    $result = array();
+    $meta = preg_replace("/\\" . GraphapiTrivialGraphParser::$TGF . "/", '', $meta, 1);
+    $meta = trim($meta);
+    $metas = preg_split("/ /", $meta);
+    foreach ($metas as $key_value) {
+      if (strpos($key_value, ':') !== FALSE) {
+        list($key, $value) = preg_split('/:/', $key_value);
+        if ($key == 'engine') {
+          $result['engine'] = $value;
+        }
+      }
+    }
+    $this->meta = $result;
+  }
 }
