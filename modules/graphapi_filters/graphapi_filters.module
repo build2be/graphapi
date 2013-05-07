@@ -15,13 +15,14 @@ function graphapi_filters_filter_info() {
 }
 
 function _graphapi_filters_tgf_process($text, $filter, $format, $langcode, $cache, $cache_id) {
-  $pos = strpos($text, '[tgf');
-  if ($pos !== FALSE) {
+  $pos = strpos($text, GraphapiTrivialGraphParser::$TGF);
+  while ($pos !== FALSE) {
     $engine = $filter->settings['engine'];
     $p = new GraphapiTrivialGraphParser($text, $pos);
     if ($p->parse()) {
       $p->replace($text, $engine);
     }
+    $pos = strpos($text, GraphapiTrivialGraphParser::$TGF);
   }
   return $text;
 }
@@ -49,6 +50,8 @@ function _graphapi_filters_tgf_tips($filter, $format, $long) {
 }
 
 class GraphapiTrivialGraphParser {
+
+  static $TGF = '[tgf';
 
   var $text = NULL;
   var $start = -1;
