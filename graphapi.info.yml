@@ -1,6 +1,7 @@
-configure: admin/config/development/devel
 name: Graph API
 description: Allow site builders to create graphs
+type: module
+configure: admin/config/development/devel
 package : Visualization
 core : 8.x
 tags:

@@ -1,5 +1,6 @@
 name : 'Devel UML Diagrams'
 description : 'Displays Class and ...'
+type: module
 package : Development
 core : 8.x
 dependencies:

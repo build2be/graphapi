@@ -1,5 +1,6 @@
 name : 'Graph API Demo'
 description : 'Displays various aspect of Graph API'
+type: module
 package : 'Demo'
 core : 8.x
 dependencies:

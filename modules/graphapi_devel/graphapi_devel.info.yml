@@ -1,5 +1,6 @@
 name : 'Devel Graphs'
 description : 'Displays devel related graphs'
+type: module
 package : 'Development'
 core : 8.x
 dependencies :
