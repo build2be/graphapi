@@ -113,15 +113,28 @@ function graphapi_class_loader() {
   }
 }
 
-function graphapi_class_build(array $classes = array(), $script_only = FALSE) {
-  graphapi_init();
+function _graphapi_class_get_cid(array $classes, $script_only) {
   $classes = array_flip($classes);
   $classes = array_keys($classes);
   asort($classes);
   $cid = __FUNCTION__ . '-' . join("-", $classes);
+  $cid .= ($script_only ? '-1' : '-0');
   $cid = md5($cid);
-  $cache = cache();
-  if ($o = $cache->get($cid)) {
+  return $cid;
+}
+
+function _graphapi_class_get_cache($cid) {
+  return cache()->get($cid);
+}
+
+function _graphapi_class_cache_set($cid, $data) {
+  return cache()->set($cid, $data);
+}
+
+function graphapi_class_build(array $classes = array(), $script_only = FALSE) {
+  graphapi_init();
+  $cid = _graphapi_class_get_cid($classes, $script_only);
+  if ($o = _graphapi_class_get_cache($cid)) {
     return $o->data;
   }
   $result = array();
@@ -154,6 +167,6 @@ function graphapi_class_build(array $classes = array(), $script_only = FALSE) {
     $result[] = '<xmp>' . $gviz->createScript() . '</xmp>';
   }
   $result = join("<hr />", $result);
-  $cache->set($cid, $result);
+  _graphapi_class_cache_set($cid, $result);
   return $result;
 }
