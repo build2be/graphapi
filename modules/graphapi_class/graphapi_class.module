@@ -170,3 +170,53 @@ function graphapi_class_build(array $classes = array(), $script_only = FALSE) {
   _graphapi_class_cache_set($cid, $result);
   return $result;
 }
+
+function graphapi_class_cron() {
+  $last_run = _graphapi_class_get_cache(__FUNCTION__);
+  // Only generate every hour
+  if ($last_run || $last_run->data > 3600 + time()) {
+    return;
+  }
+  _graphapi_class_cache_set(__FUNCTION__, time());
+  $queue = Drupal::queue('graphapi_class_generator');
+  $names = get_declared_classes();
+  foreach ($names as $name) {
+    for ($script_only = 0; $script_only < 2; $script_only++) {
+      $cid = _graphapi_class_get_cid(array($name), $script_only > 0);
+      $cached_item = _graphapi_class_get_cache($cid);
+      if ($cached_item === FALSE) {
+        // Only when not cached already
+        $graph = array(
+          'name' => $name,
+          'script_only' => $script_only,
+        );
+        watchdog('graphapi_class', 'Queued: ' . $name);
+        $queue->createItem($graph);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_queue_info().
+ */
+function graphapi_class_queue_info() {
+  $queues['graphapi_class_generator'] = array(
+    'title' => t('Generate all UML Graphs'),
+    'worker callback' => 'graphapi_class_generator_worker',
+    'cron' => array(
+      'time' => 60,
+    ),
+  );
+  return $queues;
+}
+
+/**
+ * Queue worker callback.
+ */
+function graphapi_class_generator_worker($item) {
+  $name = $item['name'];
+  $script_only = $item['script_only'];
+  watchdog('graphapi_class', 'Processing: ' . $name . " " . $script_only);
+  graphapi_class_build(array($name), $script_only);
+}
