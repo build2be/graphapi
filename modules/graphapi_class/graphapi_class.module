@@ -87,6 +87,7 @@ function graphapi_class_loader() {
     'simpletest_classloader_register' => FALSE,
     'simpletest_phpunit_get_available_tests' => FALSE,
   );
+  Drupal::queue('graphapi_class_generator');
   $classes = array();
   foreach ($functions as $function => $factory) {
     if (function_exists($function)) {
