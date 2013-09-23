@@ -16,19 +16,17 @@ function graphapi_class_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 100,
   );
-  $items['admin/config/system/graphapi/uml/%'] = array(
-    'title' => 'UML Diagrams',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('graphapi_class_form', 5),
-    'access arguments' => array('access devel information'),
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => 100,
-  );
   return $items;
 }
 
-function graphapi_class_form($form, &$form_state, $types = 'stdClass') {
-  $types = explode('+', $types);
+function graphapi_class_form($form, &$form_state) {
+  $request = drupal_container()->get('request');
+  $types = $request->query->get('ids');
+  if (empty($types)) {
+    $types = array('stdClass');
+  }
+  $types = array_combine($types, $types);
+  ksort($types);
   graphapi_class_loader();
   $classes = get_declared_classes();
   asort($classes);
@@ -47,7 +45,7 @@ function graphapi_class_form($form, &$form_state, $types = 'stdClass') {
     '#options' => $kinds,
     '#required' => TRUE,
     '#multiple' => TRUE,
-    '#size' => 10,
+    '#size' => 20,
     '#default_value' => $types,
   );
   $form['submit'] = array(
@@ -63,10 +61,21 @@ function graphapi_class_form($form, &$form_state, $types = 'stdClass') {
   return $form;
 }
 
-function graphapi_class_form_submit($form, &$form_state) {
+function graphapi_class_form_submit(&$form, &$form_state) {
   $class = $form_state['values']['class'];
   $list = join('+', $class);
-  drupal_goto('admin/config/system/graphapi/uml/' . $list);
+  $options = array(
+    'absolute' => TRUE,
+    'query' => array(
+      'ids' => array_keys($class),
+    ),
+  );
+  $url = url('admin/config/system/graphapi/uml', $options);
+  $form_state['redirect'] = array(
+    $url,
+    $options,
+  );
+  drupal_redirect_form($form_state);
 }
 
 /**
