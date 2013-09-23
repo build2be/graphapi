@@ -720,6 +720,7 @@ function _graphapi_dump_to_properties($options, $recurse = FALSE) {
 }
 
 function graphapi_direct_dump($g) {
+  graphapi_loader();
   $graph = new Fhaculty\Graph\Graph();
   foreach ($g as $from_id => $from_data) {
     $v = $graph->createVertex($from_id);
@@ -791,13 +792,14 @@ function theme_graphapi_record($rows) {
 /**
  * Implements hook_init().
  */
-function graphapi_init() {
+function graphapi_loader() {
   $loader = drupal_classloader();
   /*
    * TODO: this is somehow necessary but what if other modules
    *       need this library too?
    */
   // Values copied from library composer.json
-  $loader->addPrefix(NULL, DRUPAL_ROOT . '/sites/all/libraries/graph/lib');
-  #$loader->registerNamespace('Fhaculty', DRUPAL_ROOT . '/sites/all/libraries/graph/lib');
+  //$loader->addPrefix(NULL, DRUPAL_ROOT . '/sites/all/libraries/graph/lib');
+
+  $loader->add('Fhaculty', DRUPAL_ROOT . '/sites/all/libraries/graph/lib');
 }
