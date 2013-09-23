@@ -76,6 +76,8 @@ function graphapi_class_form_submit($form, &$form_state) {
  *   Is there a better way to load ALL class definitions?
  */
 function graphapi_class_loader() {
+  graphapi_loader();
+
   new UmlClassDiagram();
   $gviz = new GraphViz($g = new Graph);
   $v = $g->createVertex('a');
@@ -133,7 +135,7 @@ function _graphapi_class_cache_set($cid, $data) {
 }
 
 function graphapi_class_build(array $classes = array(), $script_only = FALSE) {
-  graphapi_init();
+  graphapi_loader();
   $cid = _graphapi_class_get_cid($classes, $script_only);
   if ($o = _graphapi_class_get_cache($cid)) {
     return $o->data;
