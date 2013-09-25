@@ -35,6 +35,7 @@ function graphapi_class_form($form, &$form_state) {
   asort($interfaces);
   $interfaces = array_combine($interfaces, $interfaces);
   $kinds = array(
+    'services' => _graphapi_class_services(),
     'classes' => $classes,
     'interfaces' => $interfaces,
   );
@@ -143,8 +144,22 @@ function _graphapi_class_cache_set($cid, $data) {
   return cache()->set($cid, $data);
 }
 
+function _graphapi_class_services() {
+  $yaml_discovery = new \Drupal\Component\Discovery\YamlDiscovery('services', \Drupal::moduleHandler()->getModuleDirectories());
+  $yaml = $yaml_discovery->findAll();
+  $classes = array();
+  foreach ($yaml as $module => $services) {
+    //dsm($services, $module);
+    foreach ($services['services'] as $key => $value) {
+      $classes[$value['class']]  = "$module:$key";
+    }
+  }
+  //dsm($classes, __FUNCTION__);
+  return $classes;
+}
+
 function graphapi_class_build(array $classes = array(), $script_only = FALSE) {
-  graphapi_loader();
+  _graphapi_class_services();
   $cid = _graphapi_class_get_cid($classes, $script_only);
   if ($o = _graphapi_class_get_cache($cid)) {
     return $o->data;
