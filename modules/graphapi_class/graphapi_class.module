@@ -159,6 +159,7 @@ function _graphapi_class_services() {
 }
 
 function graphapi_class_build(array $classes = array(), $script_only = FALSE) {
+  graphapi_loader();
   _graphapi_class_services();
   $cid = _graphapi_class_get_cid($classes, $script_only);
   if ($o = _graphapi_class_get_cache($cid)) {
