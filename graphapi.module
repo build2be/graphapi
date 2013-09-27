@@ -803,3 +803,43 @@ function graphapi_loader() {
 
   $loader->add('Fhaculty', DRUPAL_ROOT . '/sites/all/libraries/graph/lib');
 }
+
+function graphapi_render($graph, $options = array()) {
+  if (isset($options['graphapi'])) {
+    $graphapi_options = $options['graphapi'];
+    unset($options['graphapi']);
+  }
+  else {
+    $graphapi_options = array();
+  }
+  $graphapi_options += array(
+    'render' => TRUE,
+    'script' => TRUE,
+  );
+  if (isset($options[GraphViz::LAYOUT_GRAPH]) && isset($options[GraphViz::LAYOUT_GRAPH]['rankdir'])) {
+    ;
+  }
+  else {
+    $options[GraphViz::LAYOUT_GRAPH]['rankdir'] = 'BT';
+  }
+
+  graphapi_loader();
+  $executable = '/usr/local/bin/dot';
+  $gviz = new GraphViz($graph);
+  $gviz->setExecutable($executable);
+  $gviz->setLayout($options[GraphViz::LAYOUT_GRAPH]);
+  $gviz->setFormat('svg');
+  $result = '';
+  try {
+    if ($graphapi_options['render']) {
+      $result = $gviz->createImageHtml();
+    }
+  }
+  catch (Exception $exc) {
+    $result = $exc->getMessage();
+  }
+  if ($graphapi_options['script']) {
+    $result .= '<xmp>' . $gviz->createScript() . '</xmp>';
+  }
+  return $result;
+}

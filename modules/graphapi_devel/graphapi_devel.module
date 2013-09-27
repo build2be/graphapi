@@ -5,7 +5,7 @@
  */
 function graphapi_devel_menu() {
   $items['admin/config/system/graphapi/modules'] = array(
-    'title' => 'Module dependencies',
+    'title' => 'Modules',
     'description' => t("A graph of all modules."),
     'page callback' => 'graphapi_devel_system_modules_layout',
     'access arguments' => array('access devel information'),
@@ -32,6 +32,14 @@ function graphapi_devel_menu() {
     'title' => 'Update Dependencies',
     'description' => t("A graph of all hook_update_dependencies'."),
     'page callback' => 'graphapi_devel_system_module_install_layout',
+    'access arguments' => array('access devel information'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 30,
+  );
+  $items['admin/config/system/graphapi/modules/routing'] = array(
+    'title' => 'Routing',
+    'description' => t("Routings"),
+    'page callback' => 'graphapi_devel_routing',
     'access arguments' => array('access devel information'),
     'type' => MENU_LOCAL_TASK,
     'weight' => 30,
@@ -290,4 +298,63 @@ function _graphapi_system_module_install_layout_active() {
   }
   $result .= "}\n";
   return $result;
+}
+
+function graphapi_devel_routing() {
+  graphapi_loader();
+  $yaml_discovery = new \Drupal\Component\Discovery\YamlDiscovery('routing', \Drupal::moduleHandler()->getModuleDirectories());
+  $yaml = $yaml_discovery->findAll();
+
+  //$graph = graphapi_new_graph();
+  $graph = new \Fhaculty\Graph\Graph();
+  foreach ($yaml as $module => $routings) {
+    if ($module == 'system') {
+      //graphapi_add_node($graph, $module);
+      $from = $graph->createVertex($module);
+      $from->setLayout(array(
+        'color' => 'red',
+        'style' => 'filled',
+      ));
+
+      foreach ($routings as $routing => $data) {
+        //graphapi_add_link($graph, $module, $routing);
+        $to = $graph->createVertex($routing, TRUE);
+        $to->setLayout(array(
+          'color' => 'orange',
+          'style' => 'filled',
+        ));
+        $to->setLayoutAttribute('label', $data['path']);
+        //$from->createEdgeTo($to);
+        //graphapi_set_node_uri($graph, $module, "http://api.drupal.org/api/drupal/core!modules!$module!$module.module/8");
+        if (isset($data['requirements'])) {
+          if (isset($data['requirements']['_permission'])) {
+            $p = $data['requirements']['_permission'];
+            $permission = $graph->createVertex($p, TRUE);
+            $permission->setLayout(array(
+              'color' => 'green',
+              'style' => 'filled',
+            ));
+            if (!$from->hasEdgeTo($permission)) {
+              $from->createEdgeTo($permission);
+            }
+            $permission->createEdgeTo($to);
+            //$to->createEdgeTo($permission);
+          }
+        }
+      }
+    }
+  }
+  $options = array(
+    Fhaculty\Graph\GraphViz::LAYOUT_GRAPH => array(
+      'layout' => 'twopi',
+      'ranksep' => '3',
+      'ratio' => 'auto',
+    ),
+    'graphapi' => array(
+      'script' => TRUE,
+      'render' => TRUE,
+    ),
+  );
+
+  return graphapi_render($graph, $options);
 }

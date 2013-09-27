@@ -151,7 +151,7 @@ function _graphapi_class_services() {
   foreach ($yaml as $module => $services) {
     //dsm($services, $module);
     foreach ($services['services'] as $key => $value) {
-      $classes[$value['class']]  = "$module:$key";
+      $classes[$value['class']] = "$module:$key";
     }
   }
   //dsm($classes, __FUNCTION__);
@@ -178,21 +178,13 @@ function graphapi_class_build(array $classes = array(), $script_only = FALSE) {
   }
 
   foreach ($loader->createGraphsComponents() as $graph) {
-    $executable = '/usr/local/bin/dot';
-    $gviz = new GraphViz($graph);
-    $gviz->setExecutable($executable);
-    $gviz->setLayoutBy(GraphViz::LAYOUT_GRAPH, 'rankdir', 'BT');
-
-    $gviz->setFormat('svg');
-    try {
-      if (!$script_only) {
-        $result[] = $gviz->createImageHtml();
-      }
-    }
-    catch (Exception $exc) {
-      $result[] = $exc->getMessage();
-    }
-    $result[] = '<xmp>' . $gviz->createScript() . '</xmp>';
+    $options = array(
+      'graphapi' => array(
+        'script' => $script_only = TRUE,
+        'render' => TRUE,
+      )
+    );
+    $result[] = graphapi_render($graph, $options);
   }
   $result = join("<hr />", $result);
   _graphapi_class_cache_set($cid, $result);
