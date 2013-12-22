@@ -167,7 +167,7 @@ function _graphapi_class_services() {
     }
   }
   //dsm($classes, __FUNCTION__);
-  return $classes;
+  return array_keys($classes);
 }
 
 function graphapi_class_build(array $classes = array(), $script_only = FALSE) {
@@ -192,7 +192,7 @@ function graphapi_class_build(array $classes = array(), $script_only = FALSE) {
   foreach ($loader->createGraphsComponents() as $graph) {
     $options = array(
       'graphapi' => array(
-        'script' => $script_only = TRUE,
+        'script' => $script_only == TRUE,
         'render' => TRUE,
       )
     );
