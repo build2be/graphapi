@@ -29,7 +29,7 @@ function graphapi_menu() {
       'description' => 'Overview of Graph API and its supporting engines.',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('graphapi_engines_form'),
-      'access arguments' => array('administer site configuration'),
+      'route_name' => 'graphapi.overview_forms'
     ),
     'admin/config/system/graphapi/engines' => array(
       'title' => 'Engine forms overview',
@@ -43,8 +43,10 @@ function graphapi_menu() {
 
   $engines = array('graphapi' => 'Graph API') + graphapi_get_engines();
 
+  // Local tasks CR : https://drupal.org/node/2044515
   $default = TRUE;
   $weight = 0;
+  $engines = array("X" => "array()");
   foreach ($engines as $engine => $data) {
     $items["admin/config/system/graphapi/engines/$engine"] = array(
       'title' => $data,
@@ -426,7 +428,9 @@ function graphapi_views_api() {
  * Return list of all hook_graphapi_formats
  */
 function graphapi_views_formats() {
-  return module_invoke_all('graphapi_formats');
+  // Change notice https://drupal.org/node/1894902
+  $module_handler = \Drupal::moduleHandler();
+  return $module_handler->invokeAll('graphapi_formats', $args = array());
 }
 
 /**
@@ -779,6 +783,7 @@ function graphapi_loader() {
   //$loader->addPrefix(NULL, DRUPAL_ROOT . '/sites/all/libraries/graph/lib');
 
   $loader->add('Fhaculty', DRUPAL_ROOT . '/sites/all/libraries/graph/lib');
+  $loader->add('Fhaculty', DRUPAL_ROOT . '/sites/all/libraries/graph-uml/src', TRUE);
 }
 
 function graphapi_render($graph, $options = array()) {
@@ -804,7 +809,7 @@ function graphapi_render($graph, $options = array()) {
   $executable = '/usr/local/bin/dot';
   $gviz = new GraphViz($graph);
   $gviz->setExecutable($executable);
-  $gviz->setLayout($options[GraphViz::LAYOUT_GRAPH]);
+  //$gviz->setLayout($options[GraphViz::LAYOUT_GRAPH]);
   $gviz->setFormat('svg');
   $result = '';
   try {

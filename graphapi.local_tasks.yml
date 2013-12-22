@@ -1,0 +1,4 @@
+graphapi.engine:
+  route_name: graphapi.engine
+  title: 'About engine X'
+  tab_root_id: graphapi.engines
