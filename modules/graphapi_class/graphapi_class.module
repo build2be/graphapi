@@ -170,6 +170,13 @@ function _graphapi_class_services() {
   return array_keys($classes);
 }
 
+/**
+ * Build graph(s) for given class list.
+ *
+ * @param array $classes
+ * @param boolean $script_only
+ * @return type
+ */
 function graphapi_class_build(array $classes = array(), $script_only = FALSE) {
   graphapi_loader();
   _graphapi_class_services();
