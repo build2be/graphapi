@@ -186,7 +186,12 @@ function graphapi_class_build(array $classes = array(), $script_only = FALSE) {
   }
   $result = array();
 
-  $loader = new UmlClassDiagram();
+  $g = new Graph();
+  $loader = new ClassDiagramBuilder($g);
+  // Reduce output.
+  //$loader->setOption('only-self', TRUE);
+  //$loader->setOption('only-public', TRUE);
+  //$loader->setOption('show-constants', FALSE);
   try {
     foreach ($classes as $class) {
       $loader->createVertexClass($class);
