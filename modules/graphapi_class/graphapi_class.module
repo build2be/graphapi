@@ -88,7 +88,19 @@ function graphapi_class_form_submit(&$form, &$form_state) {
 function graphapi_class_loader() {
   graphapi_loader();
 
-  new UmlClassDiagram();
+  class graphapi_entity_view extends Drupal\views\Entity\View {
+
+  }
+
+  ;
+
+  class graphapi_entity_user extends Drupal\user\Entity\User {
+
+  }
+
+  ;
+
+  //new ClassDiagramBuilder();
   $gviz = new GraphViz($g = new Graph);
   $v = $g->createVertex('a');
   $g->createVertex()->createEdge($v);
