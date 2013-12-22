@@ -1,6 +1,6 @@
 <?php
 
-use Fhaculty\Graph\Loader\UmlClassDiagram;
+use Fhaculty\Graph\Uml\ClassDiagramBuilder;
 use Fhaculty\Graph\GraphViz;
 use Fhaculty\Graph\Graph;
 
