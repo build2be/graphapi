@@ -1,0 +1,7 @@
+graphapi_class.select:
+  path: '/admin/config/system/graphapi/uml'
+  defaults:
+    _content: '\Drupal\graphapi\Controller\GraphAPIController::functionReference'
+    _title: 'Graph API'
+  requirements:
+    _permission: 'administer site configuration'
