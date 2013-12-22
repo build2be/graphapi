@@ -310,7 +310,7 @@ function graphapi_devel_routing() {
   foreach ($yaml as $module => $routings) {
     if ($module == 'system') {
       //graphapi_add_node($graph, $module);
-      $from = $graph->createVertex($module);
+      $from = $graph->createVertex($module, TRUE);
       $from->setLayout(array(
         'color' => 'red',
         'style' => 'filled',
