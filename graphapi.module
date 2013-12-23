@@ -2,6 +2,7 @@
 
 use Fhaculty\Graph\Graph;
 use Fhaculty\Graph\GraphViz;
+use Fhaculty\Graph\Vertex;
 
 /**
  * @file
@@ -94,46 +95,49 @@ function graphapi_engines_form($form, $form_state, $engine = 'graphapi') {
 }
 
 /**
- * Creates a new empty graph array.
+ * Creates a new Graph structure.
+ *
+ * @return \Fhaculty\Graph\Graph
  */
 function graphapi_new_graph() {
-  return array();
+  graphapi_loader();
+  return new Graph();
 }
 
 /**
- * Adds a graph node to an existing graph array, if it doesn't already exist.
+ * Adds a graph node to an existing graph array.
  *
- * @param $graph
- *   Graph array, passed by reference.
- * @param $id
+ * @param \Fhaculty\Graph\Graph $graph
+ * @param type $id
  *   Id of the node to add.
+ * @return \Fhaculty\Graph\Graph\Vertex
  */
-function graphapi_add_node(&$graph, $id) {
-  if (!isset($graph[$id])) {
-    $graph[$id]['edges'] = array();
-    $graph[$id]['data'] = array();
-    // Set the graph title to the $id, incase it isn't set later.
-    $graph[$id]['data']['title'] = $id;
+function graphapi_add_node(Graph $graph, $id) {
+  if (!$graph->hasVertex($id)) {
+    $vertex = $graph->createVertex($id);
+    graphapi_set_node_title($graph, $id, $id);
+    return $vertex;
   }
+  return $graph->getVertex($id);
 }
 
 /**
  * Merge a graph into the current one.
  *
- * @param type $graph
- * @param type $sub
+ * @param \Fhaculty\Graph\Graph $graph
+ * @param \Fhaculty\Graph\Graph $sub
  */
-function graphapi_merge_graph(&$graph, $sub) {
-  foreach ($sub as $id => $node) {
-    graphapi_add_node($graph, $id);
-    if (count($graph[$id]['data']) > 1) {
-      watchdog('graphapi', 'Adding data while already available', NULL, WATCHDOG_NOTICE);
-    }
-    $graph[$id]['data'] = $node['data'];
-    foreach ($node['edges'] as $to => $data) {
-      graphapi_set_link_data($graph, $id, $to, $data);
-    }
-  }
+function graphapi_merge_graph(\Fhaculty\Graph\Graph $graph, \Fhaculty\Graph\Graph $sub) {
+//  foreach ($sub as $id => $node) {
+//    graphapi_add_node($graph, $id);
+//    if (count($graph[$id]['data']) > 1) {
+//      watchdog('graphapi', 'Adding data while already available', NULL, WATCHDOG_NOTICE);
+//    }
+//    $graph[$id]['data'] = $node['data'];
+//    foreach ($node['edges'] as $to => $data) {
+//      graphapi_set_link_data($graph, $id, $to, $data);
+//    }
+//  }
 }
 
 /**
@@ -142,14 +146,17 @@ function graphapi_merge_graph(&$graph, $sub) {
  * The _subgraph value contains an array of child node IDs.
  * The render engine decides what to do with it.
  *
- * @param array $graph
- * @param string $id
- * @param array $sub
+ * @param \Fhaculty\Graph\Graph $graph
+ * @param type $id
+ * @param \Fhaculty\Graph\Graph $sub
+ * @return type
  */
-function graphapi_add_sub_graph(&$graph, $id, $sub) {
-  graphapi_add_node($graph, $id);
-  graphapi_merge_graph($graph, $sub);
-  $graph[$id]['_subgraph'] = array_keys($sub);
+function graphapi_add_sub_graph(Graph $graph, $id, Graph $sub) {
+  $vertex = graphapi_add_node($graph, $id);
+  // TODO: make this work
+//  graphapi_merge_graph($graph, $sub);
+//  $graph[$id]['_subgraph'] = array_keys($sub);
+  return $vertex;
 }
 
 /**
@@ -164,123 +171,111 @@ function graphapi_get_graph_tree() {
 /**
  * Adds data to a graph node.
  *
- * @param $graph
- *   Graph array, passed by reference.
- * @param $id
- *   Id of the node to add data to.
- * @param $data
- *   Graph node data associative array, containing:
- *   - 'title': title of the graph node.
- *   - 'uri': URI of the graph node.
- *   - 'content': HTML string of body content of the graph node.
+ * @param \Fhaculty\Graph\Graph $graph
+ * @param type $id
+ * @param array $data
+ *
+ * @return \Fhaculty\Graph\Graph\Vertex
  */
-function graphapi_set_node_data(&$graph, $id, $data) {
-  graphapi_add_node($graph, $id);
-  $current_data = $graph[$id]['data'];
+function graphapi_set_node_data(Graph $graph, $id, array $data) {
+  $vertex = $graph->createVertex($id, TRUE);
+
+  $current_data = $vertex->hasLayoutAttribute('data') ? $vertex->getLayoutAttribute('data') : array();
   // Merge with current data.
-  if (is_array($current_data)) {
+  if (is_array($data)) {
     //  Latest data is more important
     $data = $data + $current_data;
   }
-  $graph[$id]['data'] = $data;
+  $vertex->setLayoutAttribute('data', $data);
+  return $vertex;
 }
 
 /**
  * Sets the title of a graph node.
  *
- * @param $graph
- *   Graph array, passed by reference.
+ * @param \Fhaculty\Graph\Graph $graph
  * @param $id
  *   Id of the node for which to set the title.
  * @param $title
  *   Title string.
+ *
+ * @return \Fhaculty\Graph\Graph\Vertex
  */
-function graphapi_set_node_title(&$graph, $id, $title) {
-  graphapi_add_node($graph, $id);
-  $graph[$id]['data']['title'] = $title;
+function graphapi_set_node_title(Graph $graph, $id, $title) {
+  $vertex = $graph->createVertex($id, TRUE);
+  $vertex->setLayoutAttribute('title', $title);
+  return $vertex;
 }
 
 /**
  * Sets the uri of a graph node, to which the graph will link.
  *
- * @param $graph
- *   Graph array, passed by reference.
+ * @param \Fhaculty\Graph\Graph $graph
  * @param $id
  *   Id of the node for which to set the title.
  * @param $uri
- *   URI string.
+ *   URI used to create a link.
+ *
+ * @return \Fhaculty\Graph\Graph\Vertex
  */
-function graphapi_set_node_uri(&$graph, $id, $uri) {
-  graphapi_add_node($graph, $id);
-  $graph[$id]['data']['uri'] = $uri;
+function graphapi_set_node_uri(Graph $graph, $id,$uri) {
+  $vertex = $graph->createVertex($id, TRUE);
+  $vertex->setLayoutAttribute('uri', $uri);
+  return $vertex;
 }
 
 /**
  * Sets the content of a graph node.
  *
- * @param $graph
- *   Graph array, passed by reference.
- * @param $id
+ * @param \Fhaculty\Graph\Graph $graph
+ * @param type $id
  *   Id of the node for which to set the title.
  * @param $content
  *   HTML string of body content.
  */
-function graphapi_set_node_content(&$graph, $id, $content) {
-  graphapi_add_node($graph, $id);
-  $graph[$id]['data']['content'] = $content;
+function graphapi_set_node_content(Graph $graph, $id, $content) {
+  $vertex = $graph->createVertex($id, TRUE);
+  $vertex->setLayoutAttribute('content', $content);
 }
 
 /**
  * Adds a directed edge to the graph.
  *
- * @param $graph
- *   Graph array, passed by reference.
+ * @param \Fhaculty\Graph\Graph $graph
  * @param $from_id
  *   Id of the source graph node for the edge.
  * @param $to_id
  *   Id of the target graph not for the edge.
+ * @return EdgeDirected
  */
-function graphapi_add_link(&$graph, $from_id, $to_id) {
+function graphapi_add_link(Graph $graph, $from_id, $to_id) {
   graphapi_add_node($graph, $from_id);
   graphapi_add_node($graph, $to_id);
-  if (!isset($graph[$from_id]['edges'][$to_id])) {
-    $graph[$from_id]['edges'][$to_id] = array();
-  }
+  $to = $graph->getVertex($to_id);
+  return $graph->getVertex($from_id)->createEdgeTo($to);
 }
 
 /**
  * Adds a title to an existing edge in the graph.
  *
- * @param $graph
- *   Graph array, passed by reference.
- * @param $from_id
- *   Id of the source graph node for the edge.
- * @param $to_id
- *   Id of the target graph not for the edge.
+ * @param \Fhaculty\Graph\Edge\Base $edge
  * @param $title
  *   Title string.
  */
-function graphapi_set_link_title(&$graph, $from_id, $to_id, $title) {
-  graphapi_add_link($graph, $from_id, $to_id);
-  $graph[$from_id]['edges'][$to_id]['title'] = $title;
+function graphapi_set_link_title(\Fhaculty\Graph\Edge\Base $edge, $title) {
+  $edge->setLayoutAttribute('title', $title);
 }
 
 /**
- * Adds data to a graph node.
+ * Adds data to a graph link.
  *
- * @param $graph
- *   Graph array, passed by reference.
- * @param $from_id
- *   Id of the source graph node for the edge.
- * @param $to_id
- *   Id of the target graph not for the edge.
- * @param $data
+ * @param \Fhaculty\Graph\Vertex $edge
+ * @param array $data
  *   Graph node data associative array, containing:
  *   - 'title': title of the graph edge.
  */
-function graphapi_set_link_data(&$graph, $from_id, $to_id, $data) {
-  graphapi_add_link($graph, $from_id, $to_id);
-  $graph[$from_id]['edges'][$to_id]['data'] = $data;
+function graphapi_set_link_data(\Fhaculty\Graph\Edge\Base $edge, array $data) {
+  $edge->setLayoutAttribute('data', $data);
 }
 
 /**
@@ -340,38 +335,31 @@ function graphapi_theme() {
 }
 
 /**
- * Dispatch the graph to the correct engine
+ * Dispatch the graph to the correct engine.
+ *
+ * If no engine is given we fallback to the first available.
  *
  * @param type $vars
  * @return type
  */
 function theme_graphapi_dispatch($vars) {
   $engines = graphapi_views_formats();
-  $engine = '';
-  if (isset($vars['config']['engine'])) {
-    $engine = $vars['config']['engine'];
+  // No need to render when no engines available
+  if (empty($engines)) {
+    graphapi_no_engines_found();
+    return "";
   }
-  if (isset($engines[$engine])) {
-    $theme = $engine . "_graphapi";
-    return theme($theme, $vars);
+  $engine = $vars['config']['engine'];
+  // Fall back to first engine if necessary.
+  $engine = isset($engines[$engine]) ? $engine : key($engines);
+  $theme = $engine . "_graphapi";
+  if (!isset($vars['config']['id'])) {
+    $vars['config']['id'] = $engine . '-' . time();
   }
-  else {
-    if (!empty($engine)) {
-      //Uncomment to bypass
-      //$r = '';
-      // Comment to ignore dumper
-      $r = graphapi_direct_dump($vars['graph']);
-
-      return t("Graph API render engine !engine not found.", array('!engine' => $engine)) . $r;
-    }
-    else {
-      graphapi_no_engine_founds();
-      return "";
-    }
-  }
+  return theme($theme, $vars);
 }
 
-function graphapi_no_engine_founds() {
+function graphapi_no_engines_found() {
   drupal_set_message(t('No Graph API render engines enabled. Check your !modules_page for a Graph API render engine.', array('!modules_page' => l(t('modules page'), 'admin/modules'))), 'warning');
 }
 
@@ -701,7 +689,6 @@ function _graphapi_dump_to_properties($options, $recurse = FALSE) {
 }
 
 function graphapi_direct_dump($g) {
-  graphapi_loader();
   $graph = new Fhaculty\Graph\Graph();
   foreach ($g as $from_id => $from_data) {
     $v = $graph->createVertex($from_id);
@@ -720,7 +707,6 @@ function graphapi_direct_dump($g) {
       foreach ($mapping as $key => $target) {
         if (isset($data[$key])) {
           $v->setLayoutAttribute($target, $data[$key]);
-          unset($data[$key]);
         }
       }
       $v->setLayoutAttribute('shape', 'record');
@@ -748,8 +734,8 @@ function graphapi_direct_dump($g) {
   $executable = '/usr/local/bin/dot';
   $gviz = new GraphViz($graph);
   $gviz->setExecutable($executable);
-  $gviz->setLayoutBy(GraphViz::LAYOUT_GRAPH, 'rankdir', 'TB');
-  $gviz->setLayoutBy(GraphViz::LAYOUT_VERTEX, 'style', 'filled');
+  $gviz->setLayouts(GraphViz::LAYOUT_GRAPH, 'rankdir', 'TB');
+  $gviz->setLayouts(GraphViz::LAYOUT_VERTEX, 'style', 'filled');
   $gviz->setFormat('svg');
   $result = '';
   try {

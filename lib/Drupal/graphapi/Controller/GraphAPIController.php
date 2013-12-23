@@ -83,10 +83,24 @@ class GraphAPIController extends ControllerBase {
   }
 
   public function demoGraph() {
-    $graph = Graph();
-    graphapi_add_link($graph, 'graphapi_demo', 'graphapi');
+    $graph = graphapi_new_graph();
 
-    graphapi_add_link($graph, 'thejit', 'thejit_spacetree');
+    graphapi_set_node_content($graph, 'graphapi', $this->demoModuleContent('graphapi'));
+    graphapi_set_node_uri($graph, 'graphapi', 'http://drupal.org/project/graphapi');
+
+    graphapi_set_node_content($graph, 'thejit', $this->demoModuleContent('thejit'));
+
+    graphapi_set_node_content($graph, 'views', $this->demoModuleContent('views', 'drupal'));
+    graphapi_set_node_uri($graph, 'views', 'http://drupal.org/project/drupal');
+
+    graphapi_set_node_content($graph, 'views_ui', $this->demoModuleContent('views_ui', 'drupal'));
+
+    $edge = graphapi_add_link($graph, 'graph_phyz', 'graphapi');
+    graphapi_set_link_title($edge, "Render DOM + Canvas");
+
+    $edge = graphapi_add_link($graph, 'thejit', 'thejit_spacetree');
+    graphapi_set_link_title($edge, "One of many renderings");
+
     graphapi_add_link($graph, 'thejit', 'thejit_forcedirected');
 
     graphapi_add_link($graph, 'thejit_spacetree', 'graphapi');
@@ -95,10 +109,6 @@ class GraphAPIController extends ControllerBase {
     graphapi_add_link($graph, 'graphapi', 'views');
     graphapi_add_link($graph, 'views_ui', 'views');
 
-    graphapi_set_node_content($graph, 'graphapi', $this->demoModuleContent('graphapi'));
-    graphapi_set_node_content($graph, 'thejit', $this->demoModuleContent('thejit'));
-    graphapi_set_node_content($graph, 'views', $this->demoModuleContent('views'));
-    graphapi_set_node_content($graph, 'views_ui', $this->demoModuleContent('views_ui', 'views'));
 
 //    $sub = $this->demoSubgraph();
 //    graphapi_add_sub_graph($graph, 'S', $sub);
@@ -124,9 +134,9 @@ class GraphAPIController extends ControllerBase {
       $project_id = $id;
     }
     else {
-      $text .= "$id is part of project: " . $id . '<br/>';
+      $text .= "$id is part of project: " . $project_id . '<br/>';
     }
-    $text .= 'See ' . l("$project_id", 'http://drupal.org/project/graphapi') . ' on drupal.org';
+    $text .= 'See ' . l("$project_id", 'http://drupal.org/project/' . $project_id) . ' on drupal.org';
     return $text;
   }
 
