@@ -1,23 +1,38 @@
 graphapi.overview_forms:
   path: '/admin/config/system/graphapi'
   defaults:
-    _content: '\Drupal\graphapi\Controller\GraphAPIController::functionReference'
+    _content: '\Drupal\graphapi\Controller\GraphAPIController::settings'
     _title: 'Graph API'
   requirements:
     _permission: 'administer site configuration'
 
 graphapi.engines:
-  path: '/admin/config/system/graphapi/engines'
+  path: '/admin/config/system/graphapi/formats'
   defaults:
-    _content: '\Drupal\graphapi\Controller\GraphAPIController::engines'
+    _content: '\Drupal\graphapi\Controller\GraphAPIController::formats'
     _title: 'Available engines'
   requirements:
     _permission: 'administer site configuration'
 
 graphapi.engine:
-  path: '/admin/config/system/graphapi/engines/{engine}'
+  path: '/admin/config/system/graphapi/formats/{format}'
   defaults:
-    _content: '\Drupal\graphapi\Controller\GraphAPIController::engine'
-    _title: 'Engine X'
+    _content: '\Drupal\graphapi\Controller\GraphAPIController::format'
+    _title: 'Engine $format'
+  requirements:
+    _permission: 'administer site configuration'
+
+graphapi.engine_form:
+  path: '/admin/config/system/graphapi/formats/{format}/form'
+  defaults:
+    _content: '\Drupal\graphapi\Controller\GraphAPIController::format_form'
+  requirements:
+    _permission: 'administer site configuration'
+
+graphapi.settings:
+  path: '/admin/config/system/graphapi/settings'
+  defaults:
+    _form: 'Drupal\graphapi\Form\SettingsForm'
+    _title: 'Graph API Settings'
   requirements:
     _permission: 'administer site configuration'

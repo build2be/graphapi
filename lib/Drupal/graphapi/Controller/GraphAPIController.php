@@ -15,6 +15,15 @@ use Fhaculty\Graph\Graph;
  */
 class GraphAPIController extends ControllerBase {
 
+  public function settings() {
+    $items = array(
+      l("Graph API settings", '/admin/config/system/graphapi/settings'),
+      l("Graph API formats", '/admin/config/system/graphapi/formats'),
+    );
+    return "Set the path for graphviz"
+      . theme('item_list', array('items' => $items, 'title' => "Other options"));
+  }
+
   /**
    * Returns a list of all currently defined user functions in the current
    * request lifecycle, with links their documentation.
@@ -29,26 +38,53 @@ class GraphAPIController extends ControllerBase {
     return theme('item_list', array('items' => $links));
   }
 
-  public function engines() {
-    $engines = $this->getEngines();
-    if (empty($engines)) {
-      return "No modules found.";
-    }
-    $links = array();
-    foreach ($engines as $engine => $title) {
-      $links[] = l($title, "admin/config/system/graphapi/engines/$engine");
-    }
-    return theme('item_list', array('items' => $links));
+  public function getLocalTasks() {
+    $configs = drupal_container()->get('config.storage')->listAll();
+    return print_r($configs, TRUE);
   }
 
-  public function engine($engine) {
+  public function formats() {
+    $path = "admin/config/system/graphapi/formats";
+    $engines = $this->getFormats();
+    if (empty($engines)) {
+      return "No modules found implementing Graph API Format.";
+    }
+    $rows = array();
+    foreach ($this->getFormats() as $engine => $label) {
+      $row = array(
+        $engine,
+        $label,
+      );
+      $operations = array(
+        'demo' => array(
+          'title' => 'Demo',
+          'href' => "$path/$engine",
+        ),
+        'form' => array(
+          'title' => 'Form',
+          'href' => "$path/$engine/form",
+        ),
+      );
+      $row[] = array(
+        'data' => array(
+          '#type' => 'operations',
+          '#links' => $operations,
+        ),
+      );
+      $rows[] = $row;
+    }
+    $header = array(t('Engine'), t('Description'), array('data' => t('Operations'), 'colspan' => 7));
 
-    $engines = $this->getEngines();
-    if (key_exists($engine, $engines)) {
+    return theme('table', array('header' => $header, 'rows' => $rows));
+  }
+
+  public function format($format) {
+    $formats = $this->getFormats();
+    if (key_exists($format, $formats)) {
       graphapi_loader();
       $graph = $this->demoGraph();
       $options = array(
-        'engine' => $engine,
+        'engine' => $format,
       );
       $vars = array(
         'graph' => $graph,
@@ -59,17 +95,26 @@ class GraphAPIController extends ControllerBase {
     else {
       return "Error";
     }
-    $types = _graphapi_class_services();
-    return graphapi_class_build($types, FALSE);
+  }
+
+  public function format_form($format) {
+    $formats = $this->getFormats();
+    if (key_exists($format, $formats)) {
+      drupal_set_title("Form for format $format");
+      return \Drupal::formBuilder()->getForm('graphapi_engine_form', $format);
+    }
+    else {
+      return "Error";
+    }
   }
 
   /**
    * Get all modules implementing graphapi_formats
-   * 
+   *
    * @todo: should this be protected?
    * @return type
    */
-  private function getEngines() {
+  private function getFormats() {
     // Change notice https://drupal.org/node/1894902
     $module_handler = \Drupal::moduleHandler();
     return $module_handler->invokeAll('graphapi_formats', $args = array());
@@ -77,7 +122,6 @@ class GraphAPIController extends ControllerBase {
 
   function getImplementations() {
     return array(
-      'boo',
       'graphapi_formats',
     );
   }

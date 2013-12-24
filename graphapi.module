@@ -519,6 +519,23 @@ function graphapi_global_settings_form($values) {
 }
 
 /**
+ * Return a for for the given engine.
+ *
+ * TODOs
+ * - replace engine with format as a module can deliver multiple formats
+ * - there's still no persistance of the global settings
+ *
+ * @param type $form
+ * @param type $form_state
+ * @param type $engine
+ * @return type
+ */
+function graphapi_engine_form($form, &$form_state, $engine) {
+  $values = isset($form_state['values']) ? $form_state['values'] : array();
+  return _graphapi_engine_form($engine, $values);
+}
+
+/**
  * Gathers all relevant settings for all engines
  *
  * Each engine form is a fieldset containing it's specific settings
