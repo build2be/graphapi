@@ -218,7 +218,7 @@ function graphapi_set_node_title(Graph $graph, $id, $title) {
  *
  * @return \Fhaculty\Graph\Graph\Vertex
  */
-function graphapi_set_node_uri(Graph $graph, $id,$uri) {
+function graphapi_set_node_uri(Graph $graph, $id, $uri) {
   $vertex = $graph->createVertex($id, TRUE);
   $vertex->setLayoutAttribute('uri', $uri);
   return $vertex;
