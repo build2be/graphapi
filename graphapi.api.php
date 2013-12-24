@@ -95,7 +95,7 @@ function hook_graphapi_default_settings() {
 /**
  * Example function: creates a graph of user logins by day.
  */
-function user_last_login_by_day($n = 40) {
+function graphapi_API_user_last_login_by_day($n = 40) {
   $query = db_select('users');
   $query->addField('users', 'name');
   $query->addField('users', 'uid');
@@ -115,7 +115,8 @@ function user_last_login_by_day($n = 40) {
     $day_id = 'data_' . $day;
     graphapi_set_node_title($g, $user_id, l($user->name, "user/" . $uid));
     graphapi_set_node_title($g, $day_id, "Day " . $day);
-    graphapi_set_link_data($g, $user_id, $day_id, array('color' => '#F0F'));
+    $link = graphapi_add_link($g, $user_id, $day_id);
+    graphapi_set_link_data($link, array('color' => '#F0F'));
   }
   $options = array(
     'width' => 400,
