@@ -331,6 +331,18 @@ function graphapi_theme() {
         'config' => NULL,
       ),
     ),
+    'graphapi_png_graphapi' => array(
+      'variables' => array(
+        'graph' => NULL,
+        'config' => NULL,
+      ),
+    ),
+    'graphapi_svg_graphapi' => array(
+      'variables' => array(
+        'graph' => NULL,
+        'config' => NULL,
+      ),
+    ),
   );
 }
 
@@ -410,6 +422,35 @@ function graphapi_views_api() {
     'api' => 3.0,
     'path' => drupal_get_path('module', 'graphapi') . '/views',
   );
+}
+
+function graphapi_graphapi_formats() {
+  return array(
+    'graphapi_raw_data' => "Graph API textual graphviz format.",
+    'graphapi_png' => "Graph API PNG by graphviz format.",
+    'graphapi_svg' => "Graph API SVG by graphviz format.",
+  );
+}
+
+function theme_graphapi_raw_data_graphapi($variables) {
+  $viz = new GraphViz($variables['graph']);
+  return '<xmp>' . $viz->createScript() . '</xmp>';
+}
+
+function theme_graphapi_png_graphapi($variables) {
+  $viz = new GraphViz($variables['graph']);
+  $executable = \Drupal::config('graphapi.site')->get('graphviz_path');
+  $viz->setExecutable($executable);
+  $viz->setFormat('png');
+  return '<img src="' . $viz->createImageSrc() . '" />';
+}
+
+function theme_graphapi_svg_graphapi($variables) {
+  $viz = new GraphViz($variables['graph']);
+  $executable = \Drupal::config('graphapi.site')->get('graphviz_path');
+  $viz->setExecutable($executable);
+  $viz->setFormat('svg');
+  return '<img src="' . $viz->createImageSrc() . '" />';
 }
 
 /**
