@@ -731,7 +731,7 @@ function graphapi_direct_dump($g) {
   }
 
   // TODO: make this configurable.
-  $executable = '/usr/local/bin/dot';
+  $executable = \Drupal::config('graphapi.site')->get('graphviz_path');
   $gviz = new GraphViz($graph);
   $gviz->setExecutable($executable);
   $gviz->setLayouts(GraphViz::LAYOUT_GRAPH, 'rankdir', 'TB');
