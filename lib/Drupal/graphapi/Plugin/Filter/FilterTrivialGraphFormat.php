@@ -52,7 +52,6 @@ class FilterTrivialGraphFormat extends FilterBase {
    * {@inheritdoc}
    */
   public function process($text, $langcode, $cache, $cache_id) {
-    drupal_set_message(print_r($text, TRUE));
     $this->text = $text;
 
     $this->start = strpos($this->text, FilterTrivialGraphFormat::$TGF);

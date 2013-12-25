@@ -1,5 +1,0 @@
-name = Graph API Input filters
-description = Allows for (various) input filters
-package = Input Filter
-core = 7.x
-dependencies[] = graphapi
