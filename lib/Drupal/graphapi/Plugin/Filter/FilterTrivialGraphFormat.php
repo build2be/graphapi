@@ -57,16 +57,15 @@ class FilterTrivialGraphFormat extends FilterBase {
 
     $this->start = strpos($this->text, FilterTrivialGraphFormat::$TGF);
     while ($this->start !== FALSE) {
-      $engine = $this->settings['formats'];
       if ($this->parse()) {
-        $this->replace($this->text, $engine);
+        $this->replace($this->settings['formats']);
         $this->meta = array();
         $this->graph = NULL;
       }
       else {
         break;
       }
-      $pos = strpos($text, FilterTrivialGraphFormat::$TGF);
+      $this->start = strpos($this->text, FilterTrivialGraphFormat::$TGF);
     }
     return $this->text;
   }
@@ -122,7 +121,7 @@ class FilterTrivialGraphFormat extends FilterBase {
     return FALSE;
   }
 
-  function replace(&$text, $engine) {
+  function replace($engine) {
     if ($this->start != $this->end) {
       $config = array(
         'engine' => $engine,
@@ -132,7 +131,7 @@ class FilterTrivialGraphFormat extends FilterBase {
         $config = array_merge($config, $this->meta);
       }
       $g = theme('graphapi_dispatch', array('graph' => $this->graph, 'config' => $config));
-      $text = substr($text, 0, $this->start) . $g . substr($text, $this->end + 1);
+      $this->text = substr($this->text, 0, $this->start) . $g . substr($this->text, $this->end + 1);
     }
   }
 
