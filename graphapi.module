@@ -41,25 +41,6 @@ function graphapi_menu() {
       'type' => MENU_DEFAULT_LOCAL_TASK,
     ),
   );
-
-  $engines = array('graphapi' => 'Graph API') + graphapi_get_engines();
-
-  // Local tasks CR : https://drupal.org/node/2044515
-  $default = TRUE;
-  $weight = 0;
-  $engines = array("X" => "array()");
-  foreach ($engines as $engine => $data) {
-    $items["admin/config/system/graphapi/engines/$engine"] = array(
-      'title' => $data,
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('graphapi_engines_form', $engine),
-      'access arguments' => array('administer site configuration'),
-      'type' => $default ? MENU_DEFAULT_LOCAL_TASK : MENU_LOCAL_TASK,
-      'weight' => $weight++,
-    );
-    $default = FALSE;
-  }
-
   return $items;
 }
 
@@ -325,7 +306,7 @@ function graphapi_theme() {
         'config' => NULL,
       ),
     ),
-    'graphapi_raw_data_graphapi' => array(
+    'graphapi_graphviz_script_graphapi' => array(
       'variables' => array(
         'graph' => NULL,
         'config' => NULL,
@@ -426,19 +407,23 @@ function graphapi_views_api() {
 
 function graphapi_graphapi_formats() {
   return array(
-    'graphapi_raw_data' => "Graph API textual graphviz format.",
+    'graphapi_graphviz_script' => "Graph API graphviz script file.",
     'graphapi_png' => "Graph API PNG by graphviz format.",
     'graphapi_svg' => "Graph API SVG by graphviz format.",
   );
 }
 
-function theme_graphapi_raw_data_graphapi($variables) {
-  $viz = new GraphViz($variables['graph']);
+function theme_graphapi_graphviz_script_graphapi($variables) {
+  $graph = $variables['graph'];
+  _graphapi_preprocess_dot($graph);
+  $viz = new GraphViz($graph);
   return '<xmp>' . $viz->createScript() . '</xmp>';
 }
 
 function theme_graphapi_png_graphapi($variables) {
-  $viz = new GraphViz($variables['graph']);
+  $graph = $variables['graph'];
+  _graphapi_preprocess_dot($graph);
+  $viz = new GraphViz($graph);
   $executable = \Drupal::config('graphapi.site')->get('graphviz_path');
   $viz->setExecutable($executable);
   $viz->setFormat('png');
@@ -446,11 +431,42 @@ function theme_graphapi_png_graphapi($variables) {
 }
 
 function theme_graphapi_svg_graphapi($variables) {
-  $viz = new GraphViz($variables['graph']);
+  $graph = $variables['graph'];
+  _graphapi_preprocess_dot($graph);
+  $viz = new GraphViz($graph);
   $executable = \Drupal::config('graphapi.site')->get('graphviz_path');
   $viz->setExecutable($executable);
   $viz->setFormat('svg');
   return '<img src="' . $viz->createImageSrc() . '" />';
+}
+
+function _graphapi_preprocess_dot(Graph $graph) {
+  $mapping = array(
+    'title' => 'label',
+    'uri' => 'URL',
+    // TODO 'content' => should be mapped to a note vertex
+  );
+  foreach ($graph->getVertices() as $vertex) {
+    $layout = $vertex->getLayout();
+    foreach ($layout as $from => $value) {
+      if (isset($mapping[$from])) {
+        $layout[$from] = NULL;
+        $layout[$mapping[$from]] = $value;
+      }
+    }
+    $vertex->setLayout($layout);
+
+  }
+  foreach ($graph->getEdges() as $edge) {
+    $layout = $edge->getLayout();
+    foreach ($layout as $from => $value) {
+      if (isset($mapping[$from])) {
+        $layout[$from] = NULL;
+        $layout[$mapping[$from]] = $value;
+      }
+    }
+    $edge->setLayout($layout);
+  }
 }
 
 /**
