@@ -3,6 +3,8 @@
 use Fhaculty\Graph\Graph;
 use Fhaculty\Graph\GraphViz;
 use Fhaculty\Graph\Vertex;
+use Fhaculty\Graph\Uml\ClassDiagramBuilder;
+
 
 /**
  * @file
@@ -444,7 +446,7 @@ function _graphapi_preprocess_dot(Graph $graph) {
   $mapping = array(
     'title' => 'label',
     'uri' => 'URL',
-    // TODO 'content' => should be mapped to a note vertex
+      // TODO 'content' => should be mapped to a note vertex
   );
   foreach ($graph->getVertices() as $vertex) {
     $layout = $vertex->getLayout();
@@ -455,7 +457,6 @@ function _graphapi_preprocess_dot(Graph $graph) {
       }
     }
     $vertex->setLayout($layout);
-
   }
   foreach ($graph->getEdges() as $edge) {
     $layout = $edge->getLayout();
@@ -884,4 +885,51 @@ function graphapi_render($graph, $options = array()) {
     $result .= '<xmp>' . $gviz->createScript() . '</xmp>';
   }
   return $result;
+}
+
+function graphapi_uml_class_diagram(array $classes = array(), array $config = array()) {
+  $options = array(
+    'script' => $config['generate-script'],
+    'render' => $config['generate-image'],
+  );
+  unset($config['generate-script']);
+  unset($config['generate-image']);
+
+  graphapi_loader();
+  //_graphapi_class_services();
+//  $cid = _graphapi_class_get_cid($classes, $script_only);
+//  if ($o = _graphapi_class_get_cache($cid)) {
+//    return $o->data;
+//  }
+  $result = array();
+
+  $g = new Graph();
+  $loader = new ClassDiagramBuilder($g);
+  foreach($config as $option => $value) {
+    $loader->setOption($option, $value);
+  }
+  try {
+    foreach ($classes as $class) {
+      $loader->createVertexClass($class);
+    }
+  }
+  catch (Exception $exc) {
+    return $exc->getMessage();
+  }
+
+  foreach ($loader->createGraphsComponents() as $graph) {
+    $options = array(
+      'graphapi' => $options,
+    );
+    $result[] = graphapi_render($graph, $options);
+  }
+  $total = join("<hr />", $result);
+  //_graphapi_class_cache_set($cid, $total);
+  return $total;
+}
+
+function graphapi_uml_class_diagram_options() {
+  graphapi_loader();
+  return array();
+  //return ClassDiagramBuilder::$options_data;
 }

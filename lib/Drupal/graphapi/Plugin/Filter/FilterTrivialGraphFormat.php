@@ -161,8 +161,8 @@ class FilterTrivialGraphFormat extends FilterBase {
    *   Contains '[tgf ...'
    */
   function parseMeta($meta) {
-    // TODO: remove ugly escaping
     $result = array();
+    // The start is done by a [ which must be escaped for the regex: \\[
     $meta = preg_replace("/\\" . FilterTrivialGraphFormat::$TGF . "/", '', $meta, 1);
     $meta = trim($meta);
     $metas = preg_split("/ /", $meta);

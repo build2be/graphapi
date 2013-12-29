@@ -15,7 +15,7 @@ use Drupal\filter\Plugin\FilterBase;
  * @Filter(
  *   id = "filter_classdiagram",
  *   module = "graphapi",
- *   title = @Translation("y UML Format"),
+ *   title = @Translation("UML Class Diagram"),
  *   type = FILTER_TYPE_TRANSFORM_IRREVERSIBLE,
  *   weight = -10
  * )
@@ -61,8 +61,15 @@ class FilterClassDiagram extends FilterBase {
    */
   public function tips($long = FALSE) {
     if ($long) {
+      $items = array();
+      foreach ($this->getMetas() as $key => $data) {
+        $items[] = $data['example'] . ' ' . $data['description'];
+      }
+      $metas = theme('item_list', array('items' => $items, 'title' => 'Optional configurations are'));
+
       return 'Generate a UML Class Diagram by adding a list of \\ started package + class paths <br/>'
-          . '<code>[classdiagram<br/>\Drupal\graphapi\Plugin\Filter\FilterClassDiagram</code><br/>'
+          . '<code>[classdiagram<br/>\Drupal\graphapi\Plugin\Filter\FilterClassDiagram<br/>]</code><br/>'
+          . $metas
       ;
     }
     else {
@@ -94,12 +101,12 @@ class FilterClassDiagram extends FilterBase {
           // Wrong seperator
           if (strpos($name, '/') !== FALSE) {
             $name = strtr($name, '/', '\\');
-            $m .= ' toggled / into \\';
+            $m .= ' toggling / into \\';
           }
           // Missing inital \
           if ('\\' != $name[0]) {
             $name = '\\' . $name;
-            $m .= ' prepended a  \\';
+            $m .= ' prepending a \\';
           }
           if ($id !== $name) {
             drupal_set_message("We changed your input ID from $id into $name by" . $m);
@@ -115,7 +122,7 @@ class FilterClassDiagram extends FilterBase {
 
   function replace() {
     if ($this->start != $this->end) {
-      $diagram = graphapi_class_build($this->names);
+      $diagram = graphapi_uml_class_diagram($this->names, $this->meta);
       $this->text = substr($this->text, 0, $this->start) . $diagram . substr($this->text, $this->end + 1);
     }
   }
@@ -127,20 +134,52 @@ class FilterClassDiagram extends FilterBase {
    *   Contains '[tgf ...'
    */
   function parseMeta($meta) {
-    // TODO: remove ugly escaping
+    $defaults = array();
+    foreach ($this->getMetas() as $key => $data) {
+      $defaults[$key] = $data['default'];
+    }
     $result = array();
+    // The start is done by a [ which must be escaped for the regex: \\[
     $meta = preg_replace("/\\" . FilterClassDiagram::$START_TOKEN . "/", '', $meta, 1);
     $meta = trim($meta);
     $metas = preg_split("/ /", $meta);
     foreach ($metas as $key_value) {
       if (strpos($key_value, ':') !== FALSE) {
         list($key, $value) = preg_split('/:/', $key_value);
-        if ($key == 'engine') {
-          $result['engine'] = $value;
+        if (isset($defaults[$key])) {
+          $result[$key] = $value;
         }
       }
     }
-    $this->meta = $result;
+    $this->meta = $result + $defaults;
+  }
+
+  function getMetas() {
+    $meta = graphapi_uml_class_diagram_options();
+
+    $meta['generate-script'] = array(
+      'description' => 'Adds the script for the Class Diagram',
+      'default' => FALSE,
+    );
+    $meta['generate-image'] = array(
+      'description' => 'Adds the image for the Class Diagram',
+      'default' => TRUE,
+    );
+
+    foreach ($meta as $key => &$data) {
+      if (is_bool($data['default'])) {
+        if ($data['default']) {
+          $data['example'] = "$key:0 or 1 (default)";
+        }
+        else {
+          $data['example'] = "$key:1 or 0 (default)";
+        }
+      }
+      else {
+        $data['example'] = "$key:" . $data['default'];
+      }
+    }
+    return $meta;
   }
 
 }
