@@ -73,6 +73,10 @@ class FilterTrivialGraphFormat extends FilterBase {
    * {@inheritdoc}
    */
   public function tips($long = FALSE) {
+    return self::help($long);
+  }
+
+  static function help($long = FALSE) {
     if ($long) {
       return 'With Trivial Graph Format you can create inline graphs.<br/>'
           . '<code>[tgf<br/>a Title a<br/>b Title b<br/>#<br/>a b Connecting a to b<br/>]</code><br/>'
@@ -82,6 +86,7 @@ class FilterTrivialGraphFormat extends FilterBase {
     else {
       return "Use trivial graph format to generate an inline graph.";
     }
+
   }
 
   function parse() {

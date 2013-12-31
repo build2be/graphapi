@@ -60,20 +60,24 @@ class FilterClassDiagram extends FilterBase {
    * {@inheritdoc}
    */
   public function tips($long = FALSE) {
+    return self::help($long);
+  }
+
+  static function help($long = FALSE) {
     if ($long) {
       $items = array();
-      foreach ($this->getMetas() as $key => $data) {
+      foreach (self::getMetas() as $key => $data) {
         $items[] = $data['example'] . ' ' . $data['description'];
       }
       $metas = theme('item_list', array('items' => $items, 'title' => 'Optional configurations are'));
 
-      return 'Generate a UML Class Diagram by adding a list of \\ started package + class paths <br/>'
+      return 'Generate an UML Class Diagram by adding a list of \\ started package + class paths <br/>'
           . '<code>[classdiagram<br/>\Drupal\graphapi\Plugin\Filter\FilterClassDiagram<br/>]</code><br/>'
           . $metas
       ;
     }
     else {
-      return 'Generate a UML Class Diagram';
+      return 'Generate an UML Class Diagram';
     }
   }
 
@@ -135,7 +139,7 @@ class FilterClassDiagram extends FilterBase {
    */
   function parseMeta($meta) {
     $defaults = array();
-    foreach ($this->getMetas() as $key => $data) {
+    foreach (self::getMetas() as $key => $data) {
       $defaults[$key] = $data['default'];
     }
     $result = array();
@@ -154,9 +158,32 @@ class FilterClassDiagram extends FilterBase {
     $this->meta = $result + $defaults;
   }
 
-  function getMetas() {
-    $meta = graphapi_uml_class_diagram_options();
+  static function getMetas() {
+    // Options available for ClassDiagramBuilder
+    $meta = array(
+      'add-parents' => array(
+        'default' => true,
+        'description' => 'whether to show add parent classes or interfaces',
+      ),
+      'only-self' => array(
+        'default' => true,
+        'description' => 'whether to only show methods/properties that are actually defined in this class (and not those merely inherited from base)',
+      ),
+      'show-private' => array(
+        'default' => false,
+        'description' => 'whether to also show private methods/properties',
+      ),
+      'show-protected' => array(
+        'default' => true,
+        'description' => 'whether to also show protected methods/properties',
+      ),
+      'show-constants' => array(
+        'default' => true,
+        'description' => 'whether to show class constants as readonly static variables (or just omit them completely)',
+      ),
+    );
 
+    // Our input filter options.
     $meta['generate-script'] = array(
       'description' => 'Adds the script for the Class Diagram',
       'default' => FALSE,

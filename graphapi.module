@@ -4,7 +4,8 @@ use Fhaculty\Graph\Graph;
 use Fhaculty\Graph\GraphViz;
 use Fhaculty\Graph\Vertex;
 use Fhaculty\Graph\Uml\ClassDiagramBuilder;
-
+use Drupal\graphapi\Plugin\Filter\FilterTrivialGraphFormat;
+use Drupal\graphapi\Plugin\Filter\FilterClassDiagram;
 
 /**
  * @file
@@ -905,7 +906,7 @@ function graphapi_uml_class_diagram(array $classes = array(), array $config = ar
 
   $g = new Graph();
   $loader = new ClassDiagramBuilder($g);
-  foreach($config as $option => $value) {
+  foreach ($config as $option => $value) {
     $loader->setOption($option, $value);
   }
   try {
@@ -928,8 +929,21 @@ function graphapi_uml_class_diagram(array $classes = array(), array $config = ar
   return $total;
 }
 
-function graphapi_uml_class_diagram_options() {
-  graphapi_loader();
-  return array();
-  //return ClassDiagramBuilder::$options_data;
+/**
+ * Implements hook_help().
+ */
+function graphapi_help($path, $arg) {
+  if ($path == 'admin/help#graphapi') {
+    $output = '';
+    $output .= '<h3>' . t('About') . '</h3>';
+    $output .= '<p>' . t('The Graph API module interfaces and creates Graphs') . '</p>';
+    $output .= '<h3>' . t('Uses') . '</h3>';
+    $output .= '<dl>';
+    $output .= '<dt>' . t('Using input filter Trivial Graph Format') . '</dt>';
+    $output .= '<dd>' . FilterTrivialGraphFormat::help(TRUE) . '</dd>';
+    $output .= '<dt>' . t('Using input filter Class Diagram') . '</dt>';
+    $output .= '<dd>' . FilterClassDiagram::help(TRUE) . '</dd>';
+    $output .= '</dl>';
+    return $output;
+  }
 }
