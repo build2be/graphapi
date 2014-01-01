@@ -444,6 +444,12 @@ function theme_graphapi_svg_graphapi($variables) {
 }
 
 function _graphapi_preprocess_dot(Graph $graph) {
+  // http://www.graphviz.org/doc/info/shapes.html#html
+  $html = array(
+    'label',
+    'headtail',
+    'taillabel'
+  );
   $mapping = array(
     'title' => 'label',
     'uri' => 'URL',
@@ -455,6 +461,16 @@ function _graphapi_preprocess_dot(Graph $graph) {
       if (isset($mapping[$from])) {
         $layout[$from] = NULL;
         $layout[$mapping[$from]] = $value;
+      }
+    }
+    foreach ($html as $attr) {
+      if (isset($layout[$attr])) {
+        $value = $layout[$attr];
+        $insecure_value = html_entity_decode($value);
+        if (preg_match("/^\<\<.*\>\>$/", $insecure_value)) {
+          $value = GraphViz::raw($insecure_value);
+        }
+        $layout[$attr] = $value;
       }
     }
     $vertex->setLayout($layout);
