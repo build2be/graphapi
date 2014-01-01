@@ -1,13 +1,23 @@
+README.txt
 
-This is an API for rendering (Directed) Graphs onto the HTML5 canvas.
+This API for managing Graph data and rendering these by internal or external engines.
 
-You could enable the graphapi_devel module to see it in action on the module page
+This Drupal 8 needs
 
-This is a very course version missing a lot of features.
-- graphapi.api.php
-- more examples
-- theme functions for node, user, comment
-- ?
+- sites/all/libraries/graph
+  version: master
+  taken from https://github.com/clue/graph
 
-Please feel free to submit feature request and bug reports
+wget https://github.com/clue/graph/archive/master.zip
+unzip master.zip
+rm master.zip
+mv graph-master graph
 
+- sites/all/libraries/graph-uml
+  version: master
+  taken from https://github.com/clue/graph-uml
+
+wget https://github.com/clue/graph-uml/archive/master.zip
+unzip master.zip
+rm master.zip
+mv graph-master graph
