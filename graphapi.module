@@ -881,17 +881,11 @@ function graphapi_render($graph, $options = array()) {
   }
   $graphapi_options += $graphapi_defaults;
 
-  if (isset($options[GraphViz::LAYOUT_GRAPH]) && isset($options[GraphViz::LAYOUT_GRAPH]['rankdir'])) {
-    ;
-  }
-  else {
-    $options[GraphViz::LAYOUT_GRAPH]['rankdir'] = 'BT';
-  }
   $executable = \Drupal::config('graphapi.site')->get('graphviz_path');
 
   $graphviz = new GraphViz($graph);
   $graphviz->setExecutable($executable);
-  //$gviz->setLayout($options[GraphViz::LAYOUT_GRAPH]);
+  // @todo: add options to GraphViz
   $graphviz->setFormat('svg');
   $result = '';
   try {
@@ -939,11 +933,11 @@ function graphapi_uml_class_diagram(array $classes = array(), array $config = ar
     return $exc->getMessage();
   }
 
-  $options = array(
+  $render_options = array(
     'graphapi' => $options,
   );
   foreach ($loader->createGraphsComponents() as $graph) {
-    $result[] = graphapi_render($graph, $options);
+    $result[] = graphapi_render($graph, $render_options);
   }
   $total = join("<hr />", $result);
   //_graphapi_class_cache_set($cid, $total);
