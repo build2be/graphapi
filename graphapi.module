@@ -865,6 +865,13 @@ function graphapi_loader() {
 }
 
 function graphapi_render($graph, $options = array()) {
+  graphapi_loader();
+
+  $graphapi_defaults = array(
+    'render' => TRUE,
+    'script' => TRUE,
+  );
+
   if (isset($options['graphapi'])) {
     $graphapi_options = $options['graphapi'];
     unset($options['graphapi']);
@@ -872,39 +879,38 @@ function graphapi_render($graph, $options = array()) {
   else {
     $graphapi_options = array();
   }
-  $graphapi_options += array(
-    'render' => TRUE,
-    'script' => TRUE,
-  );
+  $graphapi_options += $graphapi_defaults;
+
   if (isset($options[GraphViz::LAYOUT_GRAPH]) && isset($options[GraphViz::LAYOUT_GRAPH]['rankdir'])) {
     ;
   }
   else {
     $options[GraphViz::LAYOUT_GRAPH]['rankdir'] = 'BT';
   }
+  $executable = \Drupal::config('graphapi.site')->get('graphviz_path');
 
-  graphapi_loader();
-  $executable = '/usr/local/bin/dot';
-  $gviz = new GraphViz($graph);
-  $gviz->setExecutable($executable);
+  $graphviz = new GraphViz($graph);
+  $graphviz->setExecutable($executable);
   //$gviz->setLayout($options[GraphViz::LAYOUT_GRAPH]);
-  $gviz->setFormat('svg');
+  $graphviz->setFormat('svg');
   $result = '';
   try {
     if ($graphapi_options['render']) {
-      $result = $gviz->createImageHtml();
+      $result = _graphapi_with_attributes($graphviz);
     }
   }
   catch (Exception $exc) {
     $result = $exc->getMessage();
   }
   if ($graphapi_options['script']) {
-    $result .= '<xmp>' . $gviz->createScript() . '</xmp>';
+    $result .= '<xmp>' . $graphviz->createScript() . '</xmp>';
   }
   return $result;
 }
 
 function graphapi_uml_class_diagram(array $classes = array(), array $config = array()) {
+  graphapi_loader();
+
   $options = array(
     'script' => $config['generate-script'],
     'render' => $config['generate-image'],
@@ -912,7 +918,6 @@ function graphapi_uml_class_diagram(array $classes = array(), array $config = ar
   unset($config['generate-script']);
   unset($config['generate-image']);
 
-  graphapi_loader();
   //_graphapi_class_services();
 //  $cid = _graphapi_class_get_cid($classes, $script_only);
 //  if ($o = _graphapi_class_get_cache($cid)) {
@@ -934,10 +939,10 @@ function graphapi_uml_class_diagram(array $classes = array(), array $config = ar
     return $exc->getMessage();
   }
 
+  $options = array(
+    'graphapi' => $options,
+  );
   foreach ($loader->createGraphsComponents() as $graph) {
-    $options = array(
-      'graphapi' => $options,
-    );
     $result[] = graphapi_render($graph, $options);
   }
   $total = join("<hr />", $result);
