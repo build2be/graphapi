@@ -890,7 +890,7 @@ function graphapi_render($graph, $options = array()) {
   $result = '';
   try {
     if ($graphapi_options['render']) {
-      $result = _graphapi_with_attributes($graphviz);
+      $result = $graphviz->createImageHtml();
     }
   }
   catch (Exception $exc) {
