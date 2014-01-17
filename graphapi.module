@@ -860,8 +860,10 @@ function graphapi_loader() {
   // Values copied from library composer.json
   //$loader->addPrefix(NULL, DRUPAL_ROOT . '/sites/all/libraries/graph/lib');
 
-  $loader->add('Fhaculty', DRUPAL_ROOT . '/sites/all/libraries/graph/lib');
-  $loader->add('Fhaculty', DRUPAL_ROOT . '/sites/all/libraries/graph-uml/src', TRUE);
+  $loader->add('Fhaculty', __DIR__ . '/vendor/clue/graph/lib');
+  $loader->add('Fhaculty', __DIR__ . '/vendor/clue/graph-uml/src', TRUE);
+
+  $loader->add('Symfony', __DIR__ . '/vendor/symfony/finder', TRUE);
 }
 
 function graphapi_render($graph, $options = array()) {

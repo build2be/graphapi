@@ -5,5 +5,3 @@ package : Development
 core : 8.x
 dependencies:
   - graphapi
-tags:
-  - developer

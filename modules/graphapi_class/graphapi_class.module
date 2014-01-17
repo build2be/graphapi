@@ -3,6 +3,7 @@
 use Fhaculty\Graph\Uml\ClassDiagramBuilder;
 use Fhaculty\Graph\GraphViz;
 use Fhaculty\Graph\Graph;
+use Symfony\Component\Finder\Finder;
 
 /**
  * Implements hook_menu().
@@ -89,13 +90,13 @@ function graphapi_class_loader() {
   graphapi_loader();
 
   class graphapi_entity_view extends Drupal\views\Entity\View {
-
+    
   }
 
   ;
 
   class graphapi_entity_user extends Drupal\user\Entity\User {
-
+    
   }
 
   ;
@@ -125,25 +126,26 @@ function graphapi_class_loader() {
   if (module_exists('simpletest')) {
 
     class graphapi_class_A extends Drupal\simpletest\UnitTestBase {
-
+      
     }
 
     new graphapi_class_A();
 
     class graphapi_class_B extends Drupal\simpletest\DrupalUnitTestBase {
-
+      
     }
 
     new graphapi_class_B();
   }
 }
 
-function _graphapi_class_get_cid(array $classes, $script_only) {
+function _graphapi_class_get_cid(array $classes) {
+  // Make unique entries
   $classes = array_flip($classes);
   $classes = array_keys($classes);
+  // Sort for hash
   asort($classes);
   $cid = __FUNCTION__ . '-' . join("-", $classes);
-  $cid .= ($script_only ? '-1' : '-0');
   $cid = md5($cid);
   return $cid;
 }
@@ -177,10 +179,10 @@ function _graphapi_class_services() {
  * @param boolean $script_only
  * @return type
  */
-function graphapi_class_build(array $classes = array(), $script_only = FALSE) {
+function graphapi_class_build(array $classes = array()) {
   graphapi_loader();
-  _graphapi_class_services();
-  $cid = _graphapi_class_get_cid($classes, $script_only);
+  //_graphapi_class_services();
+  $cid = _graphapi_class_get_cid($classes);
   if ($o = _graphapi_class_get_cache($cid)) {
     return $o->data;
   }
@@ -204,39 +206,45 @@ function graphapi_class_build(array $classes = array(), $script_only = FALSE) {
   foreach ($loader->createGraphsComponents() as $graph) {
     $options = array(
       'graphapi' => array(
-        'script' => $script_only == TRUE,
+        'script' => FALSE,
         'render' => TRUE,
       )
     );
     $result[] = graphapi_render($graph, $options);
   }
   $result = join("<hr />", $result);
-  _graphapi_class_cache_set($cid, $result);
+
+//  _graphapi_class_cache_set($cid, $result);
   return $result;
 }
 
 function graphapi_class_cron() {
   $last_run = _graphapi_class_get_cache(__FUNCTION__);
   // Only generate every hour
-  if ($last_run || $last_run->data > 3600 + time()) {
+  if ($last_run && $last_run->data + 3600 > time()) {
     return;
   }
   _graphapi_class_cache_set(__FUNCTION__, time());
+  _graphapi_class_generate_run();
+}
+
+function _graphapi_class_generate_run() {
+  graphapi_loader();
   $queue = Drupal::queue('graphapi_class_generator');
-  $names = get_declared_classes();
-  foreach ($names as $name) {
-    for ($script_only = 0; $script_only < 2; $script_only++) {
-      $cid = _graphapi_class_get_cid(array($name), $script_only > 0);
-      $cached_item = _graphapi_class_get_cache($cid);
-      if ($cached_item === FALSE) {
-        // Only when not cached already
-        $graph = array(
-          'name' => $name,
-          'script_only' => $script_only,
-        );
-        watchdog('graphapi_class', 'Queued: ' . $name);
-        $queue->createItem($graph);
-      }
+  $classes = graphapi_classes_get_all();
+  foreach ($classes as $path => $file) {
+    $class = str_replace('/', '\\', $file);
+    $class = str_replace('.php', '', $class);
+    $cid = _graphapi_class_get_cid(array($class));
+    $cached_item = _graphapi_class_get_cache($cid);
+    if ($cached_item === FALSE) {
+      // Only when not cached already
+      $graph = array(
+        'class' => $class,
+        'path' => $path,
+      );
+      watchdog('graphapi_class', 'Queued: ' . $class);
+      $queue->createItem($graph);
     }
   }
 }
@@ -259,8 +267,77 @@ function graphapi_class_queue_info() {
  * Queue worker callback.
  */
 function graphapi_class_generator_worker($item) {
-  $name = $item['name'];
-  $script_only = $item['script_only'];
-  watchdog('graphapi_class', 'Processing: ' . $name . " " . $script_only);
-  graphapi_class_build(array($name), $script_only);
+  $class = $item['class'];
+  $path = 'public://' . $item['path'];
+
+  watchdog('graphapi_class', 'Processing: ' . $class . " for " . $path);
+  $result = graphapi_class_build(array($class));
+  
+  $cid = _graphapi_class_get_cid(array($class));
+  _graphapi_class_cache_set($cid, $result);
+
+  @drupal_mkdir(dirname($path), null, TRUE);
+  file_put_contents($path, $result);
+}
+
+function graphapi_classes_get_all() {
+  $loader = drupal_classloader();
+  // Directories to look for
+  $prefixes = $loader->getPrefixes();
+  $result = '';
+
+  $all = array();
+  foreach ($prefixes as $prefix => $dirs) {
+    foreach ($dirs as $dir) {
+      $result.= "$prefix : $dir \n";
+      if (strpos($prefix, 'Drupal') !== 0) {
+        continue;
+      }
+      if ($prefix == 'Drupal\Driver') {
+        continue;
+      }
+      if ($prefix == 'Drupal\bartik') {
+        continue;
+      }
+      if ($prefix == 'Drupal\seven') {
+        continue;
+      }
+      if ($prefix == 'Drupal\bartik') {
+        continue;
+      }
+      $all[] = $dir;
+    }
+  }
+
+  // @see http://symfony.com/doc/current/components/finder.html
+  $class_finder = new Finder();
+
+  $root = $_SERVER["DOCUMENT_ROOT"];
+  $classes = array();
+  $class_finder->files()->name('*.php')->in($all);
+//  $num = 10;
+  foreach ($class_finder as $file) {
+//    if ($num-- < 0) {
+//      break;
+//    }
+    try {
+      // Print the absolute path
+      //print $file->getRealpath() . "\n";
+      // Print the relative path to the file, omitting the filename
+      //print $file->getRelativePath() . "\n";
+      // Print the relative path to the file
+      //print $file->getRelativePathname() . "\n";
+      $class = $file->getRelativePathname();
+      $path = str_replace($root, '', $file->getRealPath());
+      //$path = str_replace($class, '', $path);
+      // TODO: path from site root.
+      $classes[$path] = $class;
+
+      //break;
+    }
+    catch (Exception $exc) {
+      echo $exc->getTraceAsString();
+    }
+  }
+  return $classes;
 }
