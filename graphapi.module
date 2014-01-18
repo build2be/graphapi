@@ -5,7 +5,6 @@ use Fhaculty\Graph\GraphViz;
 use Fhaculty\Graph\Vertex;
 use Fhaculty\Graph\Uml\ClassDiagramBuilder;
 use Drupal\graphapi\Plugin\Filter\FilterTrivialGraphFormat;
-use Drupal\graphapi\Plugin\Filter\FilterClassDiagram;
 
 /**
  * @file
@@ -904,48 +903,6 @@ function graphapi_render($graph, $options = array()) {
   return $result;
 }
 
-function graphapi_uml_class_diagram(array $classes = array(), array $config = array()) {
-  graphapi_loader();
-
-  $options = array(
-    'script' => $config['generate-script'],
-    'render' => $config['generate-image'],
-  );
-  unset($config['generate-script']);
-  unset($config['generate-image']);
-
-  //_graphapi_class_services();
-//  $cid = _graphapi_class_get_cid($classes, $script_only);
-//  if ($o = _graphapi_class_get_cache($cid)) {
-//    return $o->data;
-//  }
-  $result = array();
-
-  $g = new Graph();
-  $loader = new ClassDiagramBuilder($g);
-  foreach ($config as $option => $value) {
-    $loader->setOption($option, $value);
-  }
-  try {
-    foreach ($classes as $class) {
-      $loader->createVertexClass($class);
-    }
-  }
-  catch (Exception $exc) {
-    return $exc->getMessage();
-  }
-
-  $render_options = array(
-    'graphapi' => $options,
-  );
-  foreach ($loader->createGraphsComponents() as $graph) {
-    $result[] = graphapi_render($graph, $render_options);
-  }
-  $total = join("<hr />", $result);
-  //_graphapi_class_cache_set($cid, $total);
-  return $total;
-}
-
 /**
  * Implements hook_help().
  */
@@ -958,8 +915,6 @@ function graphapi_help($path, $arg) {
     $output .= '<dl>';
     $output .= '<dt>' . t('Using input filter Trivial Graph Format') . '</dt>';
     $output .= '<dd>' . FilterTrivialGraphFormat::help(TRUE) . '</dd>';
-    $output .= '<dt>' . t('Using input filter Class Diagram') . '</dt>';
-    $output .= '<dd>' . FilterClassDiagram::help(TRUE) . '</dd>';
     $output .= '</dl>';
     return $output;
   }

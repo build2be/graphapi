@@ -4,6 +4,7 @@ use Fhaculty\Graph\Uml\ClassDiagramBuilder;
 use Fhaculty\Graph\GraphViz;
 use Fhaculty\Graph\Graph;
 use Symfony\Component\Finder\Finder;
+use Drupal\graphapi_class\Plugin\Filter\FilterTrivialGraphFormat;
 
 /**
  * Implements hook_menu().
@@ -359,4 +360,21 @@ function graphapi_classes_get_all() {
     }
   }
   return $classes;
+}
+
+/**
+ * Implements hook_help().
+ */
+function graphapi_class_help($path, $arg) {
+  if ($path == 'admin/help#graphapi_class') {
+    $output = '';
+    $output .= '<h3>' . t('About') . '</h3>';
+    $output .= '<p>' . t('The Graph API sub module graphapi_class generates UML Diagrams') . '</p>';
+    $output .= '<h3>' . t('Uses') . '</h3>';
+    $output .= '<dl>';
+    $output .= '<dt>' . t('Using input filter Class Diagram') . '</dt>';
+    $output .= '<dd>' . 'FilterTrivialGraphFormat::help(TRUE)' . '</dd>';
+    $output .= '</dl>';
+    return $output;
+  }
 }
