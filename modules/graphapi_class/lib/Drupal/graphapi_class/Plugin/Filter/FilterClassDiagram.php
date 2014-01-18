@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\graphapi\Plugin\Filter\FilterClassDiagram.
+ * Contains \Drupal\graphapi_class\Plugin\Filter\FilterClassDiagram.
  */
 
-namespace Drupal\graphapi\Plugin\Filter;
+namespace Drupal\graphapi_class\Plugin\Filter;
 
 use Drupal\filter\Plugin\FilterBase;
 
@@ -14,7 +14,7 @@ use Drupal\filter\Plugin\FilterBase;
  *
  * @Filter(
  *   id = "filter_classdiagram",
- *   module = "graphapi",
+ *   module = "graphapi_class",
  *   title = @Translation("UML Class Diagram"),
  *   type = FILTER_TYPE_TRANSFORM_IRREVERSIBLE,
  *   weight = -10
@@ -72,7 +72,7 @@ class FilterClassDiagram extends FilterBase {
       $metas = theme('item_list', array('items' => $items, 'title' => 'Optional configurations are'));
 
       return 'Generate an UML Class Diagram by adding a list of \\ started package + class paths <br/>'
-          . '<code>[classdiagram<br/>\Drupal\graphapi\Plugin\Filter\FilterClassDiagram<br/>]</code><br/>'
+          . '<code>[classdiagram<br/>\Drupal\graphapi_class\Plugin\Filter\FilterClassDiagram<br/>]</code><br/>'
           . $metas
       ;
     }
@@ -126,7 +126,7 @@ class FilterClassDiagram extends FilterBase {
 
   function replace() {
     if ($this->start != $this->end) {
-      $diagram = graphapi_uml_class_diagram($this->names, $this->meta);
+      $diagram = graphapi_class_build_class($this->names, $this->meta);
       $this->text = substr($this->text, 0, $this->start) . $diagram . substr($this->text, $this->end + 1);
     }
   }

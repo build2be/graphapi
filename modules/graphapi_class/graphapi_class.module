@@ -90,13 +90,13 @@ function graphapi_class_loader() {
   graphapi_loader();
 
   class graphapi_entity_view extends Drupal\views\Entity\View {
-    
+
   }
 
   ;
 
   class graphapi_entity_user extends Drupal\user\Entity\User {
-    
+
   }
 
   ;
@@ -126,13 +126,13 @@ function graphapi_class_loader() {
   if (module_exists('simpletest')) {
 
     class graphapi_class_A extends Drupal\simpletest\UnitTestBase {
-      
+
     }
 
     new graphapi_class_A();
 
     class graphapi_class_B extends Drupal\simpletest\DrupalUnitTestBase {
-      
+
     }
 
     new graphapi_class_B();
@@ -172,24 +172,32 @@ function _graphapi_class_services() {
   return array_keys($classes);
 }
 
-/**
- * Build graph(s) for given class list.
- *
- * @param array $classes
- * @param boolean $script_only
- * @return type
- */
-function graphapi_class_build(array $classes = array()) {
+function graphapi_class_build_class(array $classes = array(), array $config = array()) {
   graphapi_loader();
-  //_graphapi_class_services();
-  $cid = _graphapi_class_get_cid($classes);
-  if ($o = _graphapi_class_get_cache($cid)) {
-    return $o->data;
-  }
+
+  $config += array(
+    'generate-script' => FALSE,
+    'generate-image' => TRUE,
+//    'type' => 'svg',
+  );
+  $options = array(
+    'script' => $config['generate-script'],
+    'render' => $config['generate-image'],
+  );
+  unset($config['generate-script']);
+  unset($config['generate-image']);
+
+//  $cid = _graphapi_class_get_cid($classes, $script_only);
+//  if ($o = _graphapi_class_get_cache($cid)) {
+//    return $o->data;
+//  }
   $result = array();
 
   $g = new Graph();
   $loader = new ClassDiagramBuilder($g);
+  foreach ($config as $option => $value) {
+    $loader->setOption($option, $value);
+  }
   // Reduce output.
   //$loader->setOption('only-self', TRUE);
   //$loader->setOption('only-public', TRUE);
@@ -203,19 +211,21 @@ function graphapi_class_build(array $classes = array()) {
     return $exc->getMessage();
   }
 
+  $render_options = array(
+    'graphapi' => $options,
+  );
+//    $options = array(
+//      'graphapi' => array(
+//        'script' => FALSE,
+//        'render' => TRUE,
+//      )
+//    );
   foreach ($loader->createGraphsComponents() as $graph) {
-    $options = array(
-      'graphapi' => array(
-        'script' => FALSE,
-        'render' => TRUE,
-      )
-    );
-    $result[] = graphapi_render($graph, $options);
+    $result[] = graphapi_render($graph, $render_options);
   }
-  $result = join("<hr />", $result);
-
-//  _graphapi_class_cache_set($cid, $result);
-  return $result;
+  $total = join("<hr />", $result);
+  //_graphapi_class_cache_set($cid, $total);
+  return $total;
 }
 
 function graphapi_class_cron() {
@@ -280,7 +290,7 @@ function graphapi_class_generator_worker($item) {
   $path = 'public://' . $item['path'] . '.html';
 
   watchdog('graphapi_class', 'Processing: for ' . $path);
-  $result = graphapi_class_build($classes);
+  $result = graphapi_class_build_class($classes);
 
   $cid = _graphapi_class_get_cid($classes);
   _graphapi_class_cache_set($cid, $result);
