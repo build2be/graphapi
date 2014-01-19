@@ -184,6 +184,7 @@ function _graphapi_class_generate_run() {
   graphapi_loader();
   $queue = Drupal::queue('graphapi_class_generator');
   $classes = graphapi_classes_get_all();
+  watchdog('graphapi_class', 'Scheduling for %count classes and interfaces', array('%count' => count($classes)));
   $queue->createItem(array(
     'classes' => $classes,
     'path' => 'core/blob',
@@ -199,7 +200,6 @@ function _graphapi_class_generate_run() {
         'class' => $class,
         'path' => $path,
       );
-      watchdog('graphapi_class', 'Queued: ' . $class);
       $queue->createItem($graph);
     }
   }
@@ -231,7 +231,6 @@ function graphapi_class_generator_worker($item) {
   }
   $path = 'public://' . $item['path'] . '.html';
 
-  watchdog('graphapi_class', 'Processing: for ' . $path);
   $result = graphapi_class_build_class($classes);
 
   $cid = _graphapi_class_get_cid($classes);
@@ -245,61 +244,55 @@ function graphapi_classes_get_all() {
   $loader = drupal_classloader();
   // Directories to look for
   $prefixes = $loader->getPrefixes();
-  $result = '';
-
-  $all = array();
-  foreach ($prefixes as $prefix => $dirs) {
-    foreach ($dirs as $dir) {
-      $result.= "$prefix : $dir \n";
-      if (strpos($prefix, 'Drupal') !== 0) {
-        continue;
-      }
-      if ($prefix == 'Drupal\Driver') {
-        continue;
-      }
-      if ($prefix == 'Drupal\bartik') {
-        continue;
-      }
-      if ($prefix == 'Drupal\seven') {
-        continue;
-      }
-      if ($prefix == 'Drupal\bartik') {
-        continue;
-      }
-      $all[] = $dir;
-    }
-  }
-
-  // @see http://symfony.com/doc/current/components/finder.html
-  $class_finder = new Finder();
 
   $root = $_SERVER["DOCUMENT_ROOT"];
   $classes = array();
-  $class_finder->files()->name('*.php')->in($all);
-//  $num = 10;
-  foreach ($class_finder as $file) {
-//    if ($num-- < 0) {
-//      break;
-//    }
-    try {
-      // Print the absolute path
-      //print $file->getRealpath() . "\n";
-      // Print the relative path to the file, omitting the filename
-      //print $file->getRelativePath() . "\n";
-      // Print the relative path to the file
-      //print $file->getRelativePathname() . "\n";
-      $class = $file->getRelativePathname();
-      $path = str_replace($root, '', $file->getRealPath());
-      //$path = str_replace($class, '', $path);
-      // TODO: path from site root.
-      $classes[$path] = $class;
 
-      //break;
+  $skip_prefixes = array(
+    'Zend',
+    'Symfony',
+  );
+  foreach ($prefixes as $prefix => $dirs) {
+    $skip = FALSE;
+    foreach ($skip_prefixes as $test_prefix) {
+      if (strpos($prefix, $test_prefix) === 0) {
+        $skip = TRUE;
+      }
     }
-    catch (Exception $exc) {
-      echo $exc->getTraceAsString();
+    if ($skip) {
+      watchdog('graphapi_class', "Skipping for %prefix", array('%prefix' => $prefix), WATCHDOG_NOTICE);
+      continue;
+    }
+
+//    if (strpos($prefix, 'Drupal') !== 0) {
+//      watchdog('graphapi_class', "Skipping for %prefix", array('%prefix' => $prefix), WATCHDOG_NOTICE);
+//      //continue;
+//    }
+    foreach ($dirs as $dir) {
+
+      $class_finder = new Finder();
+      try {
+        // @see http://symfony.com/doc/current/components/finder.html
+        // We scan each directory individually due to
+        // - https://drupal.org/node/2176683 : We register invalid components to composer.json and in other ways
+        $class_finder->files()->name('*.php')->in($dir);
+      }
+      catch (Exception $exc) {
+        watchdog('graphapi_class', "Skipping invalid directory %dir for for $prefix", array('%prefix' => $prefix, '%dir' => $dir), WATCHDOG_WARNING);
+        continue;
+      }
+      foreach ($class_finder as $file) {
+        // Path relative to it's scan dir
+        $class = $file->getRelativePathname();
+        $real_path = $file->getRealPath();
+        $path = str_replace($root, '', $real_path);
+        $classes[$path] = $class;
+      }
     }
   }
+
+  watchdog('graphapi_class', "Found %count classes and interfaces", array('%count' => count($classes)), WATCHDOG_INFO);
+
   return $classes;
 }
 
