@@ -29,7 +29,7 @@ function graphapi_class_form($form, &$form_state) {
   }
   $types = array_combine($types, $types);
   ksort($types);
-  graphapi_class_loader();
+  graphapi_loader();
   $classes = get_declared_classes();
   asort($classes);
   $classes = array_combine($classes, $classes);
@@ -79,65 +79,6 @@ function graphapi_class_form_submit(&$form, &$form_state) {
     $options,
   );
   drupal_redirect_form($form_state);
-}
-
-/**
- * Load more Classes.
- *
- * TODO: This is hacky.
- *   Is there a better way to load ALL class definitions?
- */
-function graphapi_class_loader() {
-  graphapi_loader();
-
-  class graphapi_entity_view extends Drupal\views\Entity\View {
-
-  }
-
-  ;
-
-  class graphapi_entity_user extends Drupal\user\Entity\User {
-
-  }
-
-  ;
-
-  //new ClassDiagramBuilder();
-  $gviz = new GraphViz($g = new Graph);
-  $v = $g->createVertex('a');
-  $g->createVertex()->createEdge($v);
-  $g->createVertex()->createEdgeTo($v);
-
-  $functions = array(
-    'views_get_all_views' => FALSE,
-    'simpletest_classloader_register' => FALSE,
-    'simpletest_phpunit_get_available_tests' => FALSE,
-  );
-  Drupal::queue('graphapi_class_generator');
-  $classes = array();
-  foreach ($functions as $function => $factory) {
-    if (function_exists($function)) {
-      $result = $function();
-      if ($factory) {
-        $classes = array_merge($classes, $factory($result));
-      }
-    }
-  }
-
-  if (module_exists('simpletest')) {
-
-    class graphapi_class_A extends Drupal\simpletest\UnitTestBase {
-
-    }
-
-    new graphapi_class_A();
-
-    class graphapi_class_B extends Drupal\simpletest\DrupalUnitTestBase {
-
-    }
-
-    new graphapi_class_B();
-  }
 }
 
 function _graphapi_class_get_cid(array $classes) {
