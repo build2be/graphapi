@@ -16,7 +16,7 @@ use Drupal\filter\Plugin\FilterBase;
  *   id = "filter_tgf",
  *   module = "graphapi",
  *   title = @Translation("Trivial Graph Format"),
- *   type = FILTER_TYPE_TRANSFORM_IRREVERSIBLE,
+ *   type = Drupal\filter\Plugin\FilterInterface::TYPE_TRANSFORM_IRREVERSIBLE,
  *   settings = {
  *     "formats" = "",
  *     "filter_html_help" = 1,
