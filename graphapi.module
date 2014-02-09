@@ -30,9 +30,8 @@ function graphapi_menu() {
     'admin/config/system/graphapi' => array(
       'title' => 'Graph API',
       'description' => 'Overview of Graph API and its supporting engines.',
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('graphapi_engines_form'),
-      'route_name' => 'graphapi.overview_forms'
+      'route_name' => 'graphapi.overview_forms',
+      'weight' => 10,
     ),
     'admin/config/system/graphapi/engines' => array(
       'title' => 'Engine forms overview',

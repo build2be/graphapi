@@ -33,8 +33,8 @@ class SettingsForm extends ConfigFormBase {
    * @param \Drupal\Core\Config\Context\ContextInterface $context
    *   The configuration context used for this configuration object.
    */
-  public function __construct(ConfigFactory $config_factory, ContextInterface $context) {
-    parent::__construct($config_factory, $context);
+  public function __construct(ConfigFactory $config_factory) {
+    parent::__construct($config_factory);
 
   }
 
@@ -43,8 +43,7 @@ class SettingsForm extends ConfigFormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('config.factory'),
-      $container->get('config.context.free')
+      $container->get('config.factory')
     );
   }
 
