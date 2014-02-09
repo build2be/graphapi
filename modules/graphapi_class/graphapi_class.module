@@ -14,9 +14,8 @@ function graphapi_class_menu() {
     'title' => 'UML Diagrams',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('graphapi_class_form'),
+    'route_name' => 'graphapi_class.select',
     'access arguments' => array('access devel information'),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 100,
   );
   return $items;
 }
@@ -81,13 +80,17 @@ function graphapi_class_form_submit(&$form, &$form_state) {
   drupal_redirect_form($form_state);
 }
 
-function _graphapi_class_get_cid(array $classes, array $options = array()) {
-  // Make unique entries
-  $classes = array_flip($classes);
-  $classes = array_keys($classes);
-  // Sort for hash
-  asort($classes);
-  $cid = __FUNCTION__ . '-' . join("-", $classes);
+/**
+ * Generate a hopefully consistent cache id
+ *
+ * We assume $item when recursive is properly sorted
+ *
+ * @param array $item
+ * @return string
+ */
+function _graphapi_class_get_cid(array $item) {
+  ksort($item);
+  $cid = serialize($item);
   $cid = md5($cid);
   return $cid;
 }
@@ -144,9 +147,23 @@ function graphapi_class_build_class(array $classes = array(), array $config = ar
   //$loader->setOption('only-self', TRUE);
   //$loader->setOption('only-public', TRUE);
   //$loader->setOption('show-constants', FALSE);
+  $messages[] = array();
   try {
+    $i=0;
     foreach ($classes as $class) {
-      $loader->createVertexClass($class);
+      if ($i++ % 100 == 0) {
+        watchdog("graphapi_class", "Progressing to $i items.");
+      }
+      // Do not try to add an already added class (through reflection)
+      if (!$g->hasVertex($class)) {
+        try {
+          $loader->createVertexClass($class);
+        }
+        catch (Exception $exc) {
+          $message = $exc->getMessage();
+          $messages[$class] = $message;
+        }
+      }
     }
   }
   catch (Exception $exc) {
@@ -183,26 +200,35 @@ function graphapi_class_cron() {
 function _graphapi_class_generate_run() {
   graphapi_loader();
   $queue = Drupal::queue('graphapi_class_generator');
-  $classes = graphapi_classes_get_all();
-  watchdog('graphapi_class', 'Scheduling for %count classes and interfaces', array('%count' => count($classes)));
+  $classes = graphapi_class_get_all();
+  $count = count($classes);
+  $scheduled = 0;
+  $options = array(
+    'add-parents' => 1,
+  );
+
   $queue->createItem(array(
     'classes' => $classes,
     'path' => 'core/blob',
+    'options' => $options,
   ));
   foreach ($classes as $path => $file) {
     $class = str_replace('/', '\\', $file);
     $class = str_replace('.php', '', $class);
-    $cid = _graphapi_class_get_cid(array($class));
+    $item = array(
+      'classes' => array($class),
+      'path' => $path,
+      'options' => $options,
+    );
+
+    $cid = _graphapi_class_get_cid($item);
     $cached_item = _graphapi_class_get_cache($cid);
     if ($cached_item === FALSE) {
-      // Only when not cached already
-      $graph = array(
-        'class' => $class,
-        'path' => $path,
-      );
-      $queue->createItem($graph);
+      $scheduled++;
+      $queue->createItem($item);
     }
   }
+  watchdog('graphapi_class', 'Scheduled %scheduled out of %count classes and interfaces.', array('%scheduled' => $scheduled, '%count' => $count));
 }
 
 /**
@@ -231,7 +257,9 @@ function graphapi_class_generator_worker($item) {
   }
   $path = 'public://' . $item['path'] . '.html';
 
-  $result = graphapi_class_build_class($classes);
+  $options = $item['options'];
+
+  $result = graphapi_class_build_class($classes, $options);
 
   $cid = _graphapi_class_get_cid($classes);
   _graphapi_class_cache_set($cid, $result);
@@ -240,17 +268,25 @@ function graphapi_class_generator_worker($item) {
   file_put_contents($path, $result);
 }
 
-function graphapi_classes_get_all() {
+function graphapi_class_get_all() {
+  static $classes;
+  if (!isset($classes)) {
+    $classes = &drupal_static(__FUNCTION__, array());
+  }
+  else {
+    return $classes;
+  }
+  graphapi_loader();
   $loader = drupal_classloader();
   // Directories to look for
   $prefixes = $loader->getPrefixes();
 
   $root = $_SERVER["DOCUMENT_ROOT"];
-  $classes = array();
 
   $skip_prefixes = array(
     'Zend',
     'Symfony',
+    'Twig', // Generates error: Class Twig/Autoloader.php does not exist
   );
   foreach ($prefixes as $prefix => $dirs) {
     $skip = FALSE;
@@ -260,14 +296,10 @@ function graphapi_classes_get_all() {
       }
     }
     if ($skip) {
-      watchdog('graphapi_class', "Skipping by code setting for %prefix", array('%prefix' => $prefix), WATCHDOG_NOTICE);
+      watchdog('graphapi_class', "Skipping from exclude listfor '%prefix'", array('%prefix' => $prefix), WATCHDOG_NOTICE);
       continue;
     }
 
-//    if (strpos($prefix, 'Drupal') !== 0) {
-//      watchdog('graphapi_class', "Skipping for %prefix", array('%prefix' => $prefix), WATCHDOG_NOTICE);
-//      //continue;
-//    }
     foreach ($dirs as $dir) {
 
       $class_finder = new Finder();
@@ -278,14 +310,17 @@ function graphapi_classes_get_all() {
         $class_finder->files()->name('*.php')->in($dir);
       }
       catch (Exception $exc) {
-        watchdog('graphapi_class', "Skipping invalid directory %dir for for $prefix", array('%prefix' => $prefix, '%dir' => $dir), WATCHDOG_WARNING);
+        watchdog('graphapi_class', "Exception while scanning for '%prefix' directory '%dir'", array('%prefix' => $prefix, '%dir' => $dir), WATCHDOG_WARNING);
         continue;
       }
       foreach ($class_finder as $file) {
         // Path relative to it's scan dir
-        $class = $file->getRelativePathname();
         $real_path = $file->getRealPath();
         $path = str_replace($root, '', $real_path);
+        $class = $file->getRelativePathname();
+        // scrub .php and toggle /
+        $class = preg_replace("/.php$/", '', $class);
+        $class = str_replace('/', '\\', $class);
         $classes[$path] = $class;
       }
     }
