@@ -117,6 +117,26 @@ function _graphapi_class_services() {
   return array_keys($classes);
 }
 
+/**
+ * Generates a UML CLass Diagram for the given format.
+ *
+ * @param array $classes
+ *   List of class and interface names
+ * @param array $config
+ *   Settings for both builder as the rendering
+ *     generate-script : the dot textual output
+ *     generate-image: generate and svg or other image format
+ *     only-self : see ClassDiagramBuilder for more info
+ *     only-public : see ClassDiagramBuilder
+ *     show-constants : see ClassDiagramBuilder
+ *     add-parents : see ClassDiagramBuilder
+ *
+ * @return string
+ *   The output is rendered as a group of classes seperated by a HR
+ *   TODO: is a HR the best seperation.
+ *
+ * @see ClassDiagramBuilder
+ */
 function graphapi_class_build_class(array $classes = array(), array $config = array()) {
   graphapi_loader();
 

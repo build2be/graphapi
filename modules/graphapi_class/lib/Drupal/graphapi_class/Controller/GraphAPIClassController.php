@@ -8,7 +8,6 @@
 namespace Drupal\graphapi_class\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
-use Fhaculty\Graph\Graph;
 
 /**
  * Returns responses for devel module routes.
