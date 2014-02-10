@@ -2,26 +2,34 @@
 
 This API for managing Graph data and rendering these by internal or external engines.
 
-This Drupal 8 version needs a composer update ran in the module root.
+Graph API used PHP libraries from various places. These dependencies must be
+installed manually for the time being.
 
-$ cd graphapi
-$ drush dl composer
-$ drush composer update
+This Drupal 8 version needs a composer install ran from the modules directoy.
+
+  $ cd graphapi
+  $ composer install --no-dev
+
+If you do not have composer installed follow the instruction on https://getcomposer.org/
 
 # GraphViz executable
 
 In order to generate PNG or SVG output your must make sure the graphviz
 executable is available.
 
-- check for the path to the dot executable
-  - $ which dot
-- admin/config/system/graphapi
-  - select Graph API settings
-- visit /admin/config/system/graphapi/settings
-  - fill in the path to the dot executable ie : /usr/local/bin/dot
+Check for the path to the dot executable
+
+  $ which dot
+
+Visit admin/config/system/graphapi:
+
+- Select Graph API settings
+- Visit /admin/config/system/graphapi/settings
+  - Fill in the path to the dot executable ie : /usr/local/bin/dot
 
 # Test your configuration
 
-- visit admin/config/system/graphapi
-- select Graph API Formats
-  - check the output of all available formats
+Visit admin/config/system/graphapi
+
+- Select Graph API Formats
+  - Check the output of all available formats

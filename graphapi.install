@@ -6,13 +6,15 @@ function graphapi_requirements($phase) {
   // Report Drupal version
   if ($phase == 'runtime') {
     $requirements['graphapi'] = array(
-      'title' => t('clue/graph'),
-      'value' => 'Available',
+      'title' => t('Graph API rendering'),
+      'value' => 'Found the clue/graph library.',
       'severity' => REQUIREMENT_INFO,
     );
-    $path = 'sites/all/libraries/graph';
-    if (!is_dir($path) || !file_exists("$path/composer.json")) {
-      $requirements['graphapi']['description'] = t('Please install !link into sites/all/libraries/graph. Make sure the location of composer.json is sites/all/libraries/graph/composer.json', array('!link' => l("clue/graph", "https://github.com/clue/graph")));
+    // As this is a runtime check it's safe to invoke.
+    graphapi_loader();
+    if (!class_exists('\\Fhaculty\\Graph\\GraphViz')) {
+      $path = drupal_get_path('module', 'graphapi');
+      $requirements['graphapi']['description'] = t('Please follow the instructions from !readme', array('!readme' => l("README.txt", $path . "/README.txt")));
       $requirements['graphapi']['value'] = 'Missing';
       $requirements['graphapi']['severity'] = REQUIREMENT_ERROR;
     }
