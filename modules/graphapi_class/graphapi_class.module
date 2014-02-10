@@ -227,14 +227,7 @@ function _graphapi_class_generate_run() {
     'add-parents' => 1,
   );
 
-  $queue->createItem(array(
-    'classes' => $classes,
-    'path' => 'core/blob',
-    'options' => $options,
-  ));
-  foreach ($classes as $path => $file) {
-    $class = str_replace('/', '\\', $file);
-    $class = str_replace('.php', '', $class);
+  foreach ($classes as $path => $class) {
     $item = array(
       'classes' => array($class),
       'path' => $path,
@@ -269,13 +262,14 @@ function graphapi_class_queue_info() {
  * Queue worker callback.
  */
 function graphapi_class_generator_worker($item) {
+  $path_prefix = "graphapi/uml/classdiagrams/";
   if (isset($item['classes'])) {
     $classes = $item['classes'];
   }
   else {
     $classes = array($item['class']);
   }
-  $path = 'public://' . $item['path'] . '.html';
+  $path = 'public://' . $path_prefix . $item['path'] . '.html';
 
   $options = $item['options'];
 
