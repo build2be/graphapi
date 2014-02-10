@@ -30,7 +30,7 @@ function graphapi_menu() {
     'admin/config/system/graphapi' => array(
       'title' => 'Graph API',
       'description' => 'Overview of Graph API and its supporting engines.',
-      'route_name' => 'graphapi.overview_forms',
+      'route_name' => 'graphapi.overview',
       'weight' => 10,
     ),
     'admin/config/system/graphapi/engines' => array(
@@ -910,6 +910,8 @@ function graphapi_help($path, $arg) {
     $output = '';
     $output .= '<h3>' . t('About') . '</h3>';
     $output .= '<p>' . t('The Graph API module interfaces and creates Graphs') . '</p>';
+    $output .= '<h3>' . t('Configuration') . '</h3>';
+    $output .= '<p>' . t('Visit !link to check the configuration for Graph API and its sub modules.', array('!link' => l('Graph API configuration', 'admin/config/system/graphapi'))) . '</p>';
     $output .= '<h3>' . t('Uses') . '</h3>';
     $output .= '<dl>';
     $output .= '<dt>' . t('Using input filter Trivial Graph Format') . '</dt>';

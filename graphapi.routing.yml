@@ -1,4 +1,4 @@
-graphapi.overview_forms:
+graphapi.overview:
   path: '/admin/config/system/graphapi'
   defaults:
     _content: '\Drupal\graphapi\Controller\GraphAPIController::settings'
