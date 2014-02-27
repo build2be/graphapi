@@ -16,6 +16,7 @@ use Drupal\filter\Plugin\FilterBase;
  *   id = "filter_classdiagram",
  *   module = "graphapi_class",
  *   title = @Translation("UML Class Diagram"),
+ *   description = @Translation("Renders any class or interface used on the site."),
  *   type = Drupal\filter\Plugin\FilterInterface::TYPE_TRANSFORM_IRREVERSIBLE,
  *   weight = -10
  * )
