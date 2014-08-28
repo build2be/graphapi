@@ -1,7 +1,0 @@
-graphapi_class.select:
-  path: '/admin/config/system/graphapi/uml'
-  defaults:
-    _content: '\Drupal\graphapi_class\Controller\GraphAPIClassController::listAll'
-    _title: 'Graph API Class'
-  requirements:
-    _permission: 'administer site configuration'
