@@ -5,10 +5,23 @@
  * Implements views_plugin_style for graphapi
  */
 
+namespace Drupal\graphapi\Plugin\views\style;
+use Drupal\views\Plugin\views\style\StylePluginBase;
+
 /**
- * Implements views_plugin_style
+ * Style plugin to render each item in an ordered or unordered list.
+ *
+ * @ingroup views_style_plugins
+ *
+ * @ViewsStyle(
+ *   id = "graphapi_style",
+ *   title = @Translation("Graph API"),
+ *   help = @Translation("Displays a visual graph."),
+ *   theme = "views_graphapi_style_graphapi",
+ *   display_types = {"normal"}
+ * )
  */
-class views_plugin_style_graphapi extends views_plugin_style {
+class GraphApi extends StylePluginBase {
 
   private $graph_fields = array(
     'from' => array(
